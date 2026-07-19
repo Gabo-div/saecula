@@ -2,7 +2,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
 import { Text, View, XStack } from 'tamagui';
 
-import { colors, serif } from '@/theme/colors';
+import { useAppTheme } from '@/store/themeStore';
+import { serif } from '@/theme/colors';
 import { useAuthStore } from '@/store/authStore';
 
 type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
@@ -14,20 +15,21 @@ export function HeaderIconButton({
   icon: IconName;
   onPress?: () => void;
 }) {
+  const c = useAppTheme();
   return (
     <View
       width={40}
       height={40}
       rounded={20}
-      bg="rgba(0,0,0,0.45)"
+      bg={c.chip}
       borderWidth={1}
-      borderColor={colors.border}
+      borderColor={c.border}
       items="center"
       justify="center"
       onPress={onPress}
       pressStyle={{ opacity: 0.7 }}
     >
-      <MaterialCommunityIcons name={icon} size={18} color={colors.gold} />
+      <MaterialCommunityIcons name={icon} size={18} color={c.accent} />
     </View>
   );
 }
@@ -41,6 +43,7 @@ export function ScreenHeader({
   right?: React.ReactNode;
 }) {
   const email = useAuthStore((s) => s.user?.email ?? 'S');
+  const c = useAppTheme();
   const initial = email.charAt(0).toUpperCase();
 
   return (
@@ -49,18 +52,18 @@ export function ScreenHeader({
         width={44}
         height={44}
         rounded={22}
-        bg={colors.bgElevated}
+        bg={c.bgElevated}
         borderWidth={2}
-        borderColor={colors.gold}
+        borderColor={c.accent}
         items="center"
         justify="center"
       >
-        <Text color={colors.gold} fontWeight="700" fontSize={18}>
+        <Text color={c.accent} fontWeight="700" fontSize={18}>
           {initial}
         </Text>
       </View>
       <Text
-        color={colors.gold}
+        color={c.accent}
         fontFamily={serif}
         fontSize={17}
         letterSpacing={3}

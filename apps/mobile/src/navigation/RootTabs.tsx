@@ -10,7 +10,7 @@ import { HomeScreen } from '@/screens/HomeScreen';
 import { ProfileScreen } from '@/screens/ProfileScreen';
 import { SaintsScreen } from '@/screens/SaintsScreen';
 import { SettingsScreen } from '@/screens/SettingsScreen';
-import { colors } from '@/theme/colors';
+import { useAppTheme } from '@/store/themeStore';
 
 export type RootTabParamList = {
   Home: undefined;
@@ -40,9 +40,10 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 
 function ProfileStackNavigator() {
+  const c = useAppTheme();
   return (
     <ProfileStack.Navigator
-      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}
+      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.bg } }}
     >
       <ProfileStack.Screen name="ProfileHome" component={ProfileScreen} />
       <ProfileStack.Screen name="Settings" component={SettingsScreen} />
@@ -52,16 +53,17 @@ function ProfileStackNavigator() {
 
 export function RootTabs() {
   const { t } = useTranslation();
+  const c = useAppTheme();
 
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: colors.gold,
-        tabBarInactiveTintColor: colors.textMuted,
+        tabBarActiveTintColor: c.accent,
+        tabBarInactiveTintColor: c.muted,
         tabBarStyle: {
-          backgroundColor: colors.bg,
-          borderTopColor: colors.border,
+          backgroundColor: c.bg,
+          borderTopColor: c.border,
           borderTopWidth: 1,
         },
         tabBarLabelStyle: { fontSize: 11 },

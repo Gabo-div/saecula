@@ -50,6 +50,11 @@ const en: Translations = {
   },
   settings: {
     title: 'Settings',
+    theme: 'Theme',
+    dark: 'Dark',
+    amoled: 'AMOLED',
+    light: 'Light',
+    accent: 'Accent color',
     language: 'Language',
     translation: 'Bible translation',
     defaultTranslation: 'Default (per language)',
@@ -92,7 +97,17 @@ export interface Translations {
   saints: { title: string; comingTitle: string; comingBody: string };
   explore: { title: string; loadError: string; empty: string; noText: string };
   profile: { title: string; account: string; signOut: string };
-  settings: { title: string; language: string; translation: string; defaultTranslation: string };
+  settings: {
+    title: string;
+    theme: string;
+    dark: string;
+    amoled: string;
+    light: string;
+    accent: string;
+    language: string;
+    translation: string;
+    defaultTranslation: string;
+  };
   login: {
     email: string;
     password: string;

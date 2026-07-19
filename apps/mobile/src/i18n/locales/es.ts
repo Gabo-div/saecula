@@ -50,6 +50,11 @@ const es: typeof en = {
   },
   settings: {
     title: 'Ajustes',
+    theme: 'Tema',
+    dark: 'Oscuro',
+    amoled: 'AMOLED',
+    light: 'Claro',
+    accent: 'Color de acento',
     language: 'Idioma',
     translation: 'Traducción de la Biblia',
     defaultTranslation: 'Por defecto (según idioma)',

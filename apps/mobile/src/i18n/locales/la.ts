@@ -51,6 +51,11 @@ const la: typeof en = {
   },
   settings: {
     title: 'Optiones',
+    theme: 'Aspectus',
+    dark: 'Obscurum',
+    amoled: 'AMOLED',
+    light: 'Clarum',
+    accent: 'Color accentus',
     language: 'Lingua',
     translation: 'Versio Bibliae',
     defaultTranslation: 'Praedefinita (secundum linguam)',

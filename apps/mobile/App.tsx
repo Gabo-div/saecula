@@ -1,4 +1,4 @@
-import { DarkTheme, NavigationContainer } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -9,24 +9,14 @@ import { RootTabs } from '@/navigation/RootTabs';
 import { LoginScreen } from '@/screens/LoginScreen';
 import { useAuthStore } from '@/store/authStore';
 import { useLanguageStore } from '@/store/languageStore';
-import { colors } from '@/theme/colors';
+import { useAppTheme } from '@/store/themeStore';
 import { tamaguiConfig } from './tamagui.config';
 
-// The app is always dark: gold on umber, independent of the system scheme.
-const navigationTheme = {
-  ...DarkTheme,
-  colors: {
-    ...DarkTheme.colors,
-    primary: colors.gold,
-    background: colors.bg,
-    card: colors.bg,
-    text: colors.text,
-    border: colors.border,
-    notification: colors.burgundy,
-  },
-};
-
 export default function App() {
+  // Theme (mode + accent) comes from the persisted theme store; every
+  // color below follows it live.
+  const c = useAppTheme();
+
   // Subscribing to the token makes the app flip between screens on
   // login/logout (including automatic logout from the 401 interceptor).
   const token = useAuthStore((s) => s.token);
@@ -41,10 +31,24 @@ export default function App() {
     }
   }, [language]);
 
+  const isDark = c.mode !== 'light';
+  const navigationTheme = {
+    ...(isDark ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(isDark ? DarkTheme.colors : DefaultTheme.colors),
+      primary: c.accent,
+      background: c.bg,
+      card: c.bg,
+      text: c.text,
+      border: c.border,
+      notification: c.card,
+    },
+  };
+
   return (
     <SafeAreaProvider>
-      <TamaguiProvider config={tamaguiConfig} defaultTheme="dark">
-        <StatusBar style="light" />
+      <TamaguiProvider config={tamaguiConfig} defaultTheme={isDark ? 'dark' : 'light'}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
         {token && isAuthenticated() ? (
           <NavigationContainer theme={navigationTheme}>
             <RootTabs />

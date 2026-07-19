@@ -9,7 +9,8 @@ import { fetchBooks, fetchChapter, fetchTranslations } from '@/api/client';
 import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
 import { useLanguageStore } from '@/store/languageStore';
 import { useReaderStore } from '@/store/readerStore';
-import { colors, serif } from '@/theme/colors';
+import { useAppTheme } from '@/store/themeStore';
+import { serif } from '@/theme/colors';
 import type { Book, ChapterResponse, Translation } from '@/types/api';
 
 // ---------------------------------------------------------------------------
@@ -32,6 +33,7 @@ function BookPicker({
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const { translationId, setLocation, setTranslation } = useReaderStore();
+  const c = useAppTheme();
 
   const [step, setStep] = useState<PickerStep>('book');
   const [pickedBook, setPickedBook] = useState<Book | null>(null);
@@ -63,11 +65,11 @@ function BookPicker({
     <Modal visible={visible} animationType="slide" transparent onRequestClose={close}>
       <View flex={1} bg="rgba(0,0,0,0.6)" justify="flex-end">
         <YStack
-          bg={colors.bgElevated}
+          bg={c.bgElevated}
           borderTopLeftRadius={24}
           borderTopRightRadius={24}
           borderWidth={1}
-          borderColor={colors.border}
+          borderColor={c.border}
           maxH="85%"
           pb={insets.bottom + 8}
         >
@@ -76,27 +78,27 @@ function BookPicker({
               <MaterialCommunityIcons
                 name="chevron-left"
                 size={26}
-                color={colors.gold}
+                color={c.accent}
                 onPress={() => setStep('book')}
               />
             )}
-            <Text color={colors.cream} fontFamily={serif} fontSize={18} fontWeight="600">
+            <Text color={c.strong} fontFamily={serif} fontSize={18} fontWeight="600">
               {step === 'book'
                 ? t('bible.bookAndVersion')
                 : (pickedBook ? `${pickedBook.name} — ` : '') + t('bible.chapter')}
             </Text>
             <View ml="auto">
-              <MaterialCommunityIcons name="close" size={24} color={colors.textMuted} onPress={close} />
+              <MaterialCommunityIcons name="close" size={24} color={c.muted} onPress={close} />
             </View>
           </XStack>
-          <Separator borderColor={colors.border} />
+          <Separator borderColor={c.border} />
 
           {step === 'book' ? (
             <>
               {/* Version selector */}
               {translations.length > 0 && (
                 <YStack px="$4" py="$3" gap="$2">
-                  <Text color={colors.textMuted} fontSize={11} letterSpacing={2}>
+                  <Text color={c.muted} fontSize={11} letterSpacing={2}>
                     {t('bible.version').toUpperCase()}
                   </Text>
                   <XStack gap="$2" flexWrap="wrap">
@@ -109,13 +111,13 @@ function BookPicker({
                           px="$3"
                           py="$2"
                           rounded={18}
-                          bg={active ? colors.gold : 'transparent'}
+                          bg={active ? c.accent : 'transparent'}
                           borderWidth={1}
-                          borderColor={active ? colors.gold : colors.border}
+                          borderColor={active ? c.accent : c.border}
                           onPress={() => setTranslation(t.id)}
                           pressStyle={{ opacity: 0.7 }}
                         >
-                          <Text color={active ? colors.bg : colors.cream} fontSize={12}>
+                          <Text color={active ? c.bg : c.strong} fontSize={12}>
                             {t.id.replace(/_/g, ' ').toUpperCase()} · {t.language_code.toUpperCase()}
                           </Text>
                         </XStack>
@@ -124,7 +126,7 @@ function BookPicker({
                   </XStack>
                 </YStack>
               )}
-              <Separator borderColor={colors.border} />
+              <Separator borderColor={c.border} />
 
               <FlatList
                 data={rows}
@@ -135,7 +137,7 @@ function BookPicker({
                       px="$4"
                       pt="$4"
                       pb="$2"
-                      color={colors.gold}
+                      color={c.accent}
                       fontSize={11}
                       letterSpacing={2}
                       fontWeight="700"
@@ -151,12 +153,12 @@ function BookPicker({
                         setPickedBook(item.book);
                         setStep('chapter');
                       }}
-                      pressStyle={{ bg: colors.bg }}
+                      pressStyle={{ bg: c.bg }}
                     >
-                      <Text color={colors.cream} fontSize={15}>
+                      <Text color={c.strong} fontSize={15}>
                         {item.book.name}
                       </Text>
-                      <Text ml="auto" color={colors.textMuted} fontSize={12}>
+                      <Text ml="auto" color={c.muted} fontSize={12}>
                         {item.book.chapters} {t('bible.chaptersAbbr')}
                       </Text>
                     </XStack>
@@ -174,18 +176,18 @@ function BookPicker({
                       width={52}
                       height={52}
                       rounded={10}
-                      bg={colors.bg}
+                      bg={c.bg}
                       borderWidth={1}
-                      borderColor={colors.border}
+                      borderColor={c.border}
                       items="center"
                       justify="center"
                       onPress={() => {
                         setLocation(pickedBook.code, n);
                         close();
                       }}
-                      pressStyle={{ borderColor: colors.gold }}
+                      pressStyle={{ borderColor: c.accent }}
                     >
-                      <Text color={colors.cream} fontSize={15}>
+                      <Text color={c.strong} fontSize={15}>
                         {n}
                       </Text>
                     </View>
@@ -211,26 +213,28 @@ function FloatingNav({
   icon: 'chevron-left' | 'chevron-right';
   onPress: () => void;
 }) {
+  const c = useAppTheme();
   return (
     <View
       width={52}
       height={52}
       rounded={26}
-      bg="rgba(241,231,208,0.14)"
+      bg={c.chip}
       borderWidth={1}
-      borderColor={colors.border}
+      borderColor={c.border}
       items="center"
       justify="center"
       onPress={onPress}
       pressStyle={{ opacity: 0.7 }}
     >
-      <MaterialCommunityIcons name={icon} size={28} color={colors.cream} />
+      <MaterialCommunityIcons name={icon} size={28} color={c.strong} />
     </View>
   );
 }
 
 export function BibleScreen() {
   const insets = useSafeAreaInsets();
+  const c = useAppTheme();
   const { t } = useTranslation();
   const language = useLanguageStore((s) => s.language);
   const { bookCode, chapter, translationId, setLocation } = useReaderStore();
@@ -298,7 +302,7 @@ export function BibleScreen() {
       : '…';
 
   return (
-    <View flex={1} bg={colors.bg} pt={insets.top + 8}>
+    <View flex={1} bg={c.bg} pt={insets.top + 8}>
       <ScreenHeader title={t('bible.title')} />
 
       {/* Location chip + tools */}
@@ -309,16 +313,16 @@ export function BibleScreen() {
           px="$3"
           py="$2"
           rounded={20}
-          bg={colors.bgElevated}
+          bg={c.bgElevated}
           borderWidth={1}
-          borderColor={colors.border}
+          borderColor={c.border}
           onPress={() => setPickerOpen(true)}
-          pressStyle={{ borderColor: colors.gold }}
+          pressStyle={{ borderColor: c.accent }}
         >
-          <Text color={colors.cream} fontSize={14} fontWeight="600">
+          <Text color={c.strong} fontSize={14} fontWeight="600">
             {title}
           </Text>
-          <MaterialCommunityIcons name="chevron-down" size={18} color={colors.gold} />
+          <MaterialCommunityIcons name="chevron-down" size={18} color={c.accent} />
         </XStack>
         <XStack ml="auto" gap="$2">
           <HeaderIconButton icon="book-open-variant" onPress={() => setPickerOpen(true)} />
@@ -327,17 +331,17 @@ export function BibleScreen() {
         </XStack>
       </XStack>
 
-      <Separator borderColor={colors.border} mx="$4" />
+      <Separator borderColor={c.border} mx="$4" />
 
       {/* Verse text */}
       {loading && !content ? (
         <YStack flex={1} items="center" justify="center">
-          <Spinner size="large" color={colors.gold} />
+          <Spinner size="large" color={c.accent} />
         </YStack>
       ) : error ? (
         <YStack flex={1} items="center" justify="center" px="$6" gap="$3">
-          <MaterialCommunityIcons name="book-alert-outline" size={40} color={colors.textMuted} />
-          <Text color={colors.textMuted} text="center">
+          <MaterialCommunityIcons name="book-alert-outline" size={40} color={c.muted} />
+          <Text color={c.muted} text="center">
             {error}
           </Text>
         </YStack>
@@ -349,13 +353,13 @@ export function BibleScreen() {
           {content?.verses.map((verse) => (
             <Text
               key={verse.entity_id}
-              color={colors.text}
+              color={c.text}
               fontFamily={serif}
               fontSize={19}
               lineHeight={32}
               mb="$3"
             >
-              <Text color={colors.gold} fontSize={13} lineHeight={32}>
+              <Text color={c.accent} fontSize={13} lineHeight={32}>
                 {verse.number}{' '}
               </Text>
               {verse.text}

@@ -13,7 +13,8 @@ import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
 import type { RootTabParamList } from '@/navigation/RootTabs';
 import { useLanguageStore } from '@/store/languageStore';
 import { useReaderStore } from '@/store/readerStore';
-import { colors, serif } from '@/theme/colors';
+import { useAppTheme } from '@/store/themeStore';
+import { serif } from '@/theme/colors';
 import type { DailyVerseResponse } from '@/types/api';
 import { Image } from 'expo-image';
 
@@ -49,6 +50,7 @@ function QuickAction({
   label: string;
   onPress?: () => void;
 }) {
+  const c = useAppTheme();
   return (
     <YStack
       flex={1}
@@ -56,14 +58,14 @@ function QuickAction({
       gap="$2"
       py="$3"
       rounded="$6"
-      bg="rgba(0,0,0,0.45)"
+      bg={c.chip}
       borderWidth={1}
-      borderColor={colors.border}
+      borderColor={c.border}
       onPress={onPress}
       pressStyle={{ opacity: 0.7 }}
     >
-      <MaterialCommunityIcons name={icon} size={22} color={colors.gold} />
-      <Text color={colors.cream} fontSize={12}>
+      <MaterialCommunityIcons name={icon} size={22} color={c.accent} />
+      <Text color={c.strong} fontSize={12}>
         {label}
       </Text>
     </YStack>
@@ -74,6 +76,7 @@ type Props = BottomTabScreenProps<RootTabParamList, 'Home'>;
 
 export function HomeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const c = useAppTheme();
   const { t } = useTranslation();
   const language = useLanguageStore((s) => s.language);
   const setLocation = useReaderStore((s) => s.setLocation);
@@ -106,7 +109,7 @@ export function HomeScreen({ navigation }: Props) {
   };
 
   return (
-    <View flex={1} bg={colors.bg}>
+    <View flex={1} bg={c.bg}>
       <Image
         source={{
           uri: background,
@@ -120,14 +123,14 @@ export function HomeScreen({ navigation }: Props) {
         onError={(event) => console.error('Error loading background image:', event.error)}
       />
       <LinearGradient
-        colors={['rgba(18,16,10,0.35)', 'rgba(18,16,10,0.9)', 'rgba(18,16,10,1)']}
+        colors={c.overlay}
         locations={[0, 0.5, 1]}
         style={{ flex: 1 }}
       >
         <ScrollView
           contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: 24, flexGrow: 1 }}
           refreshControl={
-            <RefreshControl refreshing={loading} onRefresh={load} tintColor={colors.gold} />
+            <RefreshControl refreshing={loading} onRefresh={load} tintColor={c.accent} />
           }
         >
           <ScreenHeader
@@ -150,22 +153,22 @@ export function HomeScreen({ navigation }: Props) {
               px="$3"
               py="$2"
               rounded={20}
-              bg="rgba(0,0,0,0.5)"
+              bg={c.chip}
               borderWidth={1}
-              borderColor={colors.goldDim}
+              borderColor={c.accentDim}
             >
-              <MaterialCommunityIcons name="weather-sunny" size={14} color={colors.gold} />
-              <Text color={colors.gold} fontSize={11} letterSpacing={2} fontWeight="600">
+              <MaterialCommunityIcons name="weather-sunny" size={14} color={c.accent} />
+              <Text color={c.accent} fontSize={11} letterSpacing={2} fontWeight="600">
                 {t('home.dailyVerse').toUpperCase()}
               </Text>
             </XStack>
 
             {loading && !daily ? (
-              <Spinner size="large" color={colors.gold} />
+              <Spinner size="large" color={c.accent} />
             ) : (
               <>
                 <Text
-                  color={colors.cream}
+                  color={c.strong}
                   fontFamily={serif}
                   fontSize={20}
                   lineHeight={40}
@@ -173,7 +176,7 @@ export function HomeScreen({ navigation }: Props) {
                 >
                   {daily?.text?.text ?? '—'}
                 </Text>
-                <Text color={colors.gold} fontFamily={serif} fontSize={16}>
+                <Text color={c.accent} fontFamily={serif} fontSize={16}>
                   — {daily?.reference ?? ''}
                 </Text>
               </>
@@ -202,13 +205,13 @@ export function HomeScreen({ navigation }: Props) {
             mt="$4"
             p="$4"
             rounded="$8"
-            bg={colors.burgundy}
+            bg={c.card}
             gap="$2"
             onPress={openDailyInBible}
             pressStyle={{ opacity: 0.85 }}
           >
             <XStack items="center" gap="$2">
-              <Text color={colors.cream} fontSize={11} letterSpacing={2} fontWeight="700">
+              <Text color={c.onCard} fontSize={11} letterSpacing={2} fontWeight="700">
                 {t('home.todaysWord').toUpperCase()}
               </Text>
               <XStack
@@ -220,14 +223,14 @@ export function HomeScreen({ navigation }: Props) {
                 rounded={12}
                 bg="rgba(0,0,0,0.3)"
               >
-                <MaterialCommunityIcons name="book-open-variant" size={12} color={colors.cream} />
-                <Text color={colors.cream} fontSize={11}>
+                <MaterialCommunityIcons name="book-open-variant" size={12} color={c.onCard} />
+                <Text color={c.onCard} fontSize={11}>
                   {daily?.date ?? ''}
                 </Text>
               </XStack>
             </XStack>
 
-            <Text color={colors.cream} fontFamily={serif} fontSize={20} fontWeight="600">
+            <Text color={c.onCard} fontFamily={serif} fontSize={20} fontWeight="600">
               {daily ? `${daily.book_name} ${daily.chapter}` : t('home.dailyReading')}
             </Text>
 
@@ -236,16 +239,16 @@ export function HomeScreen({ navigation }: Props) {
                 width={36}
                 height={36}
                 rounded={18}
-                bg={colors.gold}
+                bg={c.accent}
                 items="center"
                 justify="center"
               >
-                <MaterialCommunityIcons name="play" size={20} color={colors.burgundy} />
+                <MaterialCommunityIcons name="play" size={20} color={c.card} />
               </View>
               <View flex={1} height={3} rounded={2} bg="rgba(0,0,0,0.35)">
-                <View width="18%" height={3} rounded={2} bg={colors.gold} />
+                <View width="18%" height={3} rounded={2} bg={c.accent} />
               </View>
-              <Text color={colors.cream} fontSize={11}>
+              <Text color={c.onCard} fontSize={11}>
                 {t('home.readChapter')}
               </Text>
             </XStack>

@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "Saecula",
+    "slug": "saecula",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#12100a"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.saecula.app"
+    },
+    "android": {
+      "package": "com.saecula.app"
+    }
+  }
+}

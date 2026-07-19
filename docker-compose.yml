@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: saecula-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: saecula
+      POSTGRES_PASSWORD: saecula_dev_password
+      POSTGRES_DB: saecula
+    ports:
+      - "5432:5433"
+    volumes:
+      # postgres:18+ expects the mount at /var/lib/postgresql (data lives in
+      # a version-named subdirectory, enabling pg_upgrade across majors)
+      - postgres_data:/var/lib/postgresql
+      # SQL files here run automatically on first container start (empty volume only)
+      - ./apps/back/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U saecula -d saecula"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  neo4j:
+    image: neo4j:5-community
+    container_name: saecula-neo4j
+    restart: unless-stopped
+    environment:
+      NEO4J_AUTH: neo4j/saecula_dev_password
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_dbms_security_procedures_unrestricted: apoc.*
+      NEO4J_server_memory_heap_initial__size: 512m
+      NEO4J_server_memory_heap_max__size: 1G
+    ports:
+      - "7474:7474"   # HTTP browser UI
+      - "7687:7687"   # Bolt protocol
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+volumes:
+  postgres_data:
+  neo4j_data:
+  neo4j_logs:

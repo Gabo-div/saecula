@@ -1,0 +1,205 @@
+package bible
+
+import (
+	"context"
+	"fmt"
+	"sort"
+	"strconv"
+	"strings"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+)
+
+// Verse is one localized verse of a chapter.
+type Verse struct {
+	EntityID      string `json:"entity_id"`
+	Number        int    `json:"number"`
+	Text          string `json:"text"`
+	LanguageCode  string `json:"language_code"`
+	TranslationID string `json:"translation_id"`
+}
+
+// Translation is one Bible edition present in the translation store.
+type Translation struct {
+	ID           string `json:"id"`
+	LanguageCode string `json:"language_code"`
+	VerseCount   int64  `json:"verse_count"`
+}
+
+// GraphRepository abstracts the concept graph: how many chapters each book
+// actually has in the seeded data (chapter counts are source data, not
+// canon metadata).
+type GraphRepository interface {
+	ChapterCounts(ctx context.Context) (map[string]int64, error)
+}
+
+// TextRepository abstracts the localized translation store for Bible reads.
+type TextRepository interface {
+	// ChapterVerses returns every verse of book/chapter in lang, ordered by
+	// verse number. Empty translationID picks a default edition per verse.
+	ChapterVerses(ctx context.Context, bookCode string, chapter int, lang, translationID string) ([]Verse, error)
+	// VerseText returns a single verse by entity ID, or nil when absent.
+	VerseText(ctx context.Context, entityID, lang, translationID string) (*Verse, error)
+	// Translations lists every (translation, language) edition available.
+	Translations(ctx context.Context) ([]Translation, error)
+}
+
+// ---------------------------------------------------------------------------
+// Neo4j implementation of GraphRepository
+// ---------------------------------------------------------------------------
+
+type Neo4jGraphRepository struct {
+	driver neo4j.DriverWithContext
+}
+
+var _ GraphRepository = (*Neo4jGraphRepository)(nil)
+
+func NewNeo4jGraphRepository(driver neo4j.DriverWithContext) *Neo4jGraphRepository {
+	return &Neo4jGraphRepository{driver: driver}
+}
+
+func (repo *Neo4jGraphRepository) ChapterCounts(ctx context.Context) (map[string]int64, error) {
+	const cypher = `
+		MATCH (v:Verse)
+		RETURN v.book AS code, max(v.chapter) AS chapters`
+
+	result, err := neo4j.ExecuteQuery(ctx, repo.driver, cypher, nil,
+		neo4j.EagerResultTransformer,
+		neo4j.ExecuteQueryWithReadersRouting(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	counts := make(map[string]int64, len(result.Records))
+	for _, record := range result.Records {
+		code, _ := record.Get("code")
+		chapters, _ := record.Get("chapters")
+		codeStr, okCode := code.(string)
+		chaptersInt, okChapters := chapters.(int64)
+		if okCode && okChapters {
+			counts[codeStr] = chaptersInt
+		}
+	}
+	return counts, nil
+}
+
+// ---------------------------------------------------------------------------
+// PostgreSQL implementation of TextRepository
+// ---------------------------------------------------------------------------
+
+type PostgresTextRepository struct {
+	pool *pgxpool.Pool
+}
+
+var _ TextRepository = (*PostgresTextRepository)(nil)
+
+func NewPostgresTextRepository(pool *pgxpool.Pool) *PostgresTextRepository {
+	return &PostgresTextRepository{pool: pool}
+}
+
+func (repo *PostgresTextRepository) ChapterVerses(ctx context.Context, bookCode string, chapter int, lang, translationID string) ([]Verse, error) {
+	// Entity IDs are BOOK.CHAPTER.VERSE, so a "JHN.3." prefix match selects
+	// exactly one chapter (the trailing dot rules out JHN.30.*).
+	prefix := fmt.Sprintf("%s.%d.", bookCode, chapter)
+
+	sql := `
+		SELECT DISTINCT ON (entity_id)
+		       entity_id, language_code, translation_id, raw_content
+		FROM text_documents
+		WHERE language_code = $1 AND entity_id LIKE $2 || '%'`
+	args := []any{lang, prefix}
+	if translationID != "" {
+		sql += ` AND translation_id = $3`
+		args = append(args, translationID)
+	}
+	sql += ` ORDER BY entity_id, translation_id`
+
+	rows, err := repo.pool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var verses []Verse
+	for rows.Next() {
+		var v Verse
+		if err := rows.Scan(&v.EntityID, &v.LanguageCode, &v.TranslationID, &v.Text); err != nil {
+			return nil, err
+		}
+		v.Number = verseNumber(v.EntityID)
+		verses = append(verses, v)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	// entity_id sorts lexicographically (JHN.3.10 < JHN.3.2), so order by
+	// the numeric verse component instead.
+	sort.Slice(verses, func(i, j int) bool { return verses[i].Number < verses[j].Number })
+	return verses, nil
+}
+
+func (repo *PostgresTextRepository) VerseText(ctx context.Context, entityID, lang, translationID string) (*Verse, error) {
+	sql := `
+		SELECT entity_id, language_code, translation_id, raw_content
+		FROM text_documents
+		WHERE entity_id = $1 AND language_code = $2`
+	args := []any{entityID, lang}
+	if translationID != "" {
+		sql += ` AND translation_id = $3`
+		args = append(args, translationID)
+	}
+	sql += ` ORDER BY translation_id LIMIT 1`
+
+	rows, err := repo.pool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		return nil, rows.Err()
+	}
+	var v Verse
+	if err := rows.Scan(&v.EntityID, &v.LanguageCode, &v.TranslationID, &v.Text); err != nil {
+		return nil, err
+	}
+	v.Number = verseNumber(v.EntityID)
+	return &v, nil
+}
+
+func (repo *PostgresTextRepository) Translations(ctx context.Context) ([]Translation, error) {
+	const sql = `
+		SELECT translation_id, language_code, count(*)
+		FROM text_documents
+		GROUP BY translation_id, language_code
+		ORDER BY language_code, translation_id`
+
+	rows, err := repo.pool.Query(ctx, sql)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var translations []Translation
+	for rows.Next() {
+		var t Translation
+		if err := rows.Scan(&t.ID, &t.LanguageCode, &t.VerseCount); err != nil {
+			return nil, err
+		}
+		translations = append(translations, t)
+	}
+	return translations, rows.Err()
+}
+
+// verseNumber extracts the trailing verse component of BOOK.CHAPTER.VERSE.
+func verseNumber(entityID string) int {
+	idx := strings.LastIndexByte(entityID, '.')
+	if idx < 0 {
+		return 0
+	}
+	n, _ := strconv.Atoi(entityID[idx+1:])
+	return n
+}

@@ -1,0 +1,222 @@
+# Saecula
+
+A Catholic study and historical application where everything — Bible verses,
+Catechism paragraphs, Saints, Councils, Dogmas, and Historical Events — is
+connected via a knowledge graph and mapped onto a master chronological
+timeline.
+
+## Core architectural principle: concept–text separation
+
+Saecula supports multiple languages and historical text editions without ever
+duplicating structural relationships, via a strict dual-database pattern:
+
+| Store | Role | Contents |
+|---|---|---|
+| **Neo4j** | Language-agnostic **Concept Graph** | Objective historical realities, temporal placement (`start_year`/`end_year`/`era`), theological connections. **No long-form body text.** |
+| **PostgreSQL** | Localized **Translation Store** | Multilingual text payloads keyed by `(entity_id, language_code, translation_id)`. |
+
+The two stores are joined by a universal alphanumeric slug, the `entity_id`
+(e.g. `JHN.3.16`, `CCC.1422`, `COUNCIL.NICEA.I`), which is the `id` property
+of every Neo4j node and the first component of the composite primary key in
+PostgreSQL's `text_documents` table.
+
+## Monorepo layout
+
+```
+saecula/
+├── apps/
+│   ├── back/       # Go REST API (chi) — modular APIs, DI composition root
+│   ├── cli/        # Go CLI (cobra) — scrape → generic JSON, seed as a separate step
+│   └── mobile/     # React Native app (Expo + TypeScript, Tamagui v2, Zustand, Axios)
+├── libs/
+│   └── canon/      # Shared Go module: canonical catalog of the 73 books
+├── docker-compose.yml
+├── go.work         # Go workspace tying back + cli + canon together
+└── README.md
+```
+
+## Dependency injection
+
+Both Go apps follow constructor injection everywhere:
+
+- **Backend** — `main.go` is the single composition root. Infrastructure
+  (`pgxpool.Pool`, Neo4j driver) is built once and injected into
+  repositories (`auth.UserRepository`, `timeline.GraphRepository`,
+  `timeline.TextRepository`), which are injected as **interfaces** into the
+  API handlers. The HTTP server receives fully-built `server.API` modules —
+  adding a new API is: implement `Pattern() + Routes()`, add one line in
+  `main.go`. No globals, no singletons.
+- **CLI** — the scraper receives an injected `Fetcher` (swappable for
+  fixtures/caching); the seeder receives `TextStore` and `GraphStore`
+  interfaces whose Postgres/Neo4j implementations are wired in the command
+  layer. Document→store mapping is pure and unit-testable.
+
+## Getting started
+
+### 1. Start the databases
+
+```bash
+docker compose up -d
+```
+
+- PostgreSQL on `localhost:5432` (user `saecula`, password `saecula_dev_password`, db `saecula`).
+  The schema in `apps/back/migrations/` runs automatically on first boot.
+- Neo4j on `bolt://localhost:7687`, browser UI at <http://localhost:7474>
+  (user `neo4j`, password `saecula_dev_password`).
+
+### 2. Run the backend
+
+```bash
+cd apps/back
+go mod tidy
+go run .
+```
+
+The API listens on `:8080`. Configuration is environment-driven
+(`HTTP_ADDR`, `POSTGRES_DSN`, `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD`,
+`JWT_SECRET`, `JWT_EXPIRATION`); defaults match docker-compose.
+
+### 3. Scrape and seed data
+
+**Interactive mode** — running `saecula-cli` with no arguments in a
+terminal (or `saecula-cli interactive`) starts a guided wizard (scrape or
+seed, multiselect of files, connection prompts). It uses the terminal's
+own color scheme and drives the same code paths as the flag-based
+commands below.
+
+The CLI is a two-stage pipeline with a strict separation:
+
+**Stage 1 — scrape (default command, no database involved).** Downloads
+the **complete CEE Bible** (`conferenciaepiscopal.es/biblia`, Sagrada
+Biblia de la Conferencia Episcopal Española, 2011) into **one generic JSON
+document**: 73 books → chapters → verses.
+
+```bash
+cd apps/cli
+go mod tidy
+
+go run . scrape --out data/bible_cee.json
+```
+
+Books are identified by the **canonical catalog** (`libs/canon`, a shared
+Go module used by both the CLI and the backend): USFM codes (`GEN`, `JHN`,
+`1CO`…) and shared English slugs (`genesis`, `john`, `1-corinthians`…)
+that are identical for every Bible source — each source only maps its own
+URLs onto the catalog (see `ceeSlugByCode` in `internal/scrape/cee.go`).
+Composition years and era per book also come from the catalog. Adding a
+new Bible source = one scraper that maps its pages to the same catalog.
+
+**Stage 2 — seed (separate command).** Loads generic JSON documents
+(scraped or handwritten — see `data/` samples) into both stores:
+
+```bash
+go run . seed --file data/bible_cee.json
+go run . seed --file data/sample_john_3.json --file data/sample_catechism.json
+```
+
+Seeding is idempotent: PostgreSQL texts upsert via `ON CONFLICT`, Neo4j
+nodes and relationships via `MERGE`.
+
+### 4. Run the mobile app
+
+UI built with **Tamagui v2** (React 19 + React Native 0.81 / Expo SDK 54,
+New Architecture; config preset `@tamagui/config/v5`, babel plugin for
+compile-time optimization), navigation with React Navigation bottom tabs,
+state with Zustand, HTTP with Axios, i18n with **i18next/react-i18next**
+(`src/i18n/` — English, Spanish and Ecclesiastical Latin UI locales; the
+first launch follows the device language via `expo-localization`, and the
+persisted language switcher drives both the UI locale and the `?lang=`
+content parameter from a single store). Translation keys are typed against
+the English reference locale — a typo in `t('...')` is a compile error.
+
+Five tabs in a fixed liturgical dark theme (gold on umber):
+
+- **Home** — daily rotating sacred-art background (public-domain works
+  from Wikimedia Commons picked by day of year) with the verse of the day,
+  quick actions and a "Today's Word" card that jumps into the reader.
+- **Saints**, **Chapel** — placeholders for upcoming graph content.
+- **Bible** — full reader: book + version picker (from `/api/bible`),
+  chapter grid, verse-numbered text, prev/next chapter navigation that
+  crosses book boundaries. Reading position persists across launches.
+- **Explore** — the master chronological timeline (hybrid graph+text query).
+
+```bash
+cd apps/mobile
+npm install
+npm start
+```
+
+The backend URL comes from `.env` (`EXPO_PUBLIC_API_URL`, default
+`http://localhost:8080` — copy `.env.example` to `.env` and adjust).
+`localhost` works for web and the iOS simulator; the Android emulator
+needs `http://10.0.2.2:8080`; a physical device (Expo Go) needs your
+machine's LAN IP, e.g. `http://192.168.1.9:8080`. Expo inlines the
+variable at bundle time, so **restart `expo start` after editing `.env`**.
+Every request is logged to the Metro/browser console in dev
+(`[api] → …` / `[api] ← …`).
+
+## API
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `POST` | `/auth/register` | — | `{email, password}` → JWT + user |
+| `POST` | `/auth/login` | — | `{email, password}` → JWT + user |
+| `GET` | `/api/timeline` | Bearer | Hybrid graph+text query (below) |
+| `GET` | `/api/bible/books?lang=` | Bearer | Canonical catalog + seeded chapter counts, localized names |
+| `GET` | `/api/bible/{book}/{chapter}?lang=&translation=` | Bearer | One chapter's verses; `{book}` is a USFM code (`JHN`) or slug (`john`) |
+| `GET` | `/api/bible/translations` | Bearer | Available editions in the translation store |
+| `GET` | `/api/bible/daily?lang=` | Bearer | Verse of the day (deterministic by date, curated rotation) |
+| `GET` | `/health` | — | Liveness probe |
+
+New APIs implement the `server.API` interface (`Pattern()`, `Routes()`) and
+are registered in `main.go` as public (own mount point) or protected
+(mounted under `/api` behind the JWT middleware).
+
+### The hybrid timeline query
+
+```
+GET /api/timeline?start_year=-100&end_year=451&lang=es&translation=jerusalem_1976
+Authorization: Bearer <token>
+```
+
+1. **Neo4j** — fetch every concept node whose lifespan overlaps
+   `[start_year, end_year]` (negative years = BC), ordered chronologically.
+2. **PostgreSQL** — bulk-fetch the localized `raw_content` for all returned
+   `entity_id`s in the requested `lang` (optionally pinned to a specific
+   `translation` edition), then join in memory.
+
+Nodes with no translation in the requested language still appear on the
+timeline — only their `text` field is absent.
+
+## Graph schema (Neo4j)
+
+All nodes carry the global temporal properties `start_year` (integer,
+negative = BC), `end_year` (integer), and `era` (e.g. `"Patristic"`,
+`"Medieval"`).
+
+| Label | Own properties |
+|---|---|
+| `Verse` | `id`, `book`, `chapter`, `number` |
+| `Saint` | `id`, `name_en`, `name_es`, `name_la`, `is_doctor` |
+| `PatristicDocument` | `id`, `title_en`, `title_es` |
+| `CatechismParagraph` | `id`, `official_number` |
+| `Council` | `id`, `name_en`, `name_es`, `location` |
+| `Dogma` | `id`, `name_en`, `name_es`, `short_definition_es` |
+| `HistoricalEvent` | `id`, `title_en`, `title_es` |
+
+Relationships created by the seeder so far: `(:Verse)-[:FOLLOWS]->(:Verse)`
+(canonical order) and `(:CatechismParagraph)-[:CITES]->(:Verse)`.
+
+## Relational schema (PostgreSQL)
+
+- `users(id UUID PK, email UNIQUE, password_hash, created_at)`
+- `text_documents(entity_id, language_code, translation_id, raw_content, metadata JSONB)`
+  with composite `PRIMARY KEY (entity_id, language_code, translation_id)`
+
+## Security notes
+
+- Passwords hashed with **bcrypt** (default cost).
+- Stateless **HS256 JWTs**, 24 h expiry by default.
+- `JWT_SECRET` **must** be set in production (`APP_ENV=production` enforces
+  this); the baked-in dev secret is for local development only.
+- Docker credentials above are for local development only.

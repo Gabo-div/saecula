@@ -1,0 +1,21 @@
+# env files (commit the .env.example templates instead)
+.env
+.env.*
+!.env.example
+
+# node / expo
+node_modules/
+.expo/
+dist/
+
+# go
+*.exe
+*.test
+
+# scraped data (regenerable with saecula-cli)
+apps/cli/data/bible_*.json
+
+# editors / os
+.idea/
+.vscode/
+.DS_Store

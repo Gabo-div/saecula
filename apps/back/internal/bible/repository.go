@@ -104,15 +104,21 @@ func (repo *PostgresTextRepository) ChapterVerses(ctx context.Context, bookCode 
 	// exactly one chapter (the trailing dot rules out JHN.30.*).
 	prefix := fmt.Sprintf("%s.%d.", bookCode, chapter)
 
+	// A pinned translation wins over the UI language: the edition already
+	// determines its own language, so filtering by lang too would return
+	// nothing whenever they differ.
 	sql := `
 		SELECT DISTINCT ON (entity_id)
 		       entity_id, language_code, translation_id, raw_content
 		FROM text_documents
-		WHERE language_code = $1 AND entity_id LIKE $2 || '%'`
-	args := []any{lang, prefix}
+		WHERE entity_id LIKE $1 || '%'`
+	args := []any{prefix}
 	if translationID != "" {
-		sql += ` AND translation_id = $3`
+		sql += ` AND translation_id = $2`
 		args = append(args, translationID)
+	} else {
+		sql += ` AND language_code = $2`
+		args = append(args, lang)
 	}
 	sql += ` ORDER BY entity_id, translation_id`
 
@@ -142,14 +148,18 @@ func (repo *PostgresTextRepository) ChapterVerses(ctx context.Context, bookCode 
 }
 
 func (repo *PostgresTextRepository) VerseText(ctx context.Context, entityID, lang, translationID string) (*Verse, error) {
+	// Same rule as ChapterVerses: a pinned translation overrides lang.
 	sql := `
 		SELECT entity_id, language_code, translation_id, raw_content
 		FROM text_documents
-		WHERE entity_id = $1 AND language_code = $2`
-	args := []any{entityID, lang}
+		WHERE entity_id = $1`
+	args := []any{entityID}
 	if translationID != "" {
-		sql += ` AND translation_id = $3`
+		sql += ` AND translation_id = $2`
 		args = append(args, translationID)
+	} else {
+		sql += ` AND language_code = $2`
+		args = append(args, lang)
 	}
 	sql += ` ORDER BY translation_id LIMIT 1`
 

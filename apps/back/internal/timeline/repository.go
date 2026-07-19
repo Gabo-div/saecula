@@ -141,16 +141,21 @@ func (repo *PostgresTextRepository) TextsFor(ctx context.Context, entityIDs []st
 	}
 
 	// When translationID is empty the first edition per entity
-	// (alphabetical) wins via DISTINCT ON.
+	// (alphabetical) in the requested language wins via DISTINCT ON. A
+	// pinned translation overrides lang — the edition determines its own
+	// language.
 	sql := `
 		SELECT DISTINCT ON (entity_id)
 		       entity_id, language_code, translation_id, raw_content, metadata
 		FROM text_documents
-		WHERE entity_id = ANY($1) AND language_code = $2`
-	args := []any{entityIDs, lang}
+		WHERE entity_id = ANY($1)`
+	args := []any{entityIDs}
 	if translationID != "" {
-		sql += ` AND translation_id = $3`
+		sql += ` AND translation_id = $2`
 		args = append(args, translationID)
+	} else {
+		sql += ` AND language_code = $2`
+		args = append(args, lang)
 	}
 	sql += ` ORDER BY entity_id, translation_id`
 

@@ -93,3 +93,55 @@ export interface DailyVerseResponse {
   date: string;
   text?: Verse;
 }
+
+// --- Daily readings ---------------------------------------------------------
+
+export interface ReadingVerse {
+  entity_id: string;
+  book_code: string;
+  chapter: number;
+  number: number;
+  text?: string;
+}
+
+export interface Reading {
+  type: string; // "reading_1", "responsorial_psalm", "gospel", …
+  reference: string; // reconstructed citation, e.g. "Wisdom 12:13, 16-19"
+  verses: ReadingVerse[];
+}
+
+export interface DailyReadingsResponse {
+  date: string;
+  title?: string;
+  lectionary?: string;
+  lang: string;
+  readings: Reading[];
+}
+
+// --- Liturgical calendar ----------------------------------------------------
+
+export interface Celebration {
+  id: string;
+  name: string;
+  rank: string; // "SOLEMNITY" | "FEAST" | "MEMORIAL" | "OPTIONAL_MEMORIAL" | "SUNDAY" | "WEEKDAY"
+  rank_name: string; // localized, e.g. "Solemnity" / "memoria"
+  colors: string[]; // "WHITE" | "RED" | "GREEN" | "PURPLE" | "ROSE" | "BLACK"
+  season: string; // "ADVENT" | "CHRISTMAS_TIME" | "LENT" | "PASCHAL_TRIDUUM" | "EASTER_TIME" | "ORDINARY_TIME"
+  season_name: string; // localized season name
+  holy_day: boolean;
+  optional: boolean;
+  sanctoral: boolean; // true = santoral (saints), false = proper of time
+  titles?: string[];
+}
+
+export interface CalendarDayResponse {
+  date: string;
+  lang: string;
+  celebrations: Celebration[];
+}
+
+export interface CalendarYearResponse {
+  year: number;
+  lang: string;
+  days: Record<string, Celebration[]>; // ISO date → celebrations
+}

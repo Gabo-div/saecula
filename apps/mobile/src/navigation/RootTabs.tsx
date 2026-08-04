@@ -1,10 +1,14 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import type { NavigatorScreenParams } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { BibleScreen } from '@/screens/BibleScreen';
+import { CalendarHubScreen } from '@/screens/CalendarHubScreen';
+import { CelebrationsScreen } from '@/screens/CelebrationsScreen';
+import { DailyReadingsScreen } from '@/screens/DailyReadingsScreen';
 import { ExploreScreen } from '@/screens/ExploreScreen';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { ProfileScreen } from '@/screens/ProfileScreen';
@@ -16,8 +20,17 @@ export type RootTabParamList = {
   Home: undefined;
   Bible: undefined;
   Explore: undefined;
-  Saints: undefined;
+  Calendar: NavigatorScreenParams<CalendarStackParamList> | undefined;
   Profile: undefined;
+};
+
+// The Calendar tab hosts a stack: a hub of dated sections (daily readings,
+// saints, celebrations) that push on top of it.
+export type CalendarStackParamList = {
+  CalendarHome: undefined;
+  DailyReadings: { date?: string } | undefined;
+  SaintsCalendar: undefined;
+  Celebrations: undefined;
 };
 
 // The Profile tab hosts its own stack so Settings pushes on top of it.
@@ -32,12 +45,27 @@ const TAB_ICONS: Record<keyof RootTabParamList, IconName> = {
   Home: 'home-variant-outline',
   Bible: 'book-cross',
   Explore: 'compass-outline',
-  Saints: 'account-heart-outline',
+  Calendar: 'calendar-month-outline',
   Profile: 'account-circle-outline',
 };
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
+const CalendarStack = createNativeStackNavigator<CalendarStackParamList>();
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
+
+function CalendarStackNavigator() {
+  const c = useAppTheme();
+  return (
+    <CalendarStack.Navigator
+      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.bg } }}
+    >
+      <CalendarStack.Screen name="CalendarHome" component={CalendarHubScreen} />
+      <CalendarStack.Screen name="DailyReadings" component={DailyReadingsScreen} />
+      <CalendarStack.Screen name="SaintsCalendar" component={SaintsScreen} />
+      <CalendarStack.Screen name="Celebrations" component={CelebrationsScreen} />
+    </CalendarStack.Navigator>
+  );
+}
 
 function ProfileStackNavigator() {
   const c = useAppTheme();
@@ -80,9 +108,9 @@ export function RootTabs() {
         options={{ tabBarLabel: t('tabs.explore') }}
       />
       <Tab.Screen
-        name="Saints"
-        component={SaintsScreen}
-        options={{ tabBarLabel: t('tabs.saints') }}
+        name="Calendar"
+        component={CalendarStackNavigator}
+        options={{ tabBarLabel: t('tabs.calendar') }}
       />
       <Tab.Screen
         name="Profile"

@@ -7,10 +7,43 @@ const en: Translations = {
   },
   tabs: {
     home: 'Home',
+    calendar: 'Calendar',
     saints: 'Saints',
     bible: 'Bible',
     explore: 'Explore',
     profile: 'Profile',
+  },
+  calendar: {
+    title: 'Calendar',
+    readings: 'Daily readings',
+    readingsDesc: "The day's Mass readings",
+    saints: 'Saints',
+    saintsDesc: 'Feasts and memorials',
+    celebrations: 'Celebrations',
+    celebrationsDesc: 'The liturgical year',
+    today: 'Today',
+    loadError: 'Could not load the readings',
+    noReadings: 'No readings available for this day.',
+    calendarLoadError: 'Could not load the calendar',
+    seasons: 'Seasons',
+    solemnitiesAndFeasts: 'Solemnities & feasts',
+    optional: 'optional',
+    holyDay: 'Holy day of obligation',
+    saintsEmpty: 'Only ferial days this month.',
+    celebrationsEmpty: 'No solemnities or feasts this month.',
+    comingTitle: 'Coming soon',
+    comingBody: 'This calendar will be available here soon.',
+    readingTypes: {
+      reading_1: 'First reading',
+      reading_i: 'First reading',
+      reading_2: 'Second reading',
+      reading_ii: 'Second reading',
+      responsorial_psalm: 'Responsorial psalm',
+      psalm: 'Psalm',
+      sequence: 'Sequence',
+      gospel: 'Gospel',
+      epistle: 'Epistle',
+    },
   },
   home: {
     title: 'Today',
@@ -21,6 +54,9 @@ const en: Translations = {
     todaysWord: "Today's word",
     dailyReading: 'Daily reading',
     readChapter: 'Read chapter',
+    celebrationOfDay: 'Celebration of the day',
+    saintOfDay: 'Saint of the day',
+    readings: 'Daily readings',
   },
   bible: {
     title: 'Bible',
@@ -35,12 +71,14 @@ const en: Translations = {
   saints: {
     title: 'Saints',
     comingTitle: 'Saints are on their way',
-    comingBody: 'Saints will be seeded into the graph as nodes connected to the timeline.',
+    comingBody: 'The calendar of saints will be available here soon.',
   },
   explore: {
     title: 'Explore',
+    comingTitle: 'Coming soon',
+    comingBody: 'The timeline will be available here soon.',
     loadError: 'Could not load the timeline',
-    empty: 'Nothing on the timeline yet — seed data with saecula-cli.',
+    empty: 'Nothing on the timeline yet.',
     noText: 'No text available in this language yet',
   },
   profile: {
@@ -73,7 +111,36 @@ const en: Translations = {
 // Shared shape: same keys everywhere, free values per locale.
 export interface Translations {
   common: { appName: string; tagline: string };
-  tabs: { home: string; saints: string; bible: string; explore: string; profile: string };
+  tabs: {
+    home: string;
+    calendar: string;
+    saints: string;
+    bible: string;
+    explore: string;
+    profile: string;
+  };
+  calendar: {
+    title: string;
+    readings: string;
+    readingsDesc: string;
+    saints: string;
+    saintsDesc: string;
+    celebrations: string;
+    celebrationsDesc: string;
+    today: string;
+    loadError: string;
+    noReadings: string;
+    calendarLoadError: string;
+    seasons: string;
+    solemnitiesAndFeasts: string;
+    optional: string;
+    holyDay: string;
+    saintsEmpty: string;
+    celebrationsEmpty: string;
+    comingTitle: string;
+    comingBody: string;
+    readingTypes: Record<string, string>;
+  };
   home: {
     title: string;
     dailyVerse: string;
@@ -83,6 +150,9 @@ export interface Translations {
     todaysWord: string;
     dailyReading: string;
     readChapter: string;
+    celebrationOfDay: string;
+    saintOfDay: string;
+    readings: string;
   };
   bible: {
     title: string;
@@ -95,7 +165,14 @@ export interface Translations {
     loadError: string;
   };
   saints: { title: string; comingTitle: string; comingBody: string };
-  explore: { title: string; loadError: string; empty: string; noText: string };
+  explore: {
+    title: string;
+    comingTitle: string;
+    comingBody: string;
+    loadError: string;
+    empty: string;
+    noText: string;
+  };
   profile: { title: string; account: string; signOut: string };
   settings: {
     title: string;

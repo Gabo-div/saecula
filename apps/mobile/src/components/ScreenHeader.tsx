@@ -35,12 +35,16 @@ export function HeaderIconButton({
 }
 
 // Avatar circle + small-caps serif title, matching the reference layout.
+// When onBack is given the avatar is replaced by a back chevron, so pushed
+// sub-screens get a consistent way back.
 export function ScreenHeader({
   title,
   right,
+  onBack,
 }: {
   title: string;
   right?: React.ReactNode;
+  onBack?: () => void;
 }) {
   const email = useAuthStore((s) => s.user?.email ?? 'S');
   const c = useAppTheme();
@@ -48,20 +52,37 @@ export function ScreenHeader({
 
   return (
     <XStack items="center" gap="$3" px="$4" py="$2">
-      <View
-        width={44}
-        height={44}
-        rounded={22}
-        bg={c.bgElevated}
-        borderWidth={2}
-        borderColor={c.accent}
-        items="center"
-        justify="center"
-      >
-        <Text color={c.accent} fontWeight="700" fontSize={18}>
-          {initial}
-        </Text>
-      </View>
+      {onBack ? (
+        <View
+          width={44}
+          height={44}
+          rounded={22}
+          bg={c.bgElevated}
+          borderWidth={1}
+          borderColor={c.border}
+          items="center"
+          justify="center"
+          onPress={onBack}
+          pressStyle={{ opacity: 0.7 }}
+        >
+          <MaterialCommunityIcons name="chevron-left" size={26} color={c.accent} />
+        </View>
+      ) : (
+        <View
+          width={44}
+          height={44}
+          rounded={22}
+          bg={c.bgElevated}
+          borderWidth={2}
+          borderColor={c.accent}
+          items="center"
+          justify="center"
+        >
+          <Text color={c.accent} fontWeight="700" fontSize={18}>
+            {initial}
+          </Text>
+        </View>
+      )}
       <Text
         color={c.accent}
         fontFamily={serif}

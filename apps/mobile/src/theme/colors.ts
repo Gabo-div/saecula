@@ -130,7 +130,7 @@ export function buildTheme(mode: ThemeMode, accentKey: AccentKey): AppTheme {
       accentDim: accent.dim,
       card: accent.deep,
       onCard: hsl(hue, 35, 90),
-      overlay: [`rgba(${r},${g},${b},0.35)`, `rgba(${r},${g},${b},0.9)`, `rgba(${r},${g},${b},1)`],
+      overlay: [`rgba(${r},${g},${b},0.35)`, `rgba(${r},${g},${b},0.95)`, `rgba(${r},${g},${b},1)`],
     };
   }
 

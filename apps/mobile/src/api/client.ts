@@ -6,7 +6,10 @@ import { useReaderStore } from '@/store/readerStore';
 import type {
   AuthResponse,
   BooksResponse,
+  CalendarDayResponse,
+  CalendarYearResponse,
   ChapterResponse,
+  DailyReadingsResponse,
   DailyVerseResponse,
   TimelineResponse,
   TranslationsResponse,
@@ -147,6 +150,49 @@ export async function fetchTranslations(): Promise<TranslationsResponse> {
 export async function fetchDailyVerse(): Promise<DailyVerseResponse> {
   const { data } = await api.get<DailyVerseResponse>('/api/bible/daily', {
     params: bibleParams(),
+  });
+  return data;
+}
+
+// --- Daily readings ---------------------------------------------------------
+
+// fetchDailyReadings loads the Mass readings for a date (ISO YYYY-MM-DD),
+// defaulting to today when omitted. Reuses bibleParams so a pinned
+// translation and the UI language flow through identically.
+export async function fetchDailyReadings(date?: string): Promise<DailyReadingsResponse> {
+  const path = date ? `/api/readings/${date}` : '/api/readings/daily';
+  const { data } = await api.get<DailyReadingsResponse>(path, { params: bibleParams() });
+  return data;
+}
+
+// --- Liturgical calendar ----------------------------------------------------
+
+// A gregorian year's calendar never changes, so cache it per year+language.
+// The santoral and celebrations screens both flip through months of the same
+// year and read the same payload — this keeps them to one request each.
+const calendarYearCache = new Map<string, CalendarYearResponse>();
+
+// fetchCalendarYear loads the whole General Roman calendar for a gregorian
+// year; the santoral and celebrations screens filter it client-side.
+export async function fetchCalendarYear(year: number): Promise<CalendarYearResponse> {
+  const lang = useLanguageStore.getState().language;
+  const key = `${lang}:${year}`;
+  const cached = calendarYearCache.get(key);
+  if (cached) return cached;
+
+  const { data } = await api.get<CalendarYearResponse>(`/api/calendar/year/${year}`, {
+    params: { lang },
+  });
+  calendarYearCache.set(key, data);
+  return data;
+}
+
+// fetchCalendarDay loads the celebrations for a single date (ISO YYYY-MM-DD),
+// defaulting to today when omitted.
+export async function fetchCalendarDay(date?: string): Promise<CalendarDayResponse> {
+  const path = date ? `/api/calendar/${date}` : '/api/calendar/daily';
+  const { data } = await api.get<CalendarDayResponse>(path, {
+    params: { lang: useLanguageStore.getState().language },
   });
   return data;
 }

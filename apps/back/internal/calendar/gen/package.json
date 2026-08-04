@@ -1,0 +1,13 @@
+{
+  "name": "saecula-calendar-gen",
+  "private": true,
+  "type": "module",
+  "description": "Build-time generator: precomputes the General Roman liturgical calendar (romcal) into JSON embedded by the Go backend. Not shipped or run at serve time.",
+  "scripts": {
+    "gen": "node gen.mjs"
+  },
+  "dependencies": {
+    "romcal": "3.0.0-dev.125",
+    "@romcal/calendar.general-roman": "3.0.0-dev.125"
+  }
+}

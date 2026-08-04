@@ -161,7 +161,7 @@ func (a *API) Chapter(w http.ResponseWriter, r *http.Request) {
 // year picks deterministically, so every client sees the same verse on the
 // same date without any stored state.
 var dailyVerses = []string{
-	"1MA.3.19",
+	"REV.12.1",
 }
 
 type dailyResponse struct {

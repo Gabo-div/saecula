@@ -10,8 +10,10 @@ import (
 
 	"saecula/back/internal/auth"
 	"saecula/back/internal/bible"
+	"saecula/back/internal/calendar"
 	"saecula/back/internal/config"
 	"saecula/back/internal/db"
+	"saecula/back/internal/readings"
 	"saecula/back/internal/server"
 	"saecula/back/internal/timeline"
 )
@@ -67,18 +69,25 @@ func run() error {
 	textRepo := timeline.NewPostgresTextRepository(pool)
 	bibleGraphRepo := bible.NewNeo4jGraphRepository(driver)
 	bibleTextRepo := bible.NewPostgresTextRepository(pool)
+	readingsGraphRepo := readings.NewNeo4jGraphRepository(driver)
+	readingsTextRepo := readings.NewPostgresTextRepository(pool)
 
 	// --- APIs ---------------------------------------------------------------
 	authAPI := auth.NewAPI(userRepo, tokens)
 	timelineAPI := timeline.NewAPI(graphRepo, textRepo)
 	bibleAPI := bible.NewAPI(bibleGraphRepo, bibleTextRepo)
+	readingsAPI := readings.NewAPI(readingsGraphRepo, readingsTextRepo)
+	calendarAPI, err := calendar.NewAPI()
+	if err != nil {
+		return err
+	}
 
 	// --- HTTP server --------------------------------------------------------
 	srv := server.New(server.Config{
 		Addr:           cfg.HTTPAddr,
 		AuthMiddleware: auth.Middleware(tokens),
 		PublicAPIs:     []server.API{authAPI},
-		ProtectedAPIs:  []server.API{timelineAPI, bibleAPI},
+		ProtectedAPIs:  []server.API{timelineAPI, bibleAPI, readingsAPI, calendarAPI},
 	})
 
 	return srv.Run(ctx)

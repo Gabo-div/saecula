@@ -14,11 +14,19 @@ import (
 
 var seedOpts struct {
 	files         []string
+	testUser      bool
 	postgresDSN   string
 	neo4jURI      string
 	neo4jUser     string
 	neo4jPassword string
 }
+
+// Dev login seeded by --test-user: test@saecula.app / saecula123
+// (bcrypt hash, cost 10). Dev only.
+const (
+	testUserEmail = "test@saecula.app"
+	testUserHash  = "$2a$10$S4adxo1h8ME7JvrWSSIEbOmdA6yyAKoDV8xdVAGs.mtFx5GXYs2ki"
+)
 
 var seedCmd = &cobra.Command{
 	Use:   "seed",
@@ -30,7 +38,8 @@ timeline relationships into Neo4j.
 
 Idempotent: texts upsert via ON CONFLICT, nodes and edges via MERGE —
 re-running the same file is safe.`,
-	Example: `  saecula-cli seed --file data/sample_john_3.json
+	Example: `  saecula-cli seed --file data/bible_cee.json --test-user
+  saecula-cli seed --test-user
   saecula-cli seed --file data/jn_3_la.json --file data/ccc_es.json`,
 	RunE: runSeed,
 }
@@ -39,7 +48,11 @@ func runSeed(cmd *cobra.Command, _ []string) error {
 	ctx, cancel := context.WithTimeout(cmd.Context(), 5*time.Minute)
 	defer cancel()
 
-	// --- Infrastructure (owned here, injected below) -----------------------
+	if len(seedOpts.files) == 0 && !seedOpts.testUser {
+		return fmt.Errorf("nothing to do: pass --file and/or --test-user")
+	}
+
+	// Postgres is needed for both the test user and text documents.
 	pool, err := pgxpool.New(ctx, seedOpts.postgresDSN)
 	if err != nil {
 		return fmt.Errorf("postgres pool: %w", err)
@@ -49,6 +62,21 @@ func runSeed(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("postgres ping: %w", err)
 	}
 
+	if seedOpts.testUser {
+		if _, err := pool.Exec(ctx,
+			`INSERT INTO users (email, password_hash) VALUES ($1, $2)
+			 ON CONFLICT (email) DO NOTHING`,
+			testUserEmail, testUserHash); err != nil {
+			return fmt.Errorf("seed test user: %w", err)
+		}
+		fmt.Printf("test user ready: %s / saecula123\n", testUserEmail)
+	}
+
+	if len(seedOpts.files) == 0 {
+		return nil
+	}
+
+	// Neo4j only when there are documents to seed.
 	driver, err := neo4j.NewDriverWithContext(seedOpts.neo4jURI,
 		neo4j.BasicAuth(seedOpts.neo4jUser, seedOpts.neo4jPassword, ""))
 	if err != nil {
@@ -77,15 +105,16 @@ func runSeed(cmd *cobra.Command, _ []string) error {
 }
 
 func init() {
-	seedCmd.Flags().StringArrayVar(&seedOpts.files, "file", nil, "generic JSON document to seed (repeatable, required)")
-	_ = seedCmd.MarkFlagRequired("file")
+	seedCmd.Flags().StringArrayVar(&seedOpts.files, "file", nil, "generic JSON document to seed (repeatable)")
+	seedCmd.Flags().BoolVar(&seedOpts.testUser, "test-user", false,
+		"seed the dev login test@saecula.app / saecula123 (Postgres only)")
 
 	// Database flags live on seed only — scrape never touches a database.
 	seedCmd.Flags().StringVar(&seedOpts.postgresDSN, "pg-dsn",
 		"postgres://saecula:saecula_dev_password@localhost:5432/saecula?sslmode=disable",
 		"PostgreSQL connection string")
 	seedCmd.Flags().StringVar(&seedOpts.neo4jURI, "neo4j-uri",
-		"neo4j://localhost:7687", "Neo4j Bolt URI")
+		"bolt://localhost:7687", "Neo4j Bolt URI")
 	seedCmd.Flags().StringVar(&seedOpts.neo4jUser, "neo4j-user",
 		"neo4j", "Neo4j username")
 	seedCmd.Flags().StringVar(&seedOpts.neo4jPassword, "neo4j-password",

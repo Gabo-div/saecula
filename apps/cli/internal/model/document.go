@@ -12,9 +12,10 @@ import (
 
 // Document types.
 const (
-	TypeBible        = "bible"
-	TypeBibleChapter = "bible_chapter"
-	TypeCatechism    = "catechism"
+	TypeBible         = "bible"
+	TypeBibleChapter  = "bible_chapter"
+	TypeCatechism     = "catechism"
+	TypeDailyReadings = "daily_readings"
 )
 
 // Document is the generic scrape output / seed input envelope. Type
@@ -41,6 +42,10 @@ type Document struct {
 
 	// catechism payload
 	Paragraphs []CatechismParagraph `json:"paragraphs,omitempty"`
+
+	// daily_readings payload: liturgical days with their Mass readings,
+	// references only (no text — verse texts come from a bible document).
+	Days []DayReadings `json:"days,omitempty"`
 }
 
 // BookPayload is one canonical book inside a TypeBible document. Code and
@@ -68,6 +73,26 @@ type Verse struct {
 	Number   int             `json:"number"`
 	Text     string          `json:"text"`
 	Metadata json.RawMessage `json:"metadata,omitempty"`
+}
+
+// DayReadings is one liturgical day inside a TypeDailyReadings document.
+type DayReadings struct {
+	Date       string    `json:"date"` // ISO date, e.g. "2026-07-19"
+	Title      string    `json:"title,omitempty"`
+	Lectionary string    `json:"lectionary,omitempty"` // lectionary number as printed
+	SourceURL  string    `json:"source_url,omitempty"`
+	Readings   []Reading `json:"readings"`
+}
+
+// Reading is one Mass reading: the raw citation plus its normalized
+// per-verse universal IDs ("WIS.12.13", same shape the seeder uses for
+// entity IDs). VerseIDs may be empty when the citation could not be
+// resolved (non-numeric chapters, unresolvable cross-chapter ranges).
+type Reading struct {
+	Type        string   `json:"type"`      // "reading_1", "responsorial_psalm", "gospel", …
+	Reference   string   `json:"reference"` // as printed, e.g. "Wisdom 12:13, 16-19"
+	VerseIDs    []string `json:"verse_ids,omitempty"`
+	Alternative bool     `json:"alternative,omitempty"` // an "or" option of the previous reading
 }
 
 type CatechismParagraph struct {
@@ -103,6 +128,23 @@ func (d *Document) Validate() error {
 	case TypeCatechism:
 		if len(d.Paragraphs) == 0 {
 			return fmt.Errorf("catechism requires paragraphs")
+		}
+	case TypeDailyReadings:
+		if len(d.Days) == 0 {
+			return fmt.Errorf("daily_readings requires at least one day")
+		}
+		for _, day := range d.Days {
+			if day.Date == "" {
+				return fmt.Errorf("every day requires a date")
+			}
+			if len(day.Readings) == 0 {
+				return fmt.Errorf("day %s has no readings", day.Date)
+			}
+			for _, r := range day.Readings {
+				if r.Reference == "" {
+					return fmt.Errorf("day %s: reading without reference", day.Date)
+				}
+			}
 		}
 	default:
 		return fmt.Errorf("unknown document type %q", d.Type)

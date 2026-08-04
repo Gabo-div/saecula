@@ -208,9 +208,57 @@ func mapDocument(doc *model.Document) ([]TextRecord, []GraphNode, []Relationship
 				})
 			}
 		}
+
+	case model.TypeDailyReadings:
+		// Reference-only: liturgical days go to the graph, nothing is
+		// localized text. Verse stubs are merged by the GraphStore so
+		// readings can be seeded before (or without) the bible itself.
+		for _, day := range doc.Days {
+			entityID := "LITDAY." + day.Date
+			props := map[string]any{"date": day.Date}
+			if day.Title != "" {
+				props["title"] = day.Title
+			}
+			if day.Lectionary != "" {
+				props["lectionary"] = day.Lectionary
+			}
+			nodes = append(nodes, GraphNode{Label: "LiturgicalDay", ID: entityID, Props: props})
+
+			for _, r := range day.Readings {
+				relType := readsRelType(r.Type)
+				for _, verseID := range r.VerseIDs {
+					rels = append(rels, Relationship{
+						FromID: entityID, FromLabel: "LiturgicalDay",
+						Type: relType,
+						ToID: verseID, ToLabel: "Verse",
+					})
+				}
+			}
+		}
 	}
 
 	return records, nodes, rels
+}
+
+// readsRelType turns a reading type slug into an edge type:
+// "responsorial_psalm" → "READS_RESPONSORIAL_PSALM". Cypher cannot
+// parameterize relationship types, so the slug is sanitized here.
+func readsRelType(readingType string) string {
+	out := []rune("READS")
+	if readingType != "" {
+		out = append(out, '_')
+	}
+	for _, r := range readingType {
+		switch {
+		case r >= 'a' && r <= 'z':
+			out = append(out, r-('a'-'A'))
+		case r >= 'A' && r <= 'Z', r >= '0' && r <= '9':
+			out = append(out, r)
+		default:
+			out = append(out, '_')
+		}
+	}
+	return string(out)
 }
 
 func orEmptyJSON(raw json.RawMessage) json.RawMessage {

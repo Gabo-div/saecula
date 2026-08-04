@@ -9,19 +9,36 @@ import (
 	"saecula/cli/internal/scrape"
 )
 
-// scrapeOpts is shared by the root command (scrape is the default action
-// in non-interactive contexts) and the explicit `scrape` subcommand.
-var scrapeOpts struct {
+// scrapeCmd groups the per-source scrapers. Running it bare keeps the
+// historical behavior: scrape the CEE Bible.
+var scrapeCmd = &cobra.Command{
+	Use:   "scrape",
+	Short: "Download a source into one generic JSON document (no database)",
+	Long: `Scrapers download a remote source and write ONE generic JSON document
+that the seed command can load. Pick the source as a subcommand:
+
+  bible    : the complete CEE Bible (books → chapters → verses)
+  readings : USCCB daily Mass readings (verse references only)
+
+Running scrape with no subcommand scrapes the Bible (historical default).`,
+	Example: `  saecula-cli scrape bible
+  saecula-cli scrape readings --year 2026`,
+	RunE: runScrapeBible, // backwards compatible: `scrape --out …`
+}
+
+// bibleOpts is shared by the root command (bible scrape is the default
+// action in non-interactive contexts), bare `scrape`, and `scrape bible`.
+var bibleOpts struct {
 	out string
 }
 
-func registerScrapeFlags(flags *pflag.FlagSet) {
-	flags.StringVar(&scrapeOpts.out, "out", "data/bible_cee.json", "output JSON file")
+func registerBibleFlags(flags *pflag.FlagSet) {
+	flags.StringVar(&bibleOpts.out, "out", "data/bible_cee.json", "output JSON file")
 }
 
-var scrapeCmd = &cobra.Command{
-	Use:   "scrape",
-	Short: "Download the complete CEE Bible into one generic JSON document (no database)",
+var scrapeBibleCmd = &cobra.Command{
+	Use:   "bible",
+	Short: "Download the complete CEE Bible into one generic JSON document",
 	Long: `Downloads every book of the canon from conferenciaepiscopal.es
 (Sagrada Biblia CEE 2011, Spanish) and writes ONE JSON document containing
 the whole Bible: books → chapters → verses.
@@ -29,12 +46,12 @@ the whole Bible: books → chapters → verses.
 Books carry canonical USFM codes and English slugs from the shared catalog
 (libs/canon), so entity IDs are identical across all Bible sources.
 Temporal metadata (composition years, era) also comes from the catalog.`,
-	Example: `  saecula-cli scrape
-  saecula-cli scrape --out data/bible_cee.json`,
-	RunE: runScrape,
+	Example: `  saecula-cli scrape bible
+  saecula-cli scrape bible --out data/bible_cee.json`,
+	RunE: runScrapeBible,
 }
 
-func runScrape(cmd *cobra.Command, _ []string) error {
+func runScrapeBible(cmd *cobra.Command, _ []string) error {
 	scraper := scrape.NewCEEScraper(scrape.NewHTTPFetcher(nil))
 
 	fmt.Println("Scraping the complete CEE Bible (~70 pages, be patient)…")
@@ -45,8 +62,8 @@ func runScrape(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	if err := doc.SaveJSON(scrapeOpts.out); err != nil {
-		return fmt.Errorf("write %s: %w", scrapeOpts.out, err)
+	if err := doc.SaveJSON(bibleOpts.out); err != nil {
+		return fmt.Errorf("write %s: %w", bibleOpts.out, err)
 	}
 
 	books, chapters, verses := 0, 0, 0
@@ -57,14 +74,17 @@ func runScrape(cmd *cobra.Command, _ []string) error {
 			verses += len(c.Verses)
 		}
 	}
-	fmt.Printf("\nDone: %d books, %d chapters, %d verses → %s\n", books, chapters, verses, scrapeOpts.out)
-	fmt.Printf("Seed it with: saecula-cli seed --file %s\n", scrapeOpts.out)
+	fmt.Printf("\nDone: %d books, %d chapters, %d verses → %s\n", books, chapters, verses, bibleOpts.out)
+	fmt.Printf("Seed it with: saecula-cli seed --file %s\n", bibleOpts.out)
 	return nil
 }
 
 func init() {
-	// Same flag on both: `saecula-cli --out …` and `saecula-cli scrape --out …`.
-	registerScrapeFlags(rootCmd.Flags())
-	registerScrapeFlags(scrapeCmd.Flags())
+	// Same flag everywhere the bible scrape can start from:
+	// `saecula-cli --out …`, `saecula-cli scrape --out …`, `saecula-cli scrape bible --out …`.
+	registerBibleFlags(rootCmd.Flags())
+	registerBibleFlags(scrapeCmd.Flags())
+	registerBibleFlags(scrapeBibleCmd.Flags())
+	scrapeCmd.AddCommand(scrapeBibleCmd)
 	rootCmd.AddCommand(scrapeCmd)
 }

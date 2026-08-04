@@ -5,7 +5,9 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
+	"time"
 
 	"charm.land/huh/v2"
 	"github.com/spf13/cobra"
@@ -48,7 +50,7 @@ func runInteractive(cmd *cobra.Command, _ []string) error {
 		huh.NewSelect[string]().
 			Title("Saecula CLI — what do you want to do?").
 			Options(
-				huh.NewOption("Scrape the complete CEE Bible into one JSON document", "scrape"),
+				huh.NewOption("Scrape a source into one JSON document", "scrape"),
 				huh.NewOption("Seed JSON documents into PostgreSQL + Neo4j", "seed"),
 			).
 			Value(&action),
@@ -67,11 +69,63 @@ func runInteractive(cmd *cobra.Command, _ []string) error {
 }
 
 // ---------------------------------------------------------------------------
-// Scrape wizard — whole Bible, no book/chapter picking
+// Scrape wizard — pick WHAT to scrape, then WHERE from, then the details
 // ---------------------------------------------------------------------------
 
+// scrapeSources lists the available sources per scrape type. Adding a
+// source here is all the wizard needs to offer it.
+var scrapeSources = map[string][]huh.Option[string]{
+	"bible": {
+		huh.NewOption("CEE — conferenciaepiscopal.es (Sagrada Biblia 2011, Spanish)", "cee"),
+	},
+	"readings": {
+		huh.NewOption("Vatican News (Spanish, fast, ~2018 → +3 months, no psalm)", "vaticannews"),
+		huh.NewOption("USCCB (English, includes psalm, any date)", "usccb"),
+	},
+}
+
 func interactiveScrape(cmd *cobra.Command) error {
-	outPath := scrapeOpts.out
+	var scrapeType string
+	err := newForm(huh.NewGroup(
+		huh.NewSelect[string]().
+			Title("What do you want to scrape?").
+			Options(
+				huh.NewOption("Bible — the complete canon, text included", "bible"),
+				huh.NewOption("Daily Mass readings — verse references only", "readings"),
+			).
+			Value(&scrapeType),
+	)).Run()
+	if err != nil {
+		return err
+	}
+
+	var source string
+	err = newForm(huh.NewGroup(
+		huh.NewSelect[string]().
+			Title("Source").
+			Options(scrapeSources[scrapeType]...).
+			Value(&source),
+	)).Run()
+	if err != nil {
+		return err
+	}
+
+	switch scrapeType {
+	case "bible":
+		return interactiveScrapeBible(cmd)
+	case "readings":
+		readingsOpts.source = source
+		return interactiveScrapeReadings(cmd)
+	}
+	return nil
+}
+
+// ---------------------------------------------------------------------------
+// Bible scrape wizard — whole Bible, no book/chapter picking
+// ---------------------------------------------------------------------------
+
+func interactiveScrapeBible(cmd *cobra.Command) error {
+	outPath := bibleOpts.out
 	confirmed := true
 
 	err := newForm(huh.NewGroup(
@@ -90,8 +144,80 @@ func interactiveScrape(cmd *cobra.Command) error {
 		return nil
 	}
 
-	scrapeOpts.out = outPath
-	return runScrape(cmd, nil)
+	bibleOpts.out = outPath
+	return runScrapeBible(cmd, nil)
+}
+
+// ---------------------------------------------------------------------------
+// Daily readings scrape wizard
+// ---------------------------------------------------------------------------
+
+// interactiveScrapeReadings assumes readingsOpts.source was already chosen
+// by the scrape wizard.
+func interactiveScrapeReadings(cmd *cobra.Command) error {
+	mode := "year"
+	err := newForm(huh.NewGroup(
+		huh.NewSelect[string]().
+			Title("Date range").
+			Options(
+				huh.NewOption("Civil year (Jan 1 – Dec 31)", "year"),
+				huh.NewOption("Liturgical year (Advent to Advent)", "liturgical"),
+				huh.NewOption("Custom range (from/to)", "custom"),
+			).
+			Value(&mode),
+	)).Run()
+	if err != nil {
+		return err
+	}
+
+	readingsOpts.year, readingsOpts.liturgicalYear = 0, 0
+	readingsOpts.from, readingsOpts.to = "", ""
+	switch mode {
+	case "year", "liturgical":
+		year := fmt.Sprintf("%d", time.Now().Year())
+		if err := newForm(huh.NewGroup(
+			huh.NewInput().Title("Year").Value(&year).Validate(validateYear),
+		)).Run(); err != nil {
+			return err
+		}
+		n, _ := strconv.Atoi(strings.TrimSpace(year))
+		if mode == "year" {
+			readingsOpts.year = n
+		} else {
+			readingsOpts.liturgicalYear = n
+		}
+	case "custom":
+		if err := newForm(huh.NewGroup(
+			huh.NewInput().Title("From (YYYY-MM-DD)").Value(&readingsOpts.from).Validate(validateISODate),
+			huh.NewInput().Title("To (YYYY-MM-DD)").Value(&readingsOpts.to).Validate(validateISODate),
+		)).Run(); err != nil {
+			return err
+		}
+	}
+
+	outPath := readingsOpts.out
+	if outPath == "" {
+		outPath = fmt.Sprintf("data/readings_%s.json", readingsOpts.source)
+	}
+	confirmed := true
+	err = newForm(huh.NewGroup(
+		huh.NewInput().
+			Title("Output file").
+			Value(&outPath).
+			Validate(validateNotEmpty),
+		huh.NewConfirm().
+			Title("Download the daily readings (one page per day)?").
+			Value(&confirmed),
+	)).Run()
+	if err != nil {
+		return err
+	}
+	if !confirmed {
+		return nil
+	}
+
+	readingsOpts.out = outPath
+	return runScrapeReadings(cmd, nil)
 }
 
 // ---------------------------------------------------------------------------
@@ -184,6 +310,21 @@ func findJSONDocuments() []string {
 func validateNotEmpty(s string) error {
 	if strings.TrimSpace(s) == "" {
 		return fmt.Errorf("required")
+	}
+	return nil
+}
+
+func validateYear(s string) error {
+	n, err := strconv.Atoi(strings.TrimSpace(s))
+	if err != nil || n < 1970 || n > 2200 {
+		return fmt.Errorf("enter a four-digit year")
+	}
+	return nil
+}
+
+func validateISODate(s string) error {
+	if _, err := time.Parse(time.DateOnly, strings.TrimSpace(s)); err != nil {
+		return fmt.Errorf("use YYYY-MM-DD")
 	}
 	return nil
 }

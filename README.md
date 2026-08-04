@@ -117,6 +117,15 @@ go run . seed --file data/sample_john_3.json --file data/sample_catechism.json
 Seeding is idempotent: PostgreSQL texts upsert via `ON CONFLICT`, Neo4j
 nodes and relationships via `MERGE`.
 
+**Basic seed + test login.** `--test-user` seeds the dev account
+`test@saecula.app` / `saecula123` (Postgres only, no Neo4j needed). Combine
+with a data file for a one-shot basic setup, or run it alone:
+
+```bash
+go run . seed --file data/bible_cee.json --test-user   # basic data + login
+go run . seed --test-user                              # just the login
+```
+
 ### 4. Run the mobile app
 
 UI built with **Tamagui v2** (React 19 + React Native 0.81 / Expo SDK 54,

@@ -11,9 +11,14 @@ dist/
 # go
 *.exe
 *.test
+apps/back/tmp/
 
 # scraped data (regenerable with saecula-cli)
 apps/cli/data/bible_*.json
+apps/cli/data/readings_*.json
+
+# playwright-mcp session artifacts
+.playwright-mcp/
 
 # editors / os
 .idea/

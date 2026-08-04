@@ -26,7 +26,7 @@ func Load() (*Config, error) {
 	cfg := &Config{
 		HTTPAddr:      getEnv("HTTP_ADDR", ":8080"),
 		PostgresDSN:   getEnv("POSTGRES_DSN", "postgres://saecula:saecula_dev_password@localhost:5432/saecula?sslmode=disable"),
-		Neo4jURI:      getEnv("NEO4J_URI", "neo4j://localhost:7687"),
+		Neo4jURI:      getEnv("NEO4J_URI", "bolt://localhost:7687"),
 		Neo4jUser:     getEnv("NEO4J_USER", "neo4j"),
 		Neo4jPassword: getEnv("NEO4J_PASSWORD", "saecula_dev_password"),
 		JWTSecret:     []byte(getEnv("JWT_SECRET", "")),

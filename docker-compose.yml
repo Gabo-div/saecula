@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: saecula_dev_password
       POSTGRES_DB: saecula
     ports:
-      - "5432:5433"
+      - "5432:5432"
     volumes:
       # postgres:18+ expects the mount at /var/lib/postgresql (data lives in
       # a version-named subdirectory, enabling pg_upgrade across majors)

@@ -92,7 +92,10 @@ export function HomeScreen({ navigation }: Props) {
     void load();
   }, [load]);
 
-  const background = BACKGROUNDS[dayOfYear(new Date()) % BACKGROUNDS.length];
+  // A curated feature image wins; otherwise the day-of-year default rotation.
+  const background =
+    daily?.image_url ?? BACKGROUNDS[dayOfYear(new Date()) % BACKGROUNDS.length];
+  const verseText = daily?.verses.map((v) => v.text).join(' ') ?? '—';
 
   const openDailyInBible = () => {
     if (daily) {
@@ -165,7 +168,7 @@ export function HomeScreen({ navigation }: Props) {
                   numberOfLines={4}
                   onPress={openDailyInBible}
                 >
-                  {daily?.text?.text ?? '—'}
+                  {verseText}
                 </Text>
                 <Text color={c.accent} fontFamily={serif} fontSize={15}>
                   — {daily?.reference ?? ''}

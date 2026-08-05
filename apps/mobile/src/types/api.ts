@@ -84,14 +84,13 @@ export interface TranslationsResponse {
 }
 
 export interface DailyVerseResponse {
-  entity_id: string;
+  date: string;
   book_code: string;
   book_name: string;
   chapter: number;
-  verse: number;
   reference: string;
-  date: string;
-  text?: Verse;
+  image_url?: string; // curated background; falls back to the app default
+  verses: Verse[]; // one verse, or a range
 }
 
 // --- Daily readings ---------------------------------------------------------

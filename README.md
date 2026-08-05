@@ -161,11 +161,15 @@ Five tabs in a liturgical theme (mode × accent):
 - **Bible** — full reader: book + version picker (from `/api/bible`),
   chapter grid, verse-numbered text, prev/next chapter navigation that
   crosses book boundaries. Reading position persists across launches.
+- **Catechism** — infinite-scroll reader of the numbered CCC paragraphs
+  (from `/api/catechism`).
 - **Explore** — placeholder for the upcoming chronological timeline.
 - **Calendar** — a hub of dated sections: daily Mass readings (with a date
   picker), the santoral (saints by month), and celebrations (the liturgical
   year by month), all from `/api/readings` and `/api/calendar`.
-- **Profile** — account and settings (theme, accent, language, translation).
+
+Profile/settings (theme, accent, language, translation) is reached from a
+button in the Home header, not a tab.
 
 ```bash
 cd apps/mobile
@@ -196,6 +200,8 @@ Every request is logged to the Metro/browser console in dev
 | `GET` | `/api/readings/{daily,date}?lang=&translation=` | Bearer | Day's Mass readings: citations + localized verse text |
 | `GET` | `/api/calendar/{daily,date}?lang=` | Bearer | Liturgical day (santoral + temporal cycle) |
 | `GET` | `/api/calendar/year/{year}?lang=` | Bearer | Whole gregorian year of the General Roman calendar |
+| `GET` | `/api/catechism?lang=&from=&limit=` | Bearer | Paginated CCC paragraphs (English) |
+| `GET` | `/api/catechism/{number}?lang=` | Bearer | One CCC paragraph |
 | `GET` | `/health` | — | Liveness probe |
 
 New APIs implement the `server.API` interface (`Pattern()`, `Routes()`) and

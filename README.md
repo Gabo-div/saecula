@@ -138,16 +138,19 @@ persisted language switcher drives both the UI locale and the `?lang=`
 content parameter from a single store). Translation keys are typed against
 the English reference locale — a typo in `t('...')` is a compile error.
 
-Five tabs in a fixed liturgical dark theme (gold on umber):
+Five tabs in a liturgical theme (mode × accent):
 
 - **Home** — daily rotating sacred-art background (public-domain works
   from Wikimedia Commons picked by day of year) with the verse of the day,
-  quick actions and a "Today's Word" card that jumps into the reader.
-- **Saints**, **Chapel** — placeholders for upcoming graph content.
+  quick actions and a highlighted card for the day's celebration and saint.
 - **Bible** — full reader: book + version picker (from `/api/bible`),
   chapter grid, verse-numbered text, prev/next chapter navigation that
   crosses book boundaries. Reading position persists across launches.
-- **Explore** — the master chronological timeline (hybrid graph+text query).
+- **Explore** — placeholder for the upcoming chronological timeline.
+- **Calendar** — a hub of dated sections: daily Mass readings (with a date
+  picker), the santoral (saints by month), and celebrations (the liturgical
+  year by month), all from `/api/readings` and `/api/calendar`.
+- **Profile** — account and settings (theme, accent, language, translation).
 
 ```bash
 cd apps/mobile
@@ -175,6 +178,9 @@ Every request is logged to the Metro/browser console in dev
 | `GET` | `/api/bible/{book}/{chapter}?lang=&translation=` | Bearer | One chapter's verses; `{book}` is a USFM code (`JHN`) or slug (`john`) |
 | `GET` | `/api/bible/translations` | Bearer | Available editions in the translation store |
 | `GET` | `/api/bible/daily?lang=` | Bearer | Verse of the day (deterministic by date, curated rotation) |
+| `GET` | `/api/readings/{daily,date}?lang=&translation=` | Bearer | Day's Mass readings: citations + localized verse text |
+| `GET` | `/api/calendar/{daily,date}?lang=` | Bearer | Liturgical day (santoral + temporal cycle) |
+| `GET` | `/api/calendar/year/{year}?lang=` | Bearer | Whole gregorian year of the General Roman calendar |
 | `GET` | `/health` | — | Liveness probe |
 
 New APIs implement the `server.API` interface (`Pattern()`, `Routes()`) and

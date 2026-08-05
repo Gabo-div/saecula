@@ -31,8 +31,6 @@ const es: typeof en = {
     holyDay: 'Fiesta de precepto',
     saintsEmpty: 'Solo días feriales este mes.',
     celebrationsEmpty: 'No hay solemnidades ni fiestas este mes.',
-    comingTitle: 'Próximamente',
-    comingBody: 'Este calendario estará disponible aquí muy pronto.',
     readingTypes: {
       reading_1: 'Primera lectura',
       reading_i: 'Primera lectura',
@@ -51,12 +49,7 @@ const es: typeof en = {
     prayers: 'Oración',
     ask: 'Preguntar',
     bible: 'Biblia',
-    todaysWord: 'Palabra de hoy',
-    dailyReading: 'Lectura del día',
-    readChapter: 'Leer capítulo',
     celebrationOfDay: 'Celebración del día',
-    saintOfDay: 'Santo del día',
-    readings: 'Lecturas del día',
   },
   bible: {
     title: 'Biblia',
@@ -68,18 +61,10 @@ const es: typeof en = {
     chaptersAbbr: 'cap.',
     loadError: 'No se pudo cargar el capítulo',
   },
-  saints: {
-    title: 'Santos',
-    comingTitle: 'Santoral en camino',
-    comingBody: 'El santoral estará disponible aquí muy pronto.',
-  },
   explore: {
     title: 'Explorar',
     comingTitle: 'Próximamente',
     comingBody: 'La línea del tiempo estará disponible aquí muy pronto.',
-    loadError: 'No se pudo cargar la línea del tiempo',
-    empty: 'Nada en la línea del tiempo todavía.',
-    noText: 'Sin texto disponible en este idioma todavía',
   },
   profile: {
     title: 'Perfil',

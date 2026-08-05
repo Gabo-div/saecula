@@ -31,8 +31,6 @@ const en: Translations = {
     holyDay: 'Holy day of obligation',
     saintsEmpty: 'Only ferial days this month.',
     celebrationsEmpty: 'No solemnities or feasts this month.',
-    comingTitle: 'Coming soon',
-    comingBody: 'This calendar will be available here soon.',
     readingTypes: {
       reading_1: 'First reading',
       reading_i: 'First reading',
@@ -51,12 +49,7 @@ const en: Translations = {
     prayers: 'Prayers',
     ask: 'Ask',
     bible: 'Bible',
-    todaysWord: "Today's word",
-    dailyReading: 'Daily reading',
-    readChapter: 'Read chapter',
     celebrationOfDay: 'Celebration of the day',
-    saintOfDay: 'Saint of the day',
-    readings: 'Daily readings',
   },
   bible: {
     title: 'Bible',
@@ -68,18 +61,10 @@ const en: Translations = {
     chaptersAbbr: 'ch.',
     loadError: 'Could not load the chapter',
   },
-  saints: {
-    title: 'Saints',
-    comingTitle: 'Saints are on their way',
-    comingBody: 'The calendar of saints will be available here soon.',
-  },
   explore: {
     title: 'Explore',
     comingTitle: 'Coming soon',
     comingBody: 'The timeline will be available here soon.',
-    loadError: 'Could not load the timeline',
-    empty: 'Nothing on the timeline yet.',
-    noText: 'No text available in this language yet',
   },
   profile: {
     title: 'Profile',
@@ -137,8 +122,6 @@ export interface Translations {
     holyDay: string;
     saintsEmpty: string;
     celebrationsEmpty: string;
-    comingTitle: string;
-    comingBody: string;
     readingTypes: Record<string, string>;
   };
   home: {
@@ -147,12 +130,7 @@ export interface Translations {
     prayers: string;
     ask: string;
     bible: string;
-    todaysWord: string;
-    dailyReading: string;
-    readChapter: string;
     celebrationOfDay: string;
-    saintOfDay: string;
-    readings: string;
   };
   bible: {
     title: string;
@@ -164,14 +142,10 @@ export interface Translations {
     chaptersAbbr: string;
     loadError: string;
   };
-  saints: { title: string; comingTitle: string; comingBody: string };
   explore: {
     title: string;
     comingTitle: string;
     comingBody: string;
-    loadError: string;
-    empty: string;
-    noText: string;
   };
   profile: { title: string; account: string; signOut: string };
   settings: {

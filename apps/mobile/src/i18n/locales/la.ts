@@ -32,8 +32,6 @@ const la: typeof en = {
     holyDay: 'Dies festus de praecepto',
     saintsEmpty: 'Tantum dies feriales hoc mense.',
     celebrationsEmpty: 'Nullae sollemnitates aut festa hoc mense.',
-    comingTitle: 'Mox aderit',
-    comingBody: 'Hoc calendarium mox hic praesto erit.',
     readingTypes: {
       reading_1: 'Lectio prima',
       reading_i: 'Lectio prima',
@@ -52,12 +50,7 @@ const la: typeof en = {
     prayers: 'Preces',
     ask: 'Interroga',
     bible: 'Biblia',
-    todaysWord: 'Verbum hodiernum',
-    dailyReading: 'Lectio diei',
-    readChapter: 'Lege caput',
     celebrationOfDay: 'Celebratio diei',
-    saintOfDay: 'Sanctus diei',
-    readings: 'Lectiones diei',
   },
   bible: {
     title: 'Biblia',
@@ -69,18 +62,10 @@ const la: typeof en = {
     chaptersAbbr: 'cap.',
     loadError: 'Caput legi non potuit',
   },
-  saints: {
-    title: 'Sancti',
-    comingTitle: 'Sancti mox aderunt',
-    comingBody: 'Calendarium sanctorum mox hic praesto erit.',
-  },
   explore: {
     title: 'Explora',
     comingTitle: 'Mox aderit',
     comingBody: 'Linea temporum mox hic praesto erit.',
-    loadError: 'Linea temporum legi non potuit',
-    empty: 'Nihil adhuc in linea temporum.',
-    noText: 'Textus hac lingua nondum praesto est',
   },
   profile: {
     title: 'Persona',

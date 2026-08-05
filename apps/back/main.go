@@ -11,6 +11,7 @@ import (
 	"saecula/back/internal/auth"
 	"saecula/back/internal/bible"
 	"saecula/back/internal/calendar"
+	"saecula/back/internal/catechism"
 	"saecula/back/internal/config"
 	"saecula/back/internal/db"
 	"saecula/back/internal/readings"
@@ -81,13 +82,14 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	catechismAPI := catechism.NewAPI(pool)
 
 	// --- HTTP server --------------------------------------------------------
 	srv := server.New(server.Config{
 		Addr:           cfg.HTTPAddr,
 		AuthMiddleware: auth.Middleware(tokens),
 		PublicAPIs:     []server.API{authAPI},
-		ProtectedAPIs:  []server.API{timelineAPI, bibleAPI, readingsAPI, calendarAPI},
+		ProtectedAPIs:  []server.API{timelineAPI, bibleAPI, readingsAPI, calendarAPI, catechismAPI},
 	})
 
 	return srv.Run(ctx)

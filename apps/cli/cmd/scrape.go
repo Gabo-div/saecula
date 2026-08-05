@@ -17,8 +17,9 @@ var scrapeCmd = &cobra.Command{
 	Long: `Scrapers download a remote source and write ONE generic JSON document
 that the seed command can load. Pick the source as a subcommand:
 
-  bible    : the complete CEE Bible (books → chapters → verses)
-  readings : USCCB daily Mass readings (verse references only)
+  bible     : the complete CEE Bible (books → chapters → verses)
+  readings  : USCCB daily Mass readings (verse references only)
+  catechism : the Catechism of the Catholic Church (numbered paragraphs)
 
 Running scrape with no subcommand scrapes the Bible (historical default).`,
 	Example: `  saecula-cli scrape bible

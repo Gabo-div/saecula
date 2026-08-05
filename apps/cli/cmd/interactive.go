@@ -82,6 +82,9 @@ var scrapeSources = map[string][]huh.Option[string]{
 		huh.NewOption("Vatican News (Spanish, fast, ~2018 → +3 months, no psalm)", "vaticannews"),
 		huh.NewOption("USCCB (English, includes psalm, any date)", "usccb"),
 	},
+	"catechism": {
+		huh.NewOption("St. Charles Borromeo — scborromeo.org (English, paragraphs 1–2865)", "scborromeo"),
+	},
 }
 
 func interactiveScrape(cmd *cobra.Command) error {
@@ -92,6 +95,7 @@ func interactiveScrape(cmd *cobra.Command) error {
 			Options(
 				huh.NewOption("Bible — the complete canon, text included", "bible"),
 				huh.NewOption("Daily Mass readings — verse references only", "readings"),
+				huh.NewOption("Catechism — numbered paragraphs, text included", "catechism"),
 			).
 			Value(&scrapeType),
 	)).Run()
@@ -116,8 +120,38 @@ func interactiveScrape(cmd *cobra.Command) error {
 	case "readings":
 		readingsOpts.source = source
 		return interactiveScrapeReadings(cmd)
+	case "catechism":
+		return interactiveScrapeCatechism(cmd)
 	}
 	return nil
+}
+
+// ---------------------------------------------------------------------------
+// Catechism scrape wizard — whole Catechism, no section picking
+// ---------------------------------------------------------------------------
+
+func interactiveScrapeCatechism(cmd *cobra.Command) error {
+	outPath := catechismOpts.out
+	confirmed := true
+
+	err := newForm(huh.NewGroup(
+		huh.NewInput().
+			Title("Output file").
+			Value(&outPath).
+			Validate(validateNotEmpty),
+		huh.NewConfirm().
+			Title("Download the whole Catechism (~110 pages)?").
+			Value(&confirmed),
+	)).Run()
+	if err != nil {
+		return err
+	}
+	if !confirmed {
+		return nil
+	}
+
+	catechismOpts.out = outPath
+	return runScrapeCatechism(cmd, nil)
 }
 
 // ---------------------------------------------------------------------------

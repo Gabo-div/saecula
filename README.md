@@ -126,6 +126,17 @@ go run . seed --file data/bible_cee.json --test-user   # basic data + login
 go run . seed --test-user                              # just the login
 ```
 
+**Verse & image of the day.** `daily` upserts curated rows into
+`daily_features` (Postgres); the backend serves them instead of the built-in
+rotation, falling back per-date when absent. A verse may be one reference or a
+same-chapter range. `data/daily_feasts.json` covers the major fixed feasts (its
+`MM-DD` dates apply to `--year`); the rest of the year uses the fallback.
+
+```bash
+go run . daily --file data/daily_feasts.json --year 2026
+go run . daily --date 2026-08-06 --verse MAT.17.2 --image https://…
+```
+
 ### 4. Run the mobile app
 
 UI built with **Tamagui v2** (React 19 + React Native 0.81 / Expo SDK 54,
@@ -177,7 +188,7 @@ Every request is logged to the Metro/browser console in dev
 | `GET` | `/api/bible/books?lang=` | Bearer | Canonical catalog + seeded chapter counts, localized names |
 | `GET` | `/api/bible/{book}/{chapter}?lang=&translation=` | Bearer | One chapter's verses; `{book}` is a USFM code (`JHN`) or slug (`john`) |
 | `GET` | `/api/bible/translations` | Bearer | Available editions in the translation store |
-| `GET` | `/api/bible/daily?lang=` | Bearer | Verse of the day (deterministic by date, curated rotation) |
+| `GET` | `/api/bible/daily?lang=&translation=` | Bearer | Verse (or range) + image of the day; curated `daily_features` row, else built-in rotation |
 | `GET` | `/api/readings/{daily,date}?lang=&translation=` | Bearer | Day's Mass readings: citations + localized verse text |
 | `GET` | `/api/calendar/{daily,date}?lang=` | Bearer | Liturgical day (santoral + temporal cycle) |
 | `GET` | `/api/calendar/year/{year}?lang=` | Bearer | Whole gregorian year of the General Roman calendar |
@@ -227,6 +238,8 @@ Relationships created by the seeder so far: `(:Verse)-[:FOLLOWS]->(:Verse)`
 - `users(id UUID PK, email UNIQUE, password_hash, created_at)`
 - `text_documents(entity_id, language_code, translation_id, raw_content, metadata JSONB)`
   with composite `PRIMARY KEY (entity_id, language_code, translation_id)`
+- `daily_features(feature_date PK, verse_ids TEXT[], image_url)` — curated
+  verse (or range) and background image per date; seeded via `saecula-cli daily`
 
 ## Security notes
 

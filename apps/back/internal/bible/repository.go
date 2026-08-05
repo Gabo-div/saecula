@@ -2,11 +2,13 @@ package bible
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"strconv"
 	"strings"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
@@ -34,6 +36,13 @@ type GraphRepository interface {
 	ChapterCounts(ctx context.Context) (map[string]int64, error)
 }
 
+// DailyFeature is a curated verse-of-the-day (one verse or a range) and an
+// optional background image for a specific date.
+type DailyFeature struct {
+	VerseIDs []string
+	ImageURL string
+}
+
 // TextRepository abstracts the localized translation store for Bible reads.
 type TextRepository interface {
 	// ChapterVerses returns every verse of book/chapter in lang, ordered by
@@ -43,6 +52,9 @@ type TextRepository interface {
 	VerseText(ctx context.Context, entityID, lang, translationID string) (*Verse, error)
 	// Translations lists every (translation, language) edition available.
 	Translations(ctx context.Context) ([]Translation, error)
+	// DailyFeature returns the curated feature for a date (YYYY-MM-DD), or
+	// nil when none is set (caller falls back to the built-in rotation).
+	DailyFeature(ctx context.Context, date string) (*DailyFeature, error)
 }
 
 // ---------------------------------------------------------------------------
@@ -178,6 +190,25 @@ func (repo *PostgresTextRepository) VerseText(ctx context.Context, entityID, lan
 	}
 	v.Number = verseNumber(v.EntityID)
 	return &v, nil
+}
+
+func (repo *PostgresTextRepository) DailyFeature(ctx context.Context, date string) (*DailyFeature, error) {
+	var ids []string
+	var image *string
+	err := repo.pool.QueryRow(ctx,
+		`SELECT verse_ids, image_url FROM daily_features WHERE feature_date = $1`, date).
+		Scan(&ids, &image)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	f := &DailyFeature{VerseIDs: ids}
+	if image != nil {
+		f.ImageURL = *image
+	}
+	return f, nil
 }
 
 func (repo *PostgresTextRepository) Translations(ctx context.Context) ([]Translation, error) {

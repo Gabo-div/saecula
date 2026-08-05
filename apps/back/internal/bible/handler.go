@@ -165,51 +165,77 @@ var dailyVerses = []string{
 }
 
 type dailyResponse struct {
-	EntityID  string `json:"entity_id"`
-	BookCode  string `json:"book_code"`
-	BookName  string `json:"book_name"`
-	Chapter   int    `json:"chapter"`
-	Verse     int    `json:"verse"`
-	Reference string `json:"reference"`
-	Date      string `json:"date"`
-	Text      *Verse `json:"text,omitempty"`
+	Date      string  `json:"date"`
+	BookCode  string  `json:"book_code"`
+	BookName  string  `json:"book_name"`
+	Chapter   int     `json:"chapter"`
+	Reference string  `json:"reference"`
+	ImageURL  string  `json:"image_url,omitempty"`
+	Verses    []Verse `json:"verses"`
 }
 
 func (a *API) Daily(w http.ResponseWriter, r *http.Request) {
 	lang := langParam(r)
 	today := a.now().UTC()
-	entityID := dailyVerses[today.YearDay()%len(dailyVerses)]
+	date := today.Format("2006-01-02")
 
-	bookCode, chapter, verse, ok := splitEntity(entityID)
+	// A curated feature (admin/CLI seeded) wins; otherwise fall back to the
+	// deterministic built-in rotation. A lookup error is not fatal — degrade
+	// to the fallback rather than 500 the home screen.
+	var verseIDs []string
+	var imageURL string
+	if f, err := a.texts.DailyFeature(r.Context(), date); err != nil {
+		slog.Warn("bible: daily feature lookup failed, using fallback", "error", err)
+	} else if f != nil && len(f.VerseIDs) > 0 {
+		verseIDs = f.VerseIDs
+		imageURL = f.ImageURL
+	}
+	if len(verseIDs) == 0 {
+		verseIDs = []string{dailyVerses[today.YearDay()%len(dailyVerses)]}
+	}
+
+	bookCode, chapter, vFirst, ok := splitEntity(verseIDs[0])
 	if !ok {
-		slog.Error("bible: daily verse has malformed entity id", "entity_id", entityID)
+		slog.Error("bible: daily verse has malformed entity id", "entity_id", verseIDs[0])
 		httpx.WriteError(w, http.StatusInternalServerError, "daily verse misconfigured")
 		return
 	}
-
 	book, ok := canon.ByCode(bookCode)
 	if !ok {
-		slog.Error("bible: daily verse references unknown book", "entity_id", entityID)
+		slog.Error("bible: daily verse references unknown book", "entity_id", verseIDs[0])
 		httpx.WriteError(w, http.StatusInternalServerError, "daily verse misconfigured")
 		return
 	}
 
-	text, err := a.texts.VerseText(r.Context(), entityID, lang, r.URL.Query().Get("translation"))
-	if err != nil {
-		slog.Error("bible: daily verse text", "error", err)
-		httpx.WriteError(w, http.StatusInternalServerError, "text lookup failed")
-		return
+	translation := r.URL.Query().Get("translation")
+	verses := make([]Verse, 0, len(verseIDs))
+	for _, id := range verseIDs {
+		text, err := a.texts.VerseText(r.Context(), id, lang, translation)
+		if err != nil {
+			slog.Error("bible: daily verse text", "error", err)
+			httpx.WriteError(w, http.StatusInternalServerError, "text lookup failed")
+			return
+		}
+		if text != nil {
+			verses = append(verses, *text)
+		}
+	}
+
+	name := bookName(*book, lang)
+	_, _, vLast, _ := splitEntity(verseIDs[len(verseIDs)-1])
+	reference := fmt.Sprintf("%s %d,%d", name, chapter, vFirst)
+	if vLast != vFirst {
+		reference = fmt.Sprintf("%s %d,%d-%d", name, chapter, vFirst, vLast)
 	}
 
 	httpx.WriteJSON(w, http.StatusOK, dailyResponse{
-		EntityID:  entityID,
+		Date:      date,
 		BookCode:  book.Code,
-		BookName:  bookName(*book, lang),
+		BookName:  name,
 		Chapter:   chapter,
-		Verse:     verse,
-		Reference: fmt.Sprintf("%s %d,%d", bookName(*book, lang), chapter, verse),
-		Date:      today.Format("2006-01-02"),
-		Text:      text,
+		Reference: reference,
+		ImageURL:  imageURL,
+		Verses:    verses,
 	})
 }
 

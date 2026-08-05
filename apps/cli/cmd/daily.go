@@ -16,10 +16,26 @@ import (
 var dailyOpts struct {
 	file        string
 	year        int
+	fill        bool
 	date        string
 	verse       string
 	image       string
 	postgresDSN string
+}
+
+// dailyPool is the rotation used to fill ordinary days when --fill is set:
+// well-known verses, one per day of the year (wrapping). Feast days from
+// --file override their slot. Edit freely — order only affects which verse
+// lands on which ordinary day.
+var dailyPool = []string{
+	"JHN.3.16", "PSA.23.1", "ROM.8.28", "PHP.4.13", "ISA.41.10", "JER.29.11",
+	"MAT.6.33", "PRO.3.5", "JOS.1.9", "PSA.46.1", "2CO.5.17", "GAL.2.20",
+	"EPH.2.8", "HEB.11.1", "JAS.1.2", "1PE.5.7", "1JN.4.8", "REV.21.4",
+	"MAT.11.28", "LUK.1.37", "PSA.27.1", "PSA.91.1", "ROM.12.2", "1CO.13.4",
+	"PHP.4.6", "COL.3.23", "PSA.119.105", "MAT.5.9", "JHN.14.6", "JHN.8.12",
+	"PSA.34.8", "ISA.40.31", "MIC.6.8", "ZEP.3.17", "PSA.16.11", "ROM.5.8",
+	"EPH.6.10", "2TI.1.7", "HEB.12.2", "1PE.2.9", "1JN.1.9", "REV.3.20",
+	"ACT.1.8", "PSA.100.5", "PRO.16.3", "MAT.28.19",
 }
 
 // dailyEntry is one row of a --file feast list. Date is "MM-DD" (a fixed feast
@@ -45,7 +61,8 @@ Two modes:
 
 The verse may be one reference ("JHN.1.14") or a same-chapter range
 ("LUK.1.46-49"). Idempotent: re-running overwrites the same dates.`,
-	Example: `  saecula-cli daily --file data/daily_feasts.json --year 2026
+	Example: `  saecula-cli daily --file data/daily_feasts.json --year 2026 --fill
+  saecula-cli daily --file data/daily_feasts.json --year 2026
   saecula-cli daily --date 2026-08-06 --verse MAT.17.2 --image https://…`,
 	RunE: runDaily,
 }
@@ -54,7 +71,13 @@ func runDaily(cmd *cobra.Command, _ []string) error {
 	ctx, cancel := context.WithTimeout(cmd.Context(), time.Minute)
 	defer cancel()
 
-	entries, err := dailyEntries()
+	var entries []dailyEntry
+	var err error
+	if dailyOpts.fill {
+		entries, err = fillYear()
+	} else {
+		entries, err = dailyEntries()
+	}
 	if err != nil {
 		return err
 	}
@@ -114,6 +137,49 @@ func dailyEntries() ([]dailyEntry, error) {
 	return []dailyEntry{{Date: dailyOpts.date, Verse: dailyOpts.verse, Image: dailyOpts.image}}, nil
 }
 
+// fillYear produces one entry for every day of --year: the feast from --file
+// when the date has one, otherwise a rotating pool verse. This materializes a
+// whole year so every day has a curated verse (not just feasts).
+func fillYear() ([]dailyEntry, error) {
+	year := dailyOpts.year
+	if year == 0 {
+		year = time.Now().UTC().Year()
+	}
+
+	feasts := map[string]dailyEntry{}
+	if dailyOpts.file != "" {
+		raw, err := os.ReadFile(dailyOpts.file)
+		if err != nil {
+			return nil, fmt.Errorf("read %s: %w", dailyOpts.file, err)
+		}
+		var list []dailyEntry
+		if err := json.Unmarshal(raw, &list); err != nil {
+			return nil, fmt.Errorf("parse %s: %w", dailyOpts.file, err)
+		}
+		for _, e := range list {
+			d, err := resolveDate(e.Date, year)
+			if err != nil {
+				return nil, err
+			}
+			feasts[d] = e
+		}
+	}
+
+	var entries []dailyEntry
+	day := time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC)
+	for i := 0; day.Year() == year; i++ {
+		date := day.Format("2006-01-02")
+		if f, ok := feasts[date]; ok {
+			f.Date = date
+			entries = append(entries, f)
+		} else {
+			entries = append(entries, dailyEntry{Date: date, Verse: dailyPool[i%len(dailyPool)]})
+		}
+		day = day.AddDate(0, 0, 1)
+	}
+	return entries, nil
+}
+
 // resolveDate turns "MM-DD" into "<year>-MM-DD"; a full "YYYY-MM-DD" passes
 // through. It validates the result is a real date.
 func resolveDate(date string, year int) (string, error) {
@@ -164,6 +230,7 @@ func expandVerseArg(s string) ([]string, error) {
 func init() {
 	dailyCmd.Flags().StringVar(&dailyOpts.file, "file", "", "JSON feast list (MM-DD or YYYY-MM-DD entries)")
 	dailyCmd.Flags().IntVar(&dailyOpts.year, "year", 0, "year for MM-DD entries (default: current)")
+	dailyCmd.Flags().BoolVar(&dailyOpts.fill, "fill", false, "seed every day of --year (feasts from --file, rest from the rotation pool)")
 	dailyCmd.Flags().StringVar(&dailyOpts.date, "date", "", "single date YYYY-MM-DD")
 	dailyCmd.Flags().StringVar(&dailyOpts.verse, "verse", "", "single verse or range, e.g. LUK.1.46-49")
 	dailyCmd.Flags().StringVar(&dailyOpts.image, "image", "", "background image URL (optional)")

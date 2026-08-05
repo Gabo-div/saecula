@@ -133,9 +133,13 @@ same-chapter range. `data/daily_feasts.json` covers the major fixed feasts (its
 `MM-DD` dates apply to `--year`); the rest of the year uses the fallback.
 
 ```bash
-go run . daily --file data/daily_feasts.json --year 2026
+go run . daily --file data/daily_feasts.json --year 2026 --fill  # every day of 2026
+go run . daily --file data/daily_feasts.json --year 2026         # feasts only
 go run . daily --date 2026-08-06 --verse MAT.17.2 --image https://…
 ```
+
+`--fill` seeds all 365 days: feast days from the file, every other day from a
+built-in verse rotation pool.
 
 ### 4. Run the mobile app
 

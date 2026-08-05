@@ -127,9 +127,12 @@ export function HomeScreen({ navigation }: Props) {
             title={t('home.title')}
             right={
               <>
-                <HeaderIconButton icon="broadcast" />
                 <HeaderIconButton icon="hands-pray" />
                 <HeaderIconButton icon="candle" />
+                <HeaderIconButton
+                  icon="account-circle-outline"
+                  onPress={() => navigation.navigate('Profile')}
+                />
               </>
             }
           />

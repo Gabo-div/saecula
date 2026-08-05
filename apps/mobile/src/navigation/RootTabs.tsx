@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 
 import { BibleScreen } from '@/screens/BibleScreen';
 import { CalendarHubScreen } from '@/screens/CalendarHubScreen';
+import { CatechismScreen } from '@/screens/CatechismScreen';
 import { CelebrationsScreen } from '@/screens/CelebrationsScreen';
 import { DailyReadingsScreen } from '@/screens/DailyReadingsScreen';
 import { ExploreScreen } from '@/screens/ExploreScreen';
@@ -19,9 +20,10 @@ import { useAppTheme } from '@/store/themeStore';
 export type RootTabParamList = {
   Home: undefined;
   Bible: undefined;
+  Catechism: undefined;
   Explore: undefined;
   Calendar: NavigatorScreenParams<CalendarStackParamList> | undefined;
-  Profile: undefined;
+  Profile: undefined; // reachable from Home; hidden from the tab bar
 };
 
 // The Calendar tab hosts a stack: a hub of dated sections (daily readings,
@@ -44,6 +46,7 @@ type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
 const TAB_ICONS: Record<keyof RootTabParamList, IconName> = {
   Home: 'home-variant-outline',
   Bible: 'book-cross',
+  Catechism: 'book-education-outline',
   Explore: 'compass-outline',
   Calendar: 'calendar-month-outline',
   Profile: 'account-circle-outline',
@@ -103,6 +106,11 @@ export function RootTabs() {
       <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: t('tabs.home') }} />
       <Tab.Screen name="Bible" component={BibleScreen} options={{ tabBarLabel: t('tabs.bible') }} />
       <Tab.Screen
+        name="Catechism"
+        component={CatechismScreen}
+        options={{ tabBarLabel: t('tabs.catechism') }}
+      />
+      <Tab.Screen
         name="Explore"
         component={ExploreScreen}
         options={{ tabBarLabel: t('tabs.explore') }}
@@ -115,7 +123,7 @@ export function RootTabs() {
       <Tab.Screen
         name="Profile"
         component={ProfileStackNavigator}
-        options={{ tabBarLabel: t('tabs.profile') }}
+        options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }}
       />
     </Tab.Navigator>
   );

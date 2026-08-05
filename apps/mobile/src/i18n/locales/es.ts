@@ -10,8 +10,13 @@ const es: typeof en = {
     calendar: 'Calendario',
     saints: 'Santos',
     bible: 'Biblia',
+    catechism: 'Catecismo',
     explore: 'Explorar',
     profile: 'Perfil',
+  },
+  catechism: {
+    title: 'Catecismo',
+    loadError: 'No se pudo cargar el Catecismo',
   },
   calendar: {
     title: 'Calendario',

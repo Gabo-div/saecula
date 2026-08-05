@@ -144,3 +144,17 @@ export interface CalendarYearResponse {
   lang: string;
   days: Record<string, Celebration[]>; // ISO date → celebrations
 }
+
+// --- Catechism --------------------------------------------------------------
+
+export interface CatechismParagraph {
+  number: number;
+  text: string;
+}
+
+export interface CatechismListResponse {
+  lang: string;
+  from: number;
+  has_more: boolean;
+  paragraphs: CatechismParagraph[];
+}

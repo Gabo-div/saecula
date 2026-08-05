@@ -8,6 +8,7 @@ import type {
   BooksResponse,
   CalendarDayResponse,
   CalendarYearResponse,
+  CatechismListResponse,
   ChapterResponse,
   DailyReadingsResponse,
   DailyVerseResponse,
@@ -193,6 +194,17 @@ export async function fetchCalendarDay(date?: string): Promise<CalendarDayRespon
   const path = date ? `/api/calendar/${date}` : '/api/calendar/daily';
   const { data } = await api.get<CalendarDayResponse>(path, {
     params: { lang: useLanguageStore.getState().language },
+  });
+  return data;
+}
+
+// --- Catechism --------------------------------------------------------------
+
+// fetchCatechism loads a page of CCC paragraphs starting at `from`. The
+// Catechism text is English-only for now, so lang is fixed to "en".
+export async function fetchCatechism(from: number, limit = 50): Promise<CatechismListResponse> {
+  const { data } = await api.get<CatechismListResponse>('/api/catechism', {
+    params: { from, limit, lang: 'en' },
   });
   return data;
 }

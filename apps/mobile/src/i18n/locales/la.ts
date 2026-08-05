@@ -11,8 +11,13 @@ const la: typeof en = {
     calendar: 'Calendarium',
     saints: 'Sancti',
     bible: 'Biblia',
+    catechism: 'Catechismus',
     explore: 'Explora',
     profile: 'Persona',
+  },
+  catechism: {
+    title: 'Catechismus',
+    loadError: 'Catechismus legi non potuit',
   },
   calendar: {
     title: 'Calendarium',

@@ -10,8 +10,13 @@ const en: Translations = {
     calendar: 'Calendar',
     saints: 'Saints',
     bible: 'Bible',
+    catechism: 'Catechism',
     explore: 'Explore',
     profile: 'Profile',
+  },
+  catechism: {
+    title: 'Catechism',
+    loadError: 'Could not load the Catechism',
   },
   calendar: {
     title: 'Calendar',
@@ -101,9 +106,11 @@ export interface Translations {
     calendar: string;
     saints: string;
     bible: string;
+    catechism: string;
     explore: string;
     profile: string;
   };
+  catechism: { title: string; loadError: string };
   calendar: {
     title: string;
     readings: string;

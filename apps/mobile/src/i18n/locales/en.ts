@@ -63,6 +63,14 @@ const en: Translations = {
     bible: 'Bible',
     celebrationOfDay: 'Celebration of the day',
   },
+  prayers: {
+    individual: 'Prayers',
+    guided: 'Guided prayers',
+    language: 'Language',
+    todaysMysteries: "Today's mysteries",
+    order: 'Order of prayer',
+    forEachMystery: 'For each of the five mysteries',
+  },
   bible: {
     title: 'Bible',
     bookAndVersion: 'Book & version',
@@ -150,6 +158,14 @@ export interface Translations {
     ask: string;
     bible: string;
     celebrationOfDay: string;
+  };
+  prayers: {
+    individual: string;
+    guided: string;
+    language: string;
+    todaysMysteries: string;
+    order: string;
+    forEachMystery: string;
   };
   bible: {
     title: string;

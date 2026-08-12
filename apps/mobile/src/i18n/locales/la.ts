@@ -64,6 +64,14 @@ const la: typeof en = {
     bible: 'Biblia',
     celebrationOfDay: 'Celebratio diei',
   },
+  prayers: {
+    individual: 'Orationes',
+    guided: 'Orationes ductae',
+    language: 'Lingua',
+    todaysMysteries: 'Mysteria hodierna',
+    order: 'Ordo orationis',
+    forEachMystery: 'Pro singulis quinque mysteriis',
+  },
   bible: {
     title: 'Biblia',
     bookAndVersion: 'Liber et versio',

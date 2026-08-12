@@ -63,6 +63,14 @@ const es: typeof en = {
     bible: 'Biblia',
     celebrationOfDay: 'Celebración del día',
   },
+  prayers: {
+    individual: 'Oraciones',
+    guided: 'Oraciones guiadas',
+    language: 'Idioma',
+    todaysMysteries: 'Misterios de hoy',
+    order: 'Orden de la oración',
+    forEachMystery: 'Por cada uno de los cinco misterios',
+  },
   bible: {
     title: 'Biblia',
     bookAndVersion: 'Libro y versión',

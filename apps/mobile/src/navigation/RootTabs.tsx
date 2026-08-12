@@ -13,8 +13,10 @@ import { CatechismReaderScreen } from '@/screens/CatechismReaderScreen';
 import { CelebrationsScreen } from '@/screens/CelebrationsScreen';
 import { DailyReadingsScreen } from '@/screens/DailyReadingsScreen';
 import { ExploreScreen } from '@/screens/ExploreScreen';
+import { GuidedPrayerScreen } from '@/screens/GuidedPrayerScreen';
 import { HomeScreen } from '@/screens/HomeScreen';
-import { PrayersScreen } from '@/screens/PrayersScreen';
+import { PrayerDetailScreen } from '@/screens/PrayerDetailScreen';
+import { PrayersHubScreen } from '@/screens/PrayersHubScreen';
 import { ProfileScreen } from '@/screens/ProfileScreen';
 import { SaintsScreen } from '@/screens/SaintsScreen';
 import { SettingsScreen } from '@/screens/SettingsScreen';
@@ -26,7 +28,7 @@ export type RootTabParamList = {
   Catechism: undefined;
   Explore: undefined;
   Calendar: NavigatorScreenParams<CalendarStackParamList> | undefined;
-  Prayers: undefined; // reachable from Home; hidden from the tab bar
+  Prayers: NavigatorScreenParams<PrayersStackParamList> | undefined; // from Home; hidden tab
   Profile: undefined; // reachable from Home; hidden from the tab bar
 };
 
@@ -45,6 +47,14 @@ export type CatechismStackParamList = {
   CatechismHome: undefined;
   CatechismPart: { partKey: string; title: string };
   CatechismReader: { from: number; to: number; title: string };
+};
+
+// Prayers (hidden tab, opened from Home): a hub of individual + guided
+// prayers, each opening its own page.
+export type PrayersStackParamList = {
+  PrayersHome: undefined;
+  PrayerDetail: { prayerId: string };
+  GuidedPrayer: { guidedId: string };
 };
 
 // The Profile tab hosts its own stack so Settings pushes on top of it.
@@ -68,6 +78,7 @@ const TAB_ICONS: Record<keyof RootTabParamList, IconName> = {
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const CalendarStack = createNativeStackNavigator<CalendarStackParamList>();
 const CatechismStack = createNativeStackNavigator<CatechismStackParamList>();
+const PrayersStack = createNativeStackNavigator<PrayersStackParamList>();
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 
 function CatechismStackNavigator() {
@@ -94,6 +105,19 @@ function CalendarStackNavigator() {
       <CalendarStack.Screen name="SaintsCalendar" component={SaintsScreen} />
       <CalendarStack.Screen name="Celebrations" component={CelebrationsScreen} />
     </CalendarStack.Navigator>
+  );
+}
+
+function PrayersStackNavigator() {
+  const c = useAppTheme();
+  return (
+    <PrayersStack.Navigator
+      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.bg } }}
+    >
+      <PrayersStack.Screen name="PrayersHome" component={PrayersHubScreen} />
+      <PrayersStack.Screen name="PrayerDetail" component={PrayerDetailScreen} />
+      <PrayersStack.Screen name="GuidedPrayer" component={GuidedPrayerScreen} />
+    </PrayersStack.Navigator>
   );
 }
 
@@ -149,7 +173,7 @@ export function RootTabs() {
       />
       <Tab.Screen
         name="Prayers"
-        component={PrayersScreen}
+        component={PrayersStackNavigator}
         options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }}
       />
       <Tab.Screen

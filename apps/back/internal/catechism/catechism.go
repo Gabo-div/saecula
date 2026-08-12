@@ -47,13 +47,19 @@ type listResponse struct {
 	Paragraphs []Paragraph `json:"paragraphs"`
 }
 
-// GET /api/catechism?lang=&from=1&limit=50
+// GET /api/catechism?lang=&from=1&to=1065&limit=50
+// `to` (optional, 0 = no bound) caps the paragraph number so a request can be
+// scoped to one part of the Catechism.
 func (a *API) List(w http.ResponseWriter, r *http.Request) {
 	lang := langParam(r)
 	from := queryInt(r, "from", 1)
+	to := queryInt(r, "to", 0)
 	limit := queryInt(r, "limit", defaultLimit)
 	if limit < 1 || limit > 200 {
 		limit = defaultLimit
+	}
+	if to <= 0 {
+		to = 1 << 30 // effectively unbounded
 	}
 
 	// Fetch one extra row to tell whether more paragraphs follow.
@@ -61,10 +67,10 @@ func (a *API) List(w http.ResponseWriter, r *http.Request) {
 		`SELECT CAST(split_part(entity_id, '.', 2) AS INT) AS num, raw_content
 		 FROM text_documents
 		 WHERE entity_id LIKE 'CCC.%' AND language_code = $1
-		   AND CAST(split_part(entity_id, '.', 2) AS INT) >= $2
+		   AND CAST(split_part(entity_id, '.', 2) AS INT) BETWEEN $2 AND $3
 		 ORDER BY num
-		 LIMIT $3`,
-		lang, from, limit+1)
+		 LIMIT $4`,
+		lang, from, to, limit+1)
 	if err != nil {
 		httpx.WriteError(w, http.StatusInternalServerError, "catechism query failed")
 		return

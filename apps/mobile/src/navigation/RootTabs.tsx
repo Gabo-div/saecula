@@ -14,6 +14,7 @@ import { CelebrationsScreen } from '@/screens/CelebrationsScreen';
 import { DailyReadingsScreen } from '@/screens/DailyReadingsScreen';
 import { ExploreScreen } from '@/screens/ExploreScreen';
 import { HomeScreen } from '@/screens/HomeScreen';
+import { PrayersScreen } from '@/screens/PrayersScreen';
 import { ProfileScreen } from '@/screens/ProfileScreen';
 import { SaintsScreen } from '@/screens/SaintsScreen';
 import { SettingsScreen } from '@/screens/SettingsScreen';
@@ -25,6 +26,7 @@ export type RootTabParamList = {
   Catechism: undefined;
   Explore: undefined;
   Calendar: NavigatorScreenParams<CalendarStackParamList> | undefined;
+  Prayers: undefined; // reachable from Home; hidden from the tab bar
   Profile: undefined; // reachable from Home; hidden from the tab bar
 };
 
@@ -59,6 +61,7 @@ const TAB_ICONS: Record<keyof RootTabParamList, IconName> = {
   Catechism: 'book-education-outline',
   Explore: 'compass-outline',
   Calendar: 'calendar-month-outline',
+  Prayers: 'hands-pray',
   Profile: 'account-circle-outline',
 };
 
@@ -143,6 +146,11 @@ export function RootTabs() {
         name="Calendar"
         component={CalendarStackNavigator}
         options={{ tabBarLabel: t('tabs.calendar') }}
+      />
+      <Tab.Screen
+        name="Prayers"
+        component={PrayersScreen}
+        options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }}
       />
       <Tab.Screen
         name="Profile"

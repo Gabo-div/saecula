@@ -127,7 +127,10 @@ export function HomeScreen({ navigation }: Props) {
             title={t('home.title')}
             right={
               <>
-                <HeaderIconButton icon="hands-pray" />
+                <HeaderIconButton
+                  icon="hands-pray"
+                  onPress={() => navigation.navigate('Prayers')}
+                />
                 <HeaderIconButton icon="candle" />
                 <HeaderIconButton
                   icon="account-circle-outline"
@@ -182,7 +185,11 @@ export function HomeScreen({ navigation }: Props) {
 
           {/* Quick actions */}
           <XStack px="$4" pt="$7" gap="$2">
-            <QuickAction icon="hands-pray" label={t('home.prayers')} />
+            <QuickAction
+              icon="hands-pray"
+              label={t('home.prayers')}
+              onPress={() => navigation.navigate('Prayers')}
+            />
             <QuickAction icon="star-four-points-outline" label={t('home.ask')} />
             <QuickAction
               icon="calendar-month-outline"

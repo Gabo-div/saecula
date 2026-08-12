@@ -6,7 +6,7 @@
   { "date": "03-25", "verse": "LUK.1.38", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Leonardo_da_Vinci_-_Annunciazione_-_Google_Art_Project.jpg?width=1200" },
   { "date": "06-24", "verse": "LUK.1.76" },
   { "date": "06-29", "verse": "MAT.16.18" },
-  { "date": "08-06", "verse": "MAT.17.2" },
+  { "date": "08-06", "verse": "MAT.17.2", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Transfiguration_Raphael.jpg?width=1200" },
   { "date": "08-15", "verse": "LUK.1.46-49", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Peter_Paul_Rubens_-_The_Assumption_of_the_Virgin_Mary_-_Google_Art_Project.jpg?width=1200" },
   { "date": "09-14", "verse": "JHN.3.14-15" },
   { "date": "11-01", "verse": "MAT.5.3-10" },
@@ -15,5 +15,5 @@
   { "date": "12-25", "verse": "JHN.1.14", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gerard_van_Honthorst_-_Adoration_of_the_Shepherds_(1622).jpg?width=1200" },
   { "date": "12-26", "verse": "ACT.7.59" },
   { "date": "12-27", "verse": "JHN.1.1" },
-  { "date": "12-28", "verse": "MAT.2.18" }
+  { "date": "12-28", "verse": "MAT.2.18", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Giotto_-_Scrovegni_-_-21-_-_Massacre_of_the_Innocents.jpg?width=1200" }
 ]

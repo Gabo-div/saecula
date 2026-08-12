@@ -69,6 +69,7 @@ const la: typeof en = {
     guided: 'Orationes ductae',
     language: 'Lingua',
     todaysMysteries: 'Mysteria hodierna',
+    mysteries: 'Mysteria',
     order: 'Ordo orationis',
     forEachMystery: 'Pro singulis quinque mysteriis',
     begin: 'Incipe',

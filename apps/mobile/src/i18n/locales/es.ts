@@ -68,6 +68,7 @@ const es: typeof en = {
     guided: 'Oraciones guiadas',
     language: 'Idioma',
     todaysMysteries: 'Misterios de hoy',
+    mysteries: 'Misterios',
     order: 'Orden de la oración',
     forEachMystery: 'Por cada uno de los cinco misterios',
     begin: 'Comenzar',

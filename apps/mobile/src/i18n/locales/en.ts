@@ -68,6 +68,7 @@ const en: Translations = {
     guided: 'Guided prayers',
     language: 'Language',
     todaysMysteries: "Today's mysteries",
+    mysteries: 'Mysteries',
     order: 'Order of prayer',
     forEachMystery: 'For each of the five mysteries',
     begin: 'Begin',
@@ -167,6 +168,7 @@ export interface Translations {
     guided: string;
     language: string;
     todaysMysteries: string;
+    mysteries: string;
     order: string;
     forEachMystery: string;
     begin: string;

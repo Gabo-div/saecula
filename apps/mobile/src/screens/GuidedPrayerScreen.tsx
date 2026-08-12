@@ -76,8 +76,11 @@ export function GuidedPrayerScreen({ navigation }: Props) {
     const dow = new Date().getUTCDay();
     return MYSTERY_SETS.find((s) => s.days.includes(dow)) ?? MYSTERY_SETS[0];
   }, []);
-  const [setId, setSetId] = useState(todaySet.id);
-  const set = MYSTERY_SETS.find((s) => s.id === setId) ?? todaySet;
+  // 'today' tracks the weekday set; any other value pins an explicit set.
+  const [selection, setSelection] = useState<'today' | MysterySet['id']>('today');
+  const set =
+    selection === 'today' ? todaySet : MYSTERY_SETS.find((s) => s.id === selection) ?? todaySet;
+  const isToday = selection === 'today' || set.id === todaySet.id;
 
   const [started, setStarted] = useState(false);
   const [pos, setPos] = useState(0);
@@ -119,19 +122,17 @@ export function GuidedPrayerScreen({ navigation }: Props) {
       <View flex={1} bg={c.bg} pt={insets.top + 8}>
         <ScreenHeader title={title} onBack={() => navigation.goBack()} />
         <ScrollView contentContainerStyle={{ padding: 16, gap: 20, paddingBottom: 40 }}>
-          <Text color={c.text} fontFamily={serif} fontSize={15} lineHeight={24}>
-            {pick(rosary.intro, lang)}
-          </Text>
-
-          <XStack self="center" rounded={22} bg={c.bgElevated} borderWidth={1} borderColor={c.border} p="$1">
+          {/* Language — full width, at the very top. */}
+          <XStack rounded={22} bg={c.bgElevated} borderWidth={1} borderColor={c.border} p="$1">
             {LANGS.map((l) => {
               const active = l === lang;
               return (
                 <View
                   key={l}
-                  px="$4"
+                  flex={1}
                   py="$2"
                   rounded={18}
+                  items="center"
                   bg={active ? c.accent : 'transparent'}
                   onPress={() => setLang(l)}
                   pressStyle={{ opacity: 0.7 }}
@@ -144,34 +145,58 @@ export function GuidedPrayerScreen({ navigation }: Props) {
             })}
           </XStack>
 
-          {/* Mystery set chooser */}
-          <XStack gap="$2" flexWrap="wrap" justify="center">
-            {MYSTERY_SETS.map((s) => {
-              const active = s.id === setId;
-              return (
-                <View
-                  key={s.id}
-                  px="$3"
-                  py="$2"
-                  rounded={18}
-                  bg={active ? c.accent : 'transparent'}
-                  borderWidth={1}
-                  borderColor={active ? c.accent : c.border}
-                  onPress={() => setSetId(s.id)}
-                  pressStyle={{ opacity: 0.7 }}
-                >
-                  <Text color={active ? c.bg : c.strong} fontSize={13}>
-                    {pick(s.name, lang)}
-                  </Text>
-                </View>
-              );
-            })}
-          </XStack>
+          <Text color={c.text} fontFamily={serif} fontSize={15} lineHeight={24}>
+            {pick(rosary.intro, lang)}
+          </Text>
 
-          {/* Selected mysteries */}
+          {/* Mystery set chooser */}
+          <YStack gap="$2">
+            <Text fontSize={11} fontWeight="700" color={c.accent} letterSpacing={1.5}>
+              {t('prayers.mysteries').toUpperCase()}
+            </Text>
+            <XStack gap="$2" flexWrap="wrap">
+              <View
+                px="$3"
+                py="$2"
+                rounded={18}
+                bg={isToday ? c.accent : 'transparent'}
+                borderWidth={1}
+                borderColor={isToday ? c.accent : c.border}
+                onPress={() => setSelection('today')}
+                pressStyle={{ opacity: 0.7 }}
+              >
+                <Text color={isToday ? c.bg : c.strong} fontSize={13} fontWeight="700">
+                  {t('calendar.today')}
+                </Text>
+              </View>
+              {MYSTERY_SETS.map((s) => {
+                const active = selection === s.id;
+                return (
+                  <View
+                    key={s.id}
+                    px="$3"
+                    py="$2"
+                    rounded={18}
+                    bg={active ? c.accent : 'transparent'}
+                    borderWidth={1}
+                    borderColor={active ? c.accent : c.border}
+                    onPress={() => setSelection(s.id)}
+                    pressStyle={{ opacity: 0.7 }}
+                  >
+                    <Text color={active ? c.bg : c.strong} fontSize={13}>
+                      {pick(s.name, lang)}
+                    </Text>
+                  </View>
+                );
+              })}
+            </XStack>
+          </YStack>
+
+          {/* Selected mysteries — always the set type, marked when it's today's. */}
           <YStack gap="$3" p="$4" rounded="$8" bg={c.card}>
             <Text color={c.onCard} fontSize={11} letterSpacing={2} fontWeight="700">
-              {(set.id === todaySet.id ? t('prayers.todaysMysteries') : pick(set.name, lang)).toUpperCase()}
+              {pick(set.name, lang).toUpperCase()}
+              {isToday ? `  (${t('calendar.today').toUpperCase()})` : ''}
             </Text>
             <YStack gap="$2">
               {set.mysteries.map((m, i) => (

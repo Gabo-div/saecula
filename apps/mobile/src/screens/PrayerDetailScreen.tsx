@@ -36,11 +36,12 @@ export function PrayerDetailScreen({ navigation, route }: Props) {
   const c = useAppTheme();
   const { t } = useTranslation();
   const appLang = useLanguageStore((s) => s.language);
+  const headerLang: PrayerLang = LANGS.includes(appLang as PrayerLang)
+    ? (appLang as PrayerLang)
+    : 'en';
   const prayer = PRAYERS.find((p) => p.id === route.params.prayerId);
 
-  const [lang, setLang] = useState<PrayerLang>(
-    LANGS.includes(appLang as PrayerLang) ? (appLang as PrayerLang) : 'en',
-  );
+  const [lang, setLang] = useState<PrayerLang>(headerLang);
 
   if (!prayer) {
     return (
@@ -52,7 +53,7 @@ export function PrayerDetailScreen({ navigation, route }: Props) {
 
   return (
     <View flex={1} bg={c.bg} pt={insets.top + 8}>
-      <ScreenHeader title={prayer.title[lang]} onBack={() => navigation.goBack()} />
+      <ScreenHeader title={prayer.title[headerLang]} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
         <YStack items="center" gap="$3" mb="$5">
           <View width={64} height={64} rounded={32} bg={c.chip} items="center" justify="center">
@@ -85,7 +86,7 @@ export function PrayerDetailScreen({ navigation, route }: Props) {
           })}
         </XStack>
 
-        <Text color={c.text} fontFamily={serif} fontSize={19} lineHeight={32} text="center">
+        <Text color={c.text} fontFamily={serif} fontSize={19} lineHeight={32}>
           {prayer.text[lang]}
         </Text>
       </ScrollView>

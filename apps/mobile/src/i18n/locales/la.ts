@@ -71,6 +71,9 @@ const la: typeof en = {
     todaysMysteries: 'Mysteria hodierna',
     order: 'Ordo orationis',
     forEachMystery: 'Pro singulis quinque mysteriis',
+    begin: 'Incipe',
+    finished: 'Oratio completa',
+    again: 'Iterum orare',
   },
   bible: {
     title: 'Biblia',

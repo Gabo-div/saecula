@@ -70,6 +70,9 @@ const en: Translations = {
     todaysMysteries: "Today's mysteries",
     order: 'Order of prayer',
     forEachMystery: 'For each of the five mysteries',
+    begin: 'Begin',
+    finished: 'Prayer complete',
+    again: 'Pray again',
   },
   bible: {
     title: 'Bible',
@@ -166,6 +169,9 @@ export interface Translations {
     todaysMysteries: string;
     order: string;
     forEachMystery: string;
+    begin: string;
+    finished: string;
+    again: string;
   };
   bible: {
     title: string;

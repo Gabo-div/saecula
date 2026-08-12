@@ -70,6 +70,9 @@ const es: typeof en = {
     todaysMysteries: 'Misterios de hoy',
     order: 'Orden de la oración',
     forEachMystery: 'Por cada uno de los cinco misterios',
+    begin: 'Comenzar',
+    finished: 'Oración completa',
+    again: 'Rezar de nuevo',
   },
   bible: {
     title: 'Biblia',

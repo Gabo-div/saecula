@@ -18,6 +18,11 @@ apps/cli/data/bible_*.json
 apps/cli/data/readings_*.json
 apps/cli/data/catechism_*.json
 
+# thesis Word output (regenerable with docs/generate_word.py)
+docs/*.docx
+docs/~$*.docx
+docs/__pycache__/
+
 # playwright-mcp session artifacts
 .playwright-mcp/
 

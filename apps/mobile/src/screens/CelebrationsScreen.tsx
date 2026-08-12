@@ -2,7 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView } from 'react-native';
+import { Modal, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Spinner, Text, View, XStack, YStack } from 'tamagui';
 
@@ -42,6 +42,20 @@ function shortDate(iso: string, locale: string): string {
   }
 }
 
+function longDate(iso: string, locale: string): string {
+  try {
+    return new Date(`${iso}T00:00:00Z`).toLocaleDateString(locale, {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      timeZone: 'UTC',
+    });
+  } catch {
+    return iso;
+  }
+}
+
 interface SeasonRun {
   season: string;
   name: string;
@@ -69,6 +83,7 @@ export function CelebrationsScreen({ navigation }: Props) {
   const [days, setDays] = useState<Record<string, Celebration[]> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selected, setSelected] = useState<FeastEntry | null>(null);
 
   const year = viewMonth.getUTCFullYear();
   const month = viewMonth.getUTCMonth();
@@ -226,7 +241,13 @@ export function CelebrationsScreen({ navigation }: Props) {
               </Text>
             )}
             {feasts.map((f, i) => (
-              <XStack key={`${f.iso}-${i}`} gap="$3" items="flex-start">
+              <XStack
+                key={`${f.iso}-${i}`}
+                gap="$3"
+                items="flex-start"
+                onPress={() => setSelected(f)}
+                pressStyle={{ opacity: 0.6 }}
+              >
                 <Text color={c.muted} fontSize={12} width={52} mt={2}>
                   {shortDate(f.iso, locale)}
                 </Text>
@@ -257,6 +278,98 @@ export function CelebrationsScreen({ navigation }: Props) {
           </YStack>
         </ScrollView>
       )}
+
+      <Modal
+        visible={selected !== null}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setSelected(null)}
+      >
+        <View flex={1} bg="rgba(0,0,0,0.6)" justify="flex-end">
+          <YStack
+            bg={c.bgElevated}
+            borderTopLeftRadius={24}
+            borderTopRightRadius={24}
+            borderWidth={1}
+            borderColor={c.border}
+            px="$4"
+            pt="$4"
+            pb={insets.bottom + 16}
+            gap="$3"
+          >
+            {selected && (
+              <>
+                <XStack items="center" justify="space-between">
+                  <Text color={c.muted} fontSize={12}>
+                    {longDate(selected.iso, locale)}
+                  </Text>
+                  <MaterialCommunityIcons
+                    name="close"
+                    size={24}
+                    color={c.muted}
+                    onPress={() => setSelected(null)}
+                  />
+                </XStack>
+
+                <XStack gap="$3" items="flex-start">
+                  <View
+                    width={10}
+                    height={10}
+                    rounded={5}
+                    mt={8}
+                    bg={liturgicalColor(selected.cel.colors[0])}
+                  />
+                  <Text color={c.strong} fontFamily={serif} fontSize={22} lineHeight={28} flex={1}>
+                    {selected.cel.name}
+                  </Text>
+                </XStack>
+
+                <XStack gap="$2" items="center" flexWrap="wrap">
+                  <Text color={c.text} fontSize={13}>
+                    {selected.cel.rank_name}
+                  </Text>
+                  {selected.cel.season_name && (
+                    <Text color={c.muted} fontSize={13}>
+                      · {selected.cel.season_name}
+                    </Text>
+                  )}
+                  {selected.cel.holy_day && (
+                    <Text color={c.accent} fontSize={13}>
+                      · {t('calendar.holyDay')}
+                    </Text>
+                  )}
+                  {selected.cel.optional && (
+                    <Text color={c.muted} fontSize={13} fontStyle="italic">
+                      · {t('calendar.optional')}
+                    </Text>
+                  )}
+                </XStack>
+
+                <XStack
+                  items="center"
+                  justify="center"
+                  gap="$2"
+                  mt="$2"
+                  py="$3"
+                  rounded="$6"
+                  bg={c.accent}
+                  onPress={() => {
+                    const iso = selected.iso;
+                    setSelected(null);
+                    navigation.navigate('DailyReadings', { date: iso });
+                  }}
+                  pressStyle={{ opacity: 0.8 }}
+                >
+                  <MaterialCommunityIcons name="book-open-variant" size={18} color={c.bg} />
+                  <Text color={c.bg} fontSize={14} fontWeight="600">
+                    {t('calendar.readings')}
+                  </Text>
+                </XStack>
+              </>
+            )}
+          </YStack>
+        </View>
+      </Modal>
     </View>
   );
 }

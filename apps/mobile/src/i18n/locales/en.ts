@@ -17,6 +17,13 @@ const en: Translations = {
   catechism: {
     title: 'Catechism',
     loadError: 'Could not load the Catechism',
+    prologue: 'Prólogo',
+    parts: {
+      creed: 'La profesión de la fe',
+      sacraments: 'La celebración del misterio cristiano',
+      life: 'La vida en Cristo',
+      prayer: 'La oración cristiana',
+    },
   },
   calendar: {
     title: 'Calendar',
@@ -110,7 +117,12 @@ export interface Translations {
     explore: string;
     profile: string;
   };
-  catechism: { title: string; loadError: string };
+  catechism: {
+    title: string;
+    loadError: string;
+    prologue: string;
+    parts: Record<string, string>;
+  };
   calendar: {
     title: string;
     readings: string;

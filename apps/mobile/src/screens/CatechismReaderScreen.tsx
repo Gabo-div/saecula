@@ -1,3 +1,4 @@
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList } from 'react-native';
@@ -6,15 +7,18 @@ import { Spinner, Text, View, XStack, YStack } from 'tamagui';
 
 import { fetchCatechism } from '@/api/client';
 import { ScreenHeader } from '@/components/ScreenHeader';
+import type { CatechismStackParamList } from '@/navigation/RootTabs';
 import { useAppTheme } from '@/store/themeStore';
 import { serif } from '@/theme/colors';
 import type { CatechismParagraph } from '@/types/api';
 
+type Props = NativeStackScreenProps<CatechismStackParamList, 'CatechismReader'>;
+
 const PAGE = 50;
 
-// The Catechism reader: an infinite-scroll list of numbered paragraphs. The
-// backend serves 50 at a time; reaching the end loads the next page.
-export function CatechismScreen() {
+// Reads the CCC paragraphs of one part [from, to] as an infinite-scroll list.
+export function CatechismReaderScreen({ navigation, route }: Props) {
+  const { from, to, title } = route.params;
   const insets = useSafeAreaInsets();
   const c = useAppTheme();
   const { t } = useTranslation();
@@ -23,14 +27,14 @@ export function CatechismScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const hasMore = useRef(true);
-  const nextFrom = useRef(1);
+  const nextFrom = useRef(from);
 
   const loadMore = useCallback(async () => {
     if (loading || !hasMore.current) return;
     setLoading(true);
     setError(null);
     try {
-      const res = await fetchCatechism(nextFrom.current, PAGE);
+      const res = await fetchCatechism(nextFrom.current, to, PAGE);
       setItems((prev) => [...prev, ...res.paragraphs]);
       hasMore.current = res.has_more;
       if (res.paragraphs.length > 0) {
@@ -41,7 +45,7 @@ export function CatechismScreen() {
     } finally {
       setLoading(false);
     }
-  }, [loading, t]);
+  }, [loading, to, t]);
 
   useEffect(() => {
     void loadMore();
@@ -50,7 +54,7 @@ export function CatechismScreen() {
 
   return (
     <View flex={1} bg={c.bg} pt={insets.top + 8}>
-      <ScreenHeader title={t('catechism.title')} />
+      <ScreenHeader title={title} onBack={() => navigation.goBack()} />
       {error && items.length === 0 ? (
         <Text color={c.muted} self="center" mt="$8" px="$8" text="center">
           {error}
@@ -72,13 +76,7 @@ export function CatechismScreen() {
               </Text>
             </XStack>
           )}
-          ListFooterComponent={
-            loading ? (
-              <Spinner mt="$4" size="large" color={c.accent} />
-            ) : (
-              <YStack height={8} />
-            )
-          }
+          ListFooterComponent={loading ? <Spinner mt="$4" size="large" color={c.accent} /> : <YStack height={8} />}
         />
       )}
     </View>

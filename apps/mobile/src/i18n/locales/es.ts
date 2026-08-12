@@ -17,6 +17,13 @@ const es: typeof en = {
   catechism: {
     title: 'Catecismo',
     loadError: 'No se pudo cargar el Catecismo',
+    prologue: 'Prólogo',
+    parts: {
+      creed: 'La profesión de la fe',
+      sacraments: 'La celebración del misterio cristiano',
+      life: 'La vida en Cristo',
+      prayer: 'La oración cristiana',
+    },
   },
   calendar: {
     title: 'Calendario',

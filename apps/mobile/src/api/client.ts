@@ -200,11 +200,16 @@ export async function fetchCalendarDay(date?: string): Promise<CalendarDayRespon
 
 // --- Catechism --------------------------------------------------------------
 
-// fetchCatechism loads a page of CCC paragraphs starting at `from`. The
-// Catechism text is English-only for now, so lang is fixed to "en".
-export async function fetchCatechism(from: number, limit = 50): Promise<CatechismListResponse> {
+// fetchCatechism loads a page of CCC paragraphs from `from`, optionally capped
+// at `to` (to scope a request to one part). Catechism text is English-only for
+// now, so lang is fixed to "en".
+export async function fetchCatechism(
+  from: number,
+  to?: number,
+  limit = 50,
+): Promise<CatechismListResponse> {
   const { data } = await api.get<CatechismListResponse>('/api/catechism', {
-    params: { from, limit, lang: 'en' },
+    params: { from, limit, lang: 'en', ...(to ? { to } : {}) },
   });
   return data;
 }

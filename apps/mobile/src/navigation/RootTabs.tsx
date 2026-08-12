@@ -7,7 +7,9 @@ import { useTranslation } from 'react-i18next';
 
 import { BibleScreen } from '@/screens/BibleScreen';
 import { CalendarHubScreen } from '@/screens/CalendarHubScreen';
-import { CatechismScreen } from '@/screens/CatechismScreen';
+import { CatechismHubScreen } from '@/screens/CatechismHubScreen';
+import { CatechismPartScreen } from '@/screens/CatechismPartScreen';
+import { CatechismReaderScreen } from '@/screens/CatechismReaderScreen';
 import { CelebrationsScreen } from '@/screens/CelebrationsScreen';
 import { DailyReadingsScreen } from '@/screens/DailyReadingsScreen';
 import { ExploreScreen } from '@/screens/ExploreScreen';
@@ -35,6 +37,14 @@ export type CalendarStackParamList = {
   Celebrations: undefined;
 };
 
+// The Catechism tab hosts a stack: the four-pillars index, then a scoped
+// paragraph reader pushed on top.
+export type CatechismStackParamList = {
+  CatechismHome: undefined;
+  CatechismPart: { partKey: string; title: string };
+  CatechismReader: { from: number; to: number; title: string };
+};
+
 // The Profile tab hosts its own stack so Settings pushes on top of it.
 export type ProfileStackParamList = {
   ProfileHome: undefined;
@@ -54,7 +64,21 @@ const TAB_ICONS: Record<keyof RootTabParamList, IconName> = {
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const CalendarStack = createNativeStackNavigator<CalendarStackParamList>();
+const CatechismStack = createNativeStackNavigator<CatechismStackParamList>();
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
+
+function CatechismStackNavigator() {
+  const c = useAppTheme();
+  return (
+    <CatechismStack.Navigator
+      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.bg } }}
+    >
+      <CatechismStack.Screen name="CatechismHome" component={CatechismHubScreen} />
+      <CatechismStack.Screen name="CatechismPart" component={CatechismPartScreen} />
+      <CatechismStack.Screen name="CatechismReader" component={CatechismReaderScreen} />
+    </CatechismStack.Navigator>
+  );
+}
 
 function CalendarStackNavigator() {
   const c = useAppTheme();
@@ -107,7 +131,7 @@ export function RootTabs() {
       <Tab.Screen name="Bible" component={BibleScreen} options={{ tabBarLabel: t('tabs.bible') }} />
       <Tab.Screen
         name="Catechism"
-        component={CatechismScreen}
+        component={CatechismStackNavigator}
         options={{ tabBarLabel: t('tabs.catechism') }}
       />
       <Tab.Screen

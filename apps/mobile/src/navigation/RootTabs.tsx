@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import type { NavigatorScreenParams } from '@react-navigation/native';
+import { getFocusedRouteNameFromRoute, type NavigatorScreenParams } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -174,7 +174,18 @@ export function RootTabs() {
       <Tab.Screen
         name="Prayers"
         component={PrayersStackNavigator}
-        options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }}
+        options={({ route }) => {
+          // The guided prayer takes over the full screen — no tab bar.
+          const focused = getFocusedRouteNameFromRoute(route) ?? 'PrayersHome';
+          return {
+            tabBarButton: () => null,
+            tabBarItemStyle: { display: 'none' },
+            tabBarStyle:
+              focused === 'GuidedPrayer'
+                ? { display: 'none' }
+                : { backgroundColor: c.bg, borderTopColor: c.border, borderTopWidth: 1 },
+          };
+        }}
       />
       <Tab.Screen
         name="Profile"

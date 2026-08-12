@@ -23,6 +23,18 @@ function pick(rec: Record<PrayerLang, string>, lang: PrayerLang): string {
   return rec[lang] ?? rec.la ?? rec.en;
 }
 
+// Short chip labels — the set adjective alone, not the full "Los Misterios …".
+const SHORT_SET: Record<string, Record<PrayerLang, string>> = {
+  joyful: { en: 'Joyful', es: 'Gozosos', la: 'Gaudiosa' },
+  luminous: { en: 'Luminous', es: 'Luminosos', la: 'Luminosa' },
+  sorrowful: { en: 'Sorrowful', es: 'Dolorosos', la: 'Dolorosa' },
+  glorious: { en: 'Glorious', es: 'Gloriosos', la: 'Gloriosa' },
+};
+
+function shortName(set: MysterySet, lang: PrayerLang): string {
+  return SHORT_SET[set.id] ? pick(SHORT_SET[set.id], lang) : pick(set.name, lang);
+}
+
 interface FlatStep {
   section: string; // contextual line above the step
   label: string;
@@ -184,7 +196,7 @@ export function GuidedPrayerScreen({ navigation }: Props) {
                     pressStyle={{ opacity: 0.7 }}
                   >
                     <Text color={active ? c.bg : c.strong} fontSize={13}>
-                      {pick(s.name, lang)}
+                      {shortName(s, lang)}
                     </Text>
                   </View>
                 );

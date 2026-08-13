@@ -83,7 +83,9 @@ var scrapeSources = map[string][]huh.Option[string]{
 		huh.NewOption("USCCB (English, includes psalm, any date)", "usccb"),
 	},
 	"catechism": {
-		huh.NewOption("St. Charles Borromeo — scborromeo.org (English, paragraphs 1–2865)", "scborromeo"),
+		huh.NewOption("St. Charles Borromeo — scborromeo.org (English, paragraphs 1–2865)", "en"),
+		huh.NewOption("Vatican — vatican.va (Spanish, paragraphs 1–2865)", "es"),
+		huh.NewOption("Vatican — vatican.va (Latin, paragraphs 1–2865)", "la"),
 	},
 }
 
@@ -121,6 +123,7 @@ func interactiveScrape(cmd *cobra.Command) error {
 		readingsOpts.source = source
 		return interactiveScrapeReadings(cmd)
 	case "catechism":
+		catechismOpts.lang = source
 		return interactiveScrapeCatechism(cmd)
 	}
 	return nil
@@ -132,6 +135,9 @@ func interactiveScrape(cmd *cobra.Command) error {
 
 func interactiveScrapeCatechism(cmd *cobra.Command) error {
 	outPath := catechismOpts.out
+	if outPath == "" {
+		outPath = fmt.Sprintf("data/catechism_ccc_%s.json", catechismOpts.lang)
+	}
 	confirmed := true
 
 	err := newForm(huh.NewGroup(
@@ -140,7 +146,7 @@ func interactiveScrapeCatechism(cmd *cobra.Command) error {
 			Value(&outPath).
 			Validate(validateNotEmpty),
 		huh.NewConfirm().
-			Title("Download the whole Catechism (~110 pages)?").
+			Title("Download the whole Catechism (~100 pages)?").
 			Value(&confirmed),
 	)).Run()
 	if err != nil {

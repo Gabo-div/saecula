@@ -131,7 +131,6 @@ export function HomeScreen({ navigation }: Props) {
                   icon="hands-pray"
                   onPress={() => navigation.navigate('Prayers')}
                 />
-                <HeaderIconButton icon="candle" />
                 <HeaderIconButton
                   icon="account-circle-outline"
                   onPress={() => navigation.navigate('Profile')}

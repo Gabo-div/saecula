@@ -163,13 +163,17 @@ Five tabs in a liturgical theme (mode × accent):
   crosses book boundaries. Reading position persists across launches.
 - **Catechism** — infinite-scroll reader of the numbered CCC paragraphs
   (from `/api/catechism`).
-- **Explore** — placeholder for the upcoming chronological timeline.
+- **Explore** — placeholder for the chronological timeline (see Roadmap).
 - **Calendar** — a hub of dated sections: daily Mass readings (with a date
   picker), the santoral (saints by month), and celebrations (the liturgical
-  year by month), all from `/api/readings` and `/api/calendar`.
+  year by month, each tappable for a detail sheet linking to its readings),
+  all from `/api/readings` and `/api/calendar`.
 
 Profile/settings (theme, accent, language, translation) is reached from a
-button in the Home header, not a tab.
+button in the Home header, not a tab. **Prayers** are opened the same way
+(Home header / quick action): a hub of individual prayers — each on its own
+page with an EN/ES/LA selector — and a full-screen, step-by-step guided
+Rosary that walks the day's mysteries bead by bead.
 
 ```bash
 cd apps/mobile
@@ -250,6 +254,27 @@ Relationships created by the seeder so far: `(:Verse)-[:FOLLOWS]->(:Verse)`
   with composite `PRIMARY KEY (entity_id, language_code, translation_id)`
 - `daily_features(feature_date PK, verse_ids TEXT[], image_url)` — curated
   verse (or range) and background image per date; seeded via `saecula-cli daily`
+
+## Roadmap
+
+Shipped: Bible reader, daily Mass readings, santoral, celebrations (with
+tap-through detail), the Catechism (four-pillar index + scoped paragraph
+reader), curated daily verse/image, and a prayers hub with a step-by-step
+guided Rosary.
+
+Planned, roughly by value:
+
+- **Timeline (Explore)** — the app's namesake chronological view over the
+  Neo4j concept graph. The backend `/timeline` endpoint and the
+  `fetchTimeline` client already exist; the screen is still a placeholder.
+- **Catechism in Spanish & Latin** — currently English-only; source the
+  Vatican editions and seed `text_documents` per language.
+- **Scripture cross-references in the Catechism** — map CCC footnotes to
+  verse entity IDs (`(:CatechismParagraph)-[:CITES]->(:Verse)`).
+- **More guided prayers** — Stations of the Cross, Divine Mercy, Angelus.
+- **"Ask"** — the reserved Home quick action (Q&A), not yet built.
+- **Feast art** — extend curated images beyond the current fixed feasts.
+- **Account** — password reset and profile editing.
 
 ## Security notes
 

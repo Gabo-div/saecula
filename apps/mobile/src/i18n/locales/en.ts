@@ -17,6 +17,7 @@ const en: Translations = {
   catechism: {
     title: 'Catechism',
     loadError: 'Could not load the Catechism',
+    translation: 'Translation',
     prologue: 'Prólogo',
     parts: {
       creed: 'La profesión de la fe',
@@ -132,6 +133,7 @@ export interface Translations {
   catechism: {
     title: string;
     loadError: string;
+    translation: string;
     prologue: string;
     parts: Record<string, string>;
   };

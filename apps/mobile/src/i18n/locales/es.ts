@@ -17,6 +17,7 @@ const es: typeof en = {
   catechism: {
     title: 'Catecismo',
     loadError: 'No se pudo cargar el Catecismo',
+    translation: 'Traducción',
     prologue: 'Prólogo',
     parts: {
       creed: 'La profesión de la fe',

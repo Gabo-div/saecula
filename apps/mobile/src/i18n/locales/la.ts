@@ -18,6 +18,7 @@ const la: typeof en = {
   catechism: {
     title: 'Catechismus',
     loadError: 'Catechismus legi non potuit',
+    translation: 'Versio',
     prologue: 'Prólogo',
     parts: {
       creed: 'La profesión de la fe',

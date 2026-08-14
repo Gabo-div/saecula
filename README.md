@@ -267,8 +267,9 @@ Planned, roughly by value:
 - **Timeline (Explore)** — the app's namesake chronological view over the
   Neo4j concept graph. The backend `/timeline` endpoint and the
   `fetchTimeline` client already exist; the screen is still a placeholder.
-- **Catechism in Spanish & Latin** — currently English-only; source the
-  Vatican editions and seed `text_documents` per language.
+- **Catechism in Spanish & Latin** — the CLI now scrapes all three editions
+  from vatican.va (`scrape catechism --lang en|es|la`); seeding them and
+  serving `?lang=` from the backend and app is still pending.
 - **Scripture cross-references in the Catechism** — map CCC footnotes to
   verse entity IDs (`(:CatechismParagraph)-[:CITES]->(:Verse)`).
 - **More guided prayers** — Stations of the Cross, Divine Mercy, Angelus.

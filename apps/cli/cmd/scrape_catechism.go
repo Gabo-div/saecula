@@ -1,12 +1,10 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
 
-	"saecula/cli/internal/model"
 	"saecula/cli/internal/scrape"
 )
 
@@ -21,9 +19,8 @@ var scrapeCatechismCmd = &cobra.Command{
 	Long: `Downloads every numbered paragraph (1–2865) of the Catechism of the
 Catholic Church and writes ONE JSON document.
 
-English (--lang en, default) comes from the St. Charles Borromeo
-transcription (scborromeo.org); Spanish (es) and Latin (la) come from the
-Holy See's own site (vatican.va).
+All editions come from the Holy See's own site (vatican.va): English
+(--lang en, default), Spanish (es) and Latin (la).
 
 Paragraphs seed as CatechismParagraph nodes (id "CCC.<number>") plus their
 localized text. Scripture cross-references are not resolved to verse IDs yet.`,
@@ -33,23 +30,13 @@ localized text. Scripture cross-references are not resolved to verse IDs yet.`,
 	RunE: runScrapeCatechism,
 }
 
-type catechismScraper interface {
-	ScrapeCatechism(ctx context.Context, progress func(string)) (*model.Document, error)
-}
-
 func runScrapeCatechism(cmd *cobra.Command, _ []string) error {
-	var scraper catechismScraper
-	switch catechismOpts.lang {
-	case "en":
-		scraper = scrape.NewCatechismScraper(scrape.NewHTTPFetcher(nil))
-	case "es", "la":
-		s, err := scrape.NewVaticanCatechismScraper(scrape.NewHTTPFetcher(nil), catechismOpts.lang)
-		if err != nil {
-			return err
-		}
-		scraper = s
-	default:
+	if catechismOpts.lang != "en" && catechismOpts.lang != "es" && catechismOpts.lang != "la" {
 		return fmt.Errorf("unsupported --lang %q (want en, es or la)", catechismOpts.lang)
+	}
+	scraper, err := scrape.NewVaticanCatechismScraper(scrape.NewHTTPFetcher(nil), catechismOpts.lang)
+	if err != nil {
+		return err
 	}
 
 	out := catechismOpts.out

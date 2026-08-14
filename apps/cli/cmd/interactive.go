@@ -83,7 +83,7 @@ var scrapeSources = map[string][]huh.Option[string]{
 		huh.NewOption("USCCB (English, includes psalm, any date)", "usccb"),
 	},
 	"catechism": {
-		huh.NewOption("St. Charles Borromeo — scborromeo.org (English, paragraphs 1–2865)", "en"),
+		huh.NewOption("Vatican — vatican.va (English, paragraphs 1–2865)", "en"),
 		huh.NewOption("Vatican — vatican.va (Spanish, paragraphs 1–2865)", "es"),
 		huh.NewOption("Vatican — vatican.va (Latin, paragraphs 1–2865)", "la"),
 	},

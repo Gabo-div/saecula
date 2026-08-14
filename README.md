@@ -259,18 +259,21 @@ Relationships created by the seeder so far: `(:Verse)-[:FOLLOWS]->(:Verse)`
 
 Shipped: Bible reader, daily Mass readings, santoral, celebrations (with
 tap-through detail), the Catechism in English/Spanish/Latin (Bible-style
-reader with a collapsible section picker and a translation switch), curated
-daily verse/image, and a prayers hub with a step-by-step guided Rosary.
+reader with a collapsible section picker and a translation switch), an
+immersive reading mode with adjustable font size, curated daily verse/image,
+and a prayers hub with a step-by-step guided Rosary.
 
 Planned, roughly by value:
 
 - **Timeline (Explore)** — the app's namesake chronological view over the
   Neo4j concept graph. The backend `/timeline` endpoint and the
   `fetchTimeline` client already exist; the screen is still a placeholder.
+- **Reader search** — the magnifier in the Bible and Catechism headers is
+  inert; wire it to search text and jump to a verse/paragraph.
+- **Santoral detail** — the saints calendar lists days but rows aren't
+  tappable; add a saint detail sheet like the celebrations one.
 - **Polish the Catechism scrape** — coverage is ~99.9% (EN misses 2077 &
-  2436; a few source-formatting anomalies remain) and the section-picker
-  labels are Spanish-only regardless of the reading language. Recover the
-  stragglers and localize the structure labels.
+  2436; a few source-formatting anomalies remain). Recover the stragglers.
 - **Scripture cross-references in the Catechism** — map CCC footnotes to
   verse entity IDs (`(:CatechismParagraph)-[:CITES]->(:Verse)`).
 - **More guided prayers** — Stations of the Cross, Divine Mercy, Angelus.

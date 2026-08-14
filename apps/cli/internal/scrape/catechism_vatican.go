@@ -98,9 +98,13 @@ var (
 	// second alternative and is range-guarded when parsed.
 	vatBoldNumRe = regexp.MustCompile(`(?i)<b[^>]*>\s*(?:<a[^>]*>\s*)?(\d+)\s*(?:</a>)?\s*</b>|<p[^>]*>(?:\s*<[a-z][^>]*>)*\s*(\d{1,4})\s`)
 	vatMaxNumber = 2865 // last CCC paragraph; guards the bare-number fallback
-	// A paragraph ends at the next section heading (named anchor) or the
-	// in-page navigation (fragment links like href="#top").
-	vatCutRe = regexp.MustCompile(`(?i)<a\s+name|<a[^>]*href=["']#`)
+	// A paragraph ends at the next section heading or the page navigation /
+	// footer. Headings are named anchors (Spanish) or a bold title opening its
+	// own <p> (Latin: `<p><b>Creatio – orationis fons</b>`); the [^0-9<] guard
+	// keeps this from matching a bold paragraph number. Navigation is in-page
+	// fragment links (href="#top"), sibling-page links (href=__PN.HTM, English),
+	// or the copyright line.
+	vatCutRe = regexp.MustCompile(`(?i)<a\s+name|<p[^>]*>\s*<b[^>]*>\s*[^0-9<]|<a[^>]*href=["']?(?:#|__P)|Copyright`)
 )
 
 func (s *VaticanCatechismScraper) ScrapeCatechism(ctx context.Context, progress func(string)) (*model.Document, error) {
@@ -110,8 +114,11 @@ func (s *VaticanCatechismScraper) ScrapeCatechism(ctx context.Context, progress 
 	}
 	progress(fmt.Sprintf("%d content pages listed", len(stems)))
 
-	seen := map[int]bool{}
-	var paragraphs []model.CatechismParagraph
+	// Keep the longest text seen for each number. A number can appear more than
+	// once — as a real paragraph and as a short cross-reference or a bold
+	// footnote in the front matter ("1 Jn 17,3"); the real paragraph is always
+	// the longest, so length breaks the tie deterministically.
+	best := map[int]model.CatechismParagraph{}
 	for _, stem := range stems {
 		url := s.cfg.base + stem + s.cfg.suffix
 		body, err := fetchWithRetry(ctx, s.fetcher, url, cccFetchAttempts, cccRetryDelay)
@@ -133,20 +140,24 @@ func (s *VaticanCatechismScraper) ScrapeCatechism(ctx context.Context, progress 
 
 		found := 0
 		for _, p := range parseVaticanParagraphs(string(raw)) {
-			if seen[p.OfficialNumber] {
-				continue
+			if ex, ok := best[p.OfficialNumber]; !ok || len(p.Text) > len(ex.Text) {
+				if !ok {
+					found++
+				}
+				best[p.OfficialNumber] = p
 			}
-			seen[p.OfficialNumber] = true
-			paragraphs = append(paragraphs, p)
-			found++
 		}
 		if found > 0 {
 			progress(fmt.Sprintf("%-16s %4d paragraphs", stem, found))
 		}
 	}
 
-	if len(paragraphs) == 0 {
+	if len(best) == 0 {
 		return nil, fmt.Errorf("no paragraphs parsed — source layout may have changed")
+	}
+	paragraphs := make([]model.CatechismParagraph, 0, len(best))
+	for _, p := range best {
+		paragraphs = append(paragraphs, p)
 	}
 	sort.Slice(paragraphs, func(i, j int) bool {
 		return paragraphs[i].OfficialNumber < paragraphs[j].OfficialNumber
@@ -211,7 +222,8 @@ func parseVaticanParagraphs(page string) []model.CatechismParagraph {
 		// Group 1 = a bold marker (reliable); group 2 = a bare <p> number,
 		// accepted only within the valid CCC range to avoid false positives.
 		var number int
-		if loc[2] >= 0 {
+		fallback := loc[2] < 0
+		if !fallback {
 			number, _ = strconv.Atoi(page[loc[2]:loc[3]])
 		} else if loc[4] >= 0 {
 			n, err := strconv.Atoi(page[loc[4]:loc[5]])
@@ -231,9 +243,16 @@ func parseVaticanParagraphs(page string) []model.CatechismParagraph {
 			rest = rest[:cut[0]]
 		}
 		text := cleanVaticanText(rest, number)
-		if text != "" {
-			out = append(out, model.CatechismParagraph{OfficialNumber: number, Text: text})
+		if text == "" {
+			continue
 		}
+		// Bare-number matches also catch scripture-reference lists on the
+		// front-matter pages ("1 Jn 17,3"); a real paragraph is never that
+		// short, so require substance before trusting an unbolded number.
+		if fallback && len(text) < 40 {
+			continue
+		}
+		out = append(out, model.CatechismParagraph{OfficialNumber: number, Text: text})
 	}
 	return out
 }

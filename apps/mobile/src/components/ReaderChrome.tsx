@@ -1,5 +1,5 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   LayoutAnimation,
   Platform,
@@ -35,6 +35,18 @@ export function useReaderChrome(navigation: { setOptions: (o: object) => void })
   const [compact, setCompact] = useState(false);
   const lastY = useRef(0);
   const acc = useRef(0); // signed distance accumulated since the last flip
+  const settling = useRef(false); // true briefly after a flip while layout resettles
+
+  // Toggling the chrome changes the layout, which fires a spurious scroll event
+  // in the opposite direction. Ignore scrolling for a moment after each flip so
+  // that event can't bounce the mode straight back.
+  useEffect(() => {
+    settling.current = true;
+    const id = setTimeout(() => {
+      settling.current = false;
+    }, 400);
+    return () => clearTimeout(id);
+  }, [compact]);
 
   const apply = useCallback(
     (next: boolean) => {
@@ -51,6 +63,12 @@ export function useReaderChrome(navigation: { setOptions: (o: object) => void })
   const onScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
       const y = e.nativeEvent.contentOffset.y;
+      // Just flipped: swallow the layout-shift scroll event and re-baseline.
+      if (settling.current) {
+        lastY.current = y;
+        acc.current = 0;
+        return;
+      }
       const dy = y - lastY.current;
       lastY.current = y;
 

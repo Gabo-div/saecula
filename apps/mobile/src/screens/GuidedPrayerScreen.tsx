@@ -7,7 +7,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, View, XStack, YStack } from 'tamagui';
 
 import { ScreenHeader } from '@/components/ScreenHeader';
-import { GUIDED, MYSTERY_SETS, type GuidedStep, type MysterySet } from '@/data/guided';
+import {
+  GUIDED,
+  MYSTERY_SETS,
+  type GuidedPrayer,
+  type GuidedSection,
+  type GuidedStep,
+  type MysterySet,
+} from '@/data/guided';
 import { PRAYERS, type PrayerLang } from '@/data/prayers';
 import type { PrayersStackParamList } from '@/navigation/RootTabs';
 import { useLanguageStore } from '@/store/languageStore';
@@ -38,7 +45,7 @@ function shortName(set: MysterySet, lang: PrayerLang): string {
 interface FlatStep {
   section: string; // contextual line above the step
   label: string;
-  text: string; // prayer text, or '' for a mystery announcement
+  text: string; // prayer text, or '' for an announcement
   beads: number; // how many times it is prayed (1, 3, 10)
 }
 
@@ -50,18 +57,19 @@ function stepText(step: GuidedStep, lang: PrayerLang): string {
   return step.body ? pick(step.body, lang) : '';
 }
 
-// Flatten the Rosary into the actual order prayed: opening, then the five
-// decades (each announced), then the closing — with bead counts intact.
-function buildSequence(set: MysterySet, lang: string, orderLabel: string): FlatStep[] {
-  const l = (LANGS.includes(lang as PrayerLang) ? lang : 'en') as PrayerLang;
-  const rosary = GUIDED[0];
+// Rosary order: opening, then the five decades (each announced), then closing.
+function buildRosary(
+  rosary: NonNullable<GuidedPrayer['rosary']>,
+  set: MysterySet,
+  l: PrayerLang,
+  orderLabel: string,
+): FlatStep[] {
   const out: FlatStep[] = [];
   for (const s of rosary.opening) {
     out.push({ section: orderLabel, label: pick(s.label, l), text: stepText(s, l), beads: s.repeat ?? 1 });
   }
   set.mysteries.forEach((m, i) => {
-    const setName = pick(set.name, l);
-    out.push({ section: setName, label: `${i + 1}. ${pick(m.title, l)}`, text: '', beads: 1 });
+    out.push({ section: pick(set.name, l), label: `${i + 1}. ${pick(m.title, l)}`, text: '', beads: 1 });
     for (const s of rosary.decade) {
       out.push({ section: pick(m.title, l), label: pick(s.label, l), text: stepText(s, l), beads: s.repeat ?? 1 });
     }
@@ -72,7 +80,21 @@ function buildSequence(set: MysterySet, lang: string, orderLabel: string): FlatS
   return out;
 }
 
-export function GuidedPrayerScreen({ navigation }: Props) {
+// A plain sectioned prayer (Angelus, Stations, Divine Mercy): each section is
+// announced by its title, then its steps follow.
+function buildSections(sections: GuidedSection[], l: PrayerLang): FlatStep[] {
+  const out: FlatStep[] = [];
+  for (const sec of sections) {
+    const title = pick(sec.title, l);
+    out.push({ section: title, label: title, text: '', beads: 1 });
+    for (const s of sec.steps) {
+      out.push({ section: title, label: pick(s.label, l), text: stepText(s, l), beads: s.repeat ?? 1 });
+    }
+  }
+  return out;
+}
+
+export function GuidedPrayerScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const c = useAppTheme();
   const { t } = useTranslation();
@@ -81,7 +103,8 @@ export function GuidedPrayerScreen({ navigation }: Props) {
     ? (appLang as PrayerLang)
     : 'en';
 
-  const rosary = GUIDED[0];
+  const prayer = GUIDED.find((g) => g.id === route.params.guidedId) ?? GUIDED[0];
+  const isRosary = !!prayer.rosary;
   const [lang, setLang] = useState<PrayerLang>(headerLang);
 
   const todaySet = useMemo(() => {
@@ -98,10 +121,11 @@ export function GuidedPrayerScreen({ navigation }: Props) {
   const [pos, setPos] = useState(0);
   const [bead, setBead] = useState(1);
 
-  const seq = useMemo(
-    () => buildSequence(set, lang, t('prayers.order')),
-    [set, lang, t],
-  );
+  const seq = useMemo(() => {
+    if (prayer.rosary) return buildRosary(prayer.rosary, set, lang, t('prayers.order'));
+    if (prayer.sections) return buildSections(prayer.sections, lang);
+    return [];
+  }, [prayer, set, lang, t]);
 
   const begin = () => {
     setPos(0);
@@ -126,9 +150,9 @@ export function GuidedPrayerScreen({ navigation }: Props) {
     }
   };
 
-  const title = rosary.title[headerLang];
+  const title = prayer.title[headerLang];
 
-  // -- Overview: pick the mysteries + language, then begin. -----------------
+  // -- Overview: language (+ mysteries for the Rosary), then begin. ----------
   if (!started) {
     return (
       <View flex={1} bg={c.bg} pt={insets.top + 8}>
@@ -158,71 +182,75 @@ export function GuidedPrayerScreen({ navigation }: Props) {
           </XStack>
 
           <Text color={c.text} fontFamily={serif} fontSize={15} lineHeight={24}>
-            {pick(rosary.intro, lang)}
+            {pick(prayer.intro, lang)}
           </Text>
 
-          {/* Mystery set chooser */}
-          <YStack gap="$2">
-            <Text fontSize={11} fontWeight="700" color={c.accent} letterSpacing={1.5}>
-              {t('prayers.mysteries').toUpperCase()}
-            </Text>
-            <XStack gap="$2" flexWrap="wrap">
-              <View
-                px="$3"
-                py="$2"
-                rounded={18}
-                bg={isToday ? c.accent : 'transparent'}
-                borderWidth={1}
-                borderColor={isToday ? c.accent : c.border}
-                onPress={() => setSelection('today')}
-                pressStyle={{ opacity: 0.7 }}
-              >
-                <Text color={isToday ? c.bg : c.strong} fontSize={13} fontWeight="700">
-                  {t('calendar.today')}
+          {isRosary && (
+            <>
+              {/* Mystery set chooser */}
+              <YStack gap="$2">
+                <Text fontSize={11} fontWeight="700" color={c.accent} letterSpacing={1.5}>
+                  {t('prayers.mysteries').toUpperCase()}
                 </Text>
-              </View>
-              {MYSTERY_SETS.map((s) => {
-                const active = selection === s.id;
-                return (
+                <XStack gap="$2" flexWrap="wrap">
                   <View
-                    key={s.id}
                     px="$3"
                     py="$2"
                     rounded={18}
-                    bg={active ? c.accent : 'transparent'}
+                    bg={isToday ? c.accent : 'transparent'}
                     borderWidth={1}
-                    borderColor={active ? c.accent : c.border}
-                    onPress={() => setSelection(s.id)}
+                    borderColor={isToday ? c.accent : c.border}
+                    onPress={() => setSelection('today')}
                     pressStyle={{ opacity: 0.7 }}
                   >
-                    <Text color={active ? c.bg : c.strong} fontSize={13}>
-                      {shortName(s, lang)}
+                    <Text color={isToday ? c.bg : c.strong} fontSize={13} fontWeight="700">
+                      {t('calendar.today')}
                     </Text>
                   </View>
-                );
-              })}
-            </XStack>
-          </YStack>
-
-          {/* Selected mysteries — always the set type, marked when it's today's. */}
-          <YStack gap="$3" p="$4" rounded="$8" bg={c.card}>
-            <Text color={c.onCard} fontSize={11} letterSpacing={2} fontWeight="700">
-              {pick(set.name, lang).toUpperCase()}
-              {isToday ? `  (${t('calendar.today').toUpperCase()})` : ''}
-            </Text>
-            <YStack gap="$2">
-              {set.mysteries.map((m, i) => (
-                <XStack key={i} gap="$2" items="baseline">
-                  <Text color={c.onCard} fontFamily={serif} fontSize={13} opacity={0.7} width={20}>
-                    {i + 1}.
-                  </Text>
-                  <Text color={c.onCard} fontFamily={serif} fontSize={15} flex={1}>
-                    {pick(m.title, lang)}
-                  </Text>
+                  {MYSTERY_SETS.map((s) => {
+                    const active = selection === s.id;
+                    return (
+                      <View
+                        key={s.id}
+                        px="$3"
+                        py="$2"
+                        rounded={18}
+                        bg={active ? c.accent : 'transparent'}
+                        borderWidth={1}
+                        borderColor={active ? c.accent : c.border}
+                        onPress={() => setSelection(s.id)}
+                        pressStyle={{ opacity: 0.7 }}
+                      >
+                        <Text color={active ? c.bg : c.strong} fontSize={13}>
+                          {shortName(s, lang)}
+                        </Text>
+                      </View>
+                    );
+                  })}
                 </XStack>
-              ))}
-            </YStack>
-          </YStack>
+              </YStack>
+
+              {/* Selected mysteries — always the set type, marked when today's. */}
+              <YStack gap="$3" p="$4" rounded="$8" bg={c.card}>
+                <Text color={c.onCard} fontSize={11} letterSpacing={2} fontWeight="700">
+                  {pick(set.name, lang).toUpperCase()}
+                  {isToday ? `  (${t('calendar.today').toUpperCase()})` : ''}
+                </Text>
+                <YStack gap="$2">
+                  {set.mysteries.map((m, i) => (
+                    <XStack key={i} gap="$2" items="baseline">
+                      <Text color={c.onCard} fontFamily={serif} fontSize={13} opacity={0.7} width={20}>
+                        {i + 1}.
+                      </Text>
+                      <Text color={c.onCard} fontFamily={serif} fontSize={15} flex={1}>
+                        {pick(m.title, lang)}
+                      </Text>
+                    </XStack>
+                  ))}
+                </YStack>
+              </YStack>
+            </>
+          )}
 
           <XStack
             items="center"
@@ -327,11 +355,7 @@ export function GuidedPrayerScreen({ navigation }: Props) {
             <Text color={c.text} fontFamily={serif} fontSize={19} lineHeight={32}>
               {step.text}
             </Text>
-          ) : (
-            <Text color={c.muted} fontFamily={serif} fontSize={16} fontStyle="italic">
-              {pick(set.name, lang)}
-            </Text>
-          )}
+          ) : null}
         </ScrollView>
       </View>
 

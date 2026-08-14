@@ -29,6 +29,9 @@ const ICONS: Record<string, IconName> = {
   'guardian-angel': 'shield-cross-outline',
   'act-of-contrition': 'heart-outline',
   rosary: 'circle-multiple-outline',
+  angelus: 'bell-outline',
+  stations: 'cross',
+  'divine-mercy': 'white-balance-sunny',
 };
 
 function pick(rec: Record<PrayerLang, string>, lang: PrayerLang): string {

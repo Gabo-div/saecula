@@ -1,16 +1,21 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutAnimation,
+  Modal,
   Platform,
   UIManager,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text, View } from 'tamagui';
+import { Separator, Text, View, XStack, YStack } from 'tamagui';
 
+import { FONT_STEPS, useReaderPrefs } from '@/store/readerPrefsStore';
 import { useAppTheme } from '@/store/themeStore';
+import { serif } from '@/theme/colors';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -99,6 +104,117 @@ export function useReaderChrome(navigation: { setOptions: (o: object) => void })
   );
 
   return { compact, onScroll };
+}
+
+// The serif book/chapter (or section) title shown at the top of a reading.
+export function ReaderTitle({
+  overline,
+  main,
+  giant,
+}: {
+  overline: string;
+  main: string;
+  giant?: boolean;
+}) {
+  const c = useAppTheme();
+  return (
+    <YStack items="center" pt="$2" pb="$5" px="$6" gap="$1">
+      <Text color={c.muted} fontFamily={serif} fontSize={16} letterSpacing={1}>
+        {overline}
+      </Text>
+      <Text
+        color={c.strong}
+        fontFamily={serif}
+        fontWeight="800"
+        fontSize={giant ? 56 : 24}
+        lineHeight={giant ? 60 : 30}
+        text="center"
+      >
+        {main}
+      </Text>
+    </YStack>
+  );
+}
+
+// Accessibility sheet: pick the reader's body-text size.
+export function ReaderSettingsSheet({
+  visible,
+  onClose,
+}: {
+  visible: boolean;
+  onClose: () => void;
+}) {
+  const insets = useSafeAreaInsets();
+  const c = useAppTheme();
+  const { t } = useTranslation();
+  const { fontScale, setFontScale } = useReaderPrefs();
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <View
+        flex={1}
+        bg="rgba(0,0,0,0.6)"
+        justify="flex-end"
+        onPress={onClose}
+        pressStyle={{ opacity: 1 }}
+      >
+        <YStack
+          bg={c.bgElevated}
+          borderTopLeftRadius={24}
+          borderTopRightRadius={24}
+          borderWidth={1}
+          borderColor={c.border}
+          pb={insets.bottom + 16}
+          onPress={(e) => e.stopPropagation()}
+        >
+          <XStack items="center" px="$4" py="$3" gap="$3">
+            <Text color={c.strong} fontFamily={serif} fontSize={18} fontWeight="600">
+              {t('reader.accessibility')}
+            </Text>
+            <View ml="auto">
+              <MaterialCommunityIcons name="close" size={24} color={c.muted} onPress={onClose} />
+            </View>
+          </XStack>
+          <Separator borderColor={c.border} />
+
+          <YStack px="$4" py="$4" gap="$3">
+            <Text color={c.muted} fontSize={11} letterSpacing={2}>
+              {t('reader.fontSize').toUpperCase()}
+            </Text>
+            <XStack gap="$2" items="center">
+              {FONT_STEPS.map((step) => {
+                const active = step === fontScale;
+                return (
+                  <View
+                    key={step}
+                    flex={1}
+                    height={56}
+                    rounded="$6"
+                    items="center"
+                    justify="center"
+                    bg={active ? c.accent : 'transparent'}
+                    borderWidth={1}
+                    borderColor={active ? c.accent : c.border}
+                    onPress={() => setFontScale(step)}
+                    pressStyle={{ opacity: 0.7 }}
+                  >
+                    <Text
+                      color={active ? c.bg : c.strong}
+                      fontFamily={serif}
+                      fontSize={Math.round(15 * step)}
+                      fontWeight="700"
+                    >
+                      A
+                    </Text>
+                  </View>
+                );
+              })}
+            </XStack>
+          </YStack>
+        </YStack>
+      </View>
+    </Modal>
+  );
 }
 
 // The slim bar that stands in for the chrome while compact, naming what's read.

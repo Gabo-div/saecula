@@ -7,11 +7,17 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Separator, Spinner, Text, View, XStack, YStack } from 'tamagui';
 
 import { fetchCatechism } from '@/api/client';
-import { ReaderMiniBar, useReaderChrome } from '@/components/ReaderChrome';
+import {
+  ReaderMiniBar,
+  ReaderSettingsSheet,
+  ReaderTitle,
+  useReaderChrome,
+} from '@/components/ReaderChrome';
 import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
 import { CATECHISM_PARTS, CATECHISM_PROLOGUE } from '@/data/catechism';
 import type { RootTabParamList } from '@/navigation/RootTabs';
 import { useLanguageStore } from '@/store/languageStore';
+import { useReaderPrefs } from '@/store/readerPrefsStore';
 import { useAppTheme } from '@/store/themeStore';
 import { serif } from '@/theme/colors';
 import type { CatechismParagraph } from '@/types/api';
@@ -231,6 +237,10 @@ export function CatechismScreen({ navigation }: Props) {
   const c = useAppTheme();
   const { t } = useTranslation();
   const { compact, onScroll } = useReaderChrome(navigation);
+  const fontScale = useReaderPrefs((s) => s.fontScale);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const pFont = Math.round(16 * fontScale);
+  const pLine = Math.round(pFont * 1.6);
   const appLang = useLanguageStore((s) => s.language);
 
   const [lang, setLang] = useState<Lang>(
@@ -320,7 +330,7 @@ export function CatechismScreen({ navigation }: Props) {
             </XStack>
             <HeaderIconButton icon="book-open-variant" onPress={() => setPickerOpen(true)} />
             <HeaderIconButton icon="magnify" />
-            <HeaderIconButton icon="dots-vertical" />
+            <HeaderIconButton icon="dots-vertical" onPress={() => setSettingsOpen(true)} />
           </XStack>
 
           <Separator borderColor={c.border} mx="$4" />
@@ -341,18 +351,25 @@ export function CatechismScreen({ navigation }: Props) {
           keyExtractor={(p) => String(p.number)}
           onScroll={onScroll}
           scrollEventThrottle={16}
-          contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 32 }}
+          ListHeaderComponent={
+            <ReaderTitle overline={t('catechism.title')} main={section.label} />
+          }
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 32 }}
           onEndReached={() => load(false)}
           onEndReachedThreshold={0.6}
           renderItem={({ item }) => (
-            <XStack gap="$3" items="flex-start">
-              <Text color={c.accent} fontFamily={serif} fontSize={13} width={36}>
-                {item.number}
+            <Text
+              color={c.text}
+              fontFamily={serif}
+              fontSize={pFont}
+              lineHeight={pLine}
+              mb="$3"
+            >
+              <Text color={c.accent} fontSize={Math.round(pFont * 0.68)} lineHeight={pLine}>
+                {item.number}{' '}
               </Text>
-              <Text color={c.text} fontFamily={serif} fontSize={16} lineHeight={24} flex={1}>
-                {item.text}
-              </Text>
-            </XStack>
+              {item.text}
+            </Text>
           )}
           ListFooterComponent={
             loading ? <Spinner mt="$4" size="large" color={c.accent} /> : <YStack height={8} />
@@ -361,6 +378,8 @@ export function CatechismScreen({ navigation }: Props) {
       )}
 
       {compact && <ReaderMiniBar title={section.label} />}
+
+      <ReaderSettingsSheet visible={settingsOpen} onClose={() => setSettingsOpen(false)} />
 
       <SectionPicker
         visible={pickerOpen}

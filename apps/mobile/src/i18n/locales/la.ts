@@ -77,6 +77,10 @@ const la: typeof en = {
     finished: 'Oratio completa',
     again: 'Iterum orare',
   },
+  reader: {
+    accessibility: 'Accessibilitas',
+    fontSize: 'Magnitudo litterarum',
+  },
   bible: {
     title: 'Biblia',
     bookAndVersion: 'Liber et versio',

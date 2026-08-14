@@ -76,6 +76,10 @@ const es: typeof en = {
     finished: 'Oración completa',
     again: 'Rezar de nuevo',
   },
+  reader: {
+    accessibility: 'Accesibilidad',
+    fontSize: 'Tamaño de fuente',
+  },
   bible: {
     title: 'Biblia',
     bookAndVersion: 'Libro y versión',

@@ -7,10 +7,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Separator, Spinner, Text, View, XStack, YStack } from 'tamagui';
 
 import { fetchBooks, fetchChapter, fetchTranslations } from '@/api/client';
-import { ReaderMiniBar, useReaderChrome } from '@/components/ReaderChrome';
+import {
+  ReaderMiniBar,
+  ReaderSettingsSheet,
+  ReaderTitle,
+  useReaderChrome,
+} from '@/components/ReaderChrome';
 import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
 import type { RootTabParamList } from '@/navigation/RootTabs';
 import { useLanguageStore } from '@/store/languageStore';
+import { useReaderPrefs } from '@/store/readerPrefsStore';
 import { useReaderStore } from '@/store/readerStore';
 import { useAppTheme } from '@/store/themeStore';
 import { serif } from '@/theme/colors';
@@ -225,6 +231,11 @@ export function BibleScreen({ navigation }: Props) {
   const language = useLanguageStore((s) => s.language);
   const { bookCode, chapter, translationId } = useReaderStore();
   const { compact, onScroll } = useReaderChrome(navigation);
+  const fontScale = useReaderPrefs((s) => s.fontScale);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const vFont = Math.round(17 * fontScale);
+  const vLine = Math.round(vFont * 1.6);
 
   const [books, setBooks] = useState<Book[]>([]);
   const [translations, setTranslations] = useState<Translation[]>([]);
@@ -295,7 +306,7 @@ export function BibleScreen({ navigation }: Props) {
             </XStack>
             <HeaderIconButton icon="book-open-variant" onPress={() => setPickerOpen(true)} />
             <HeaderIconButton icon="magnify" />
-            <HeaderIconButton icon="dots-vertical" />
+            <HeaderIconButton icon="dots-vertical" onPress={() => setSettingsOpen(true)} />
           </XStack>
 
           <Separator borderColor={c.border} mx="$4" />
@@ -319,18 +330,19 @@ export function BibleScreen({ navigation }: Props) {
           key={`${bookCode}.${chapter}.${translationId}`}
           onScroll={onScroll}
           scrollEventThrottle={16}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 32 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 32 }}
         >
+          <ReaderTitle overline={bookName} main={String(chapterNo)} giant />
           {content?.verses.map((verse) => (
             <Text
               key={verse.entity_id}
               color={c.text}
               fontFamily={serif}
-              fontSize={19}
-              lineHeight={32}
+              fontSize={vFont}
+              lineHeight={vLine}
               mb="$3"
             >
-              <Text color={c.accent} fontSize={13} lineHeight={32}>
+              <Text color={c.accent} fontSize={Math.round(vFont * 0.68)} lineHeight={vLine}>
                 {verse.number}{' '}
               </Text>
               {verse.text}
@@ -340,6 +352,8 @@ export function BibleScreen({ navigation }: Props) {
       )}
 
       {compact && <ReaderMiniBar title={title} />}
+
+      <ReaderSettingsSheet visible={settingsOpen} onClose={() => setSettingsOpen(false)} />
 
       <BookPicker
         visible={pickerOpen}

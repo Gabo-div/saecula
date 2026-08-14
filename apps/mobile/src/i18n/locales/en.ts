@@ -76,6 +76,10 @@ const en: Translations = {
     finished: 'Prayer complete',
     again: 'Pray again',
   },
+  reader: {
+    accessibility: 'Accessibility',
+    fontSize: 'Font size',
+  },
   bible: {
     title: 'Bible',
     bookAndVersion: 'Book & version',
@@ -176,6 +180,10 @@ export interface Translations {
     begin: string;
     finished: string;
     again: string;
+  };
+  reader: {
+    accessibility: string;
+    fontSize: string;
   };
   bible: {
     title: string;

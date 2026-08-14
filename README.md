@@ -277,7 +277,10 @@ Planned, roughly by value:
 - **Scripture cross-references in the Catechism** — map CCC footnotes to
   verse entity IDs (`(:CatechismParagraph)-[:CITES]->(:Verse)`).
 - **More guided prayers** — Stations of the Cross, Divine Mercy, Angelus.
-- **"Ask"** — the reserved Home quick action (Q&A), not yet built.
+- **"Ask" — AI chat** — the Home quick action is the entry point for a
+  planned conversational assistant (ask questions about the faith, a reading,
+  or a saint). The button exists; the chat backend and screen are not built
+  yet.
 - **Feast art** — extend curated images beyond the current fixed feasts.
 - **Account** — password reset and profile editing.
 

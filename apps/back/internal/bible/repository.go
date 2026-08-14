@@ -212,9 +212,12 @@ func (repo *PostgresTextRepository) DailyFeature(ctx context.Context, date strin
 }
 
 func (repo *PostgresTextRepository) Translations(ctx context.Context) ([]Translation, error) {
+	// Only Bible editions: verse entity IDs are BOOK.CHAPTER.VERSE, which
+	// excludes the Catechism (CCC.<n>) and any other non-verse text.
 	const sql = `
 		SELECT translation_id, language_code, count(*)
 		FROM text_documents
+		WHERE entity_id ~ '^[A-Z0-9]+\.[0-9]+\.[0-9]+$'
 		GROUP BY translation_id, language_code
 		ORDER BY language_code, translation_id`
 

@@ -323,8 +323,8 @@ export function GuidedPrayerScreen({ navigation, route }: Props) {
         </Text>
       </YStack>
 
-      {/* Step body — tapping anywhere advances (bead by bead). */}
-      <View flex={1} onPress={advance} pressStyle={{ opacity: 0.95 }}>
+      {/* Step body — scrollable for long prayers; advance with the button below. */}
+      <View flex={1}>
         <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 24, flexGrow: 1 }}>
           <Text color={c.strong} fontFamily={serif} fontSize={24} fontWeight="600" mb="$4">
             {step.label}

@@ -694,13 +694,13 @@ export const DIVINE_MERCY: GuidedPrayer = {
           label: {
             en: 'For the sake of His sorrowful Passion',
             es: 'Por su dolorosa Pasión',
-            la: 'Per dolorosam Passionem eius',
+            la: 'Pro dolorosa Eius passione',
           },
           repeat: 10,
           body: {
             en: 'For the sake of His sorrowful Passion, have mercy on us and on the whole world.',
             es: 'Por su dolorosa Pasión, ten misericordia de nosotros y del mundo entero.',
-            la: 'Per dolorosam Passionem eius, miserere nobis et totius mundi.',
+            la: 'Pro dolorosa Eius passione, miserere nobis et totius mundi.',
           },
         },
       ],

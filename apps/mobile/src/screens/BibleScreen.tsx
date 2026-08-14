@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Separator, Spinner, Text, View, XStack, YStack } from 'tamagui';
 
 import { fetchBooks, fetchChapter, fetchTranslations } from '@/api/client';
-import { ReaderMiniBar, ReaderTitle, useReaderChrome } from '@/components/ReaderChrome';
+import { ReaderMiniBar, useReaderChrome } from '@/components/ReaderChrome';
 import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
 import type { RootTabParamList } from '@/navigation/RootTabs';
 import { useLanguageStore } from '@/store/languageStore';
@@ -319,9 +319,8 @@ export function BibleScreen({ navigation }: Props) {
           key={`${bookCode}.${chapter}.${translationId}`}
           onScroll={onScroll}
           scrollEventThrottle={16}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 32 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 32 }}
         >
-          <ReaderTitle overline={bookName} main={String(chapterNo)} giant />
           {content?.verses.map((verse) => (
             <Text
               key={verse.entity_id}

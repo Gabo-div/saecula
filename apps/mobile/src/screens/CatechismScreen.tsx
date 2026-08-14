@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Separator, Spinner, Text, View, XStack, YStack } from 'tamagui';
 
 import { fetchCatechism } from '@/api/client';
-import { ReaderMiniBar, ReaderTitle, useReaderChrome } from '@/components/ReaderChrome';
+import { ReaderMiniBar, useReaderChrome } from '@/components/ReaderChrome';
 import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
 import { CATECHISM_PARTS, CATECHISM_PROLOGUE } from '@/data/catechism';
 import type { RootTabParamList } from '@/navigation/RootTabs';
@@ -341,8 +341,7 @@ export function CatechismScreen({ navigation }: Props) {
           keyExtractor={(p) => String(p.number)}
           onScroll={onScroll}
           scrollEventThrottle={16}
-          ListHeaderComponent={<ReaderTitle overline={t('catechism.title')} main={section.label} />}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32, gap: 16 }}
+          contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 32 }}
           onEndReached={() => load(false)}
           onEndReachedThreshold={0.6}
           renderItem={({ item }) => (

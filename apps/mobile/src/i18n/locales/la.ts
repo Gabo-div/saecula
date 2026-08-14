@@ -19,13 +19,6 @@ const la: typeof en = {
     title: 'Catechismus',
     loadError: 'Catechismus legi non potuit',
     translation: 'Versio',
-    prologue: 'Prólogo',
-    parts: {
-      creed: 'La profesión de la fe',
-      sacraments: 'La celebración del misterio cristiano',
-      life: 'La vida en Cristo',
-      prayer: 'La oración cristiana',
-    },
   },
   calendar: {
     title: 'Calendarium',

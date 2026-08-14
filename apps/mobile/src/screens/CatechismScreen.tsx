@@ -136,13 +136,13 @@ function SectionPicker({
                 onPickSection({
                   from: CATECHISM_PROLOGUE.from,
                   to: CATECHISM_PROLOGUE.to,
-                  label: t('catechism.prologue'),
+                  label: CATECHISM_PROLOGUE.label[lang],
                 })
               }
               pressStyle={{ bg: c.bg }}
             >
               <Text color={c.strong} fontSize={15} flex={1}>
-                {t('catechism.prologue')}
+                {CATECHISM_PROLOGUE.label[lang]}
               </Text>
               <Text color={c.muted} fontSize={11}>
                 {CATECHISM_PROLOGUE.from}–{CATECHISM_PROLOGUE.to}
@@ -167,7 +167,7 @@ function SectionPicker({
                       {part.roman}
                     </Text>
                     <Text color={c.strong} fontSize={15} fontWeight="600" flex={1}>
-                      {t(`catechism.parts.${part.key}`)}
+                      {part.name[lang]}
                     </Text>
                     <MaterialCommunityIcons
                       name={expanded ? 'chevron-up' : 'chevron-down'}
@@ -189,7 +189,7 @@ function SectionPicker({
                           fontSize={12}
                           fontStyle="italic"
                         >
-                          {e.label}
+                          {e.label[lang]}
                         </Text>
                       ) : (
                         <XStack
@@ -202,12 +202,12 @@ function SectionPicker({
                           onPress={() =>
                             e.from != null &&
                             e.to != null &&
-                            onPickSection({ from: e.from, to: e.to, label: e.label })
+                            onPickSection({ from: e.from, to: e.to, label: e.label[lang] })
                           }
                           pressStyle={{ bg: c.bg }}
                         >
                           <Text color={c.strong} fontSize={14} flex={1}>
-                            {e.label}
+                            {e.label[lang]}
                           </Text>
                           <Text color={c.muted} fontSize={11}>
                             {e.from}–{e.to}
@@ -249,7 +249,7 @@ export function CatechismScreen({ navigation }: Props) {
   const [section, setSection] = useState<Section>({
     from: CATECHISM_PROLOGUE.from,
     to: CATECHISM_PROLOGUE.to,
-    label: t('catechism.prologue'),
+    label: CATECHISM_PROLOGUE.label[lang],
   });
   const [pickerOpen, setPickerOpen] = useState(false);
 

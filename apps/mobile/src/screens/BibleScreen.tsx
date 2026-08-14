@@ -1,4 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, Modal, ScrollView } from 'react-native';
@@ -6,7 +7,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Separator, Spinner, Text, View, XStack, YStack } from 'tamagui';
 
 import { fetchBooks, fetchChapter, fetchTranslations } from '@/api/client';
+import { ReaderMiniBar, ReaderTitle, useReaderChrome } from '@/components/ReaderChrome';
 import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
+import type { RootTabParamList } from '@/navigation/RootTabs';
 import { useLanguageStore } from '@/store/languageStore';
 import { useReaderStore } from '@/store/readerStore';
 import { useAppTheme } from '@/store/themeStore';
@@ -213,38 +216,15 @@ function BookPicker({
 // Reader
 // ---------------------------------------------------------------------------
 
-function FloatingNav({
-  icon,
-  onPress,
-}: {
-  icon: 'chevron-left' | 'chevron-right';
-  onPress: () => void;
-}) {
-  const c = useAppTheme();
-  return (
-    <View
-      width={52}
-      height={52}
-      rounded={26}
-      bg={c.chip}
-      borderWidth={1}
-      borderColor={c.border}
-      items="center"
-      justify="center"
-      onPress={onPress}
-      pressStyle={{ opacity: 0.7 }}
-    >
-      <MaterialCommunityIcons name={icon} size={28} color={c.strong} />
-    </View>
-  );
-}
+type Props = BottomTabScreenProps<RootTabParamList, 'Bible'>;
 
-export function BibleScreen() {
+export function BibleScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const c = useAppTheme();
   const { t } = useTranslation();
   const language = useLanguageStore((s) => s.language);
-  const { bookCode, chapter, translationId, setLocation } = useReaderStore();
+  const { bookCode, chapter, translationId } = useReaderStore();
+  const { compact, onScroll } = useReaderChrome(navigation);
 
   const [books, setBooks] = useState<Book[]>([]);
   const [translations, setTranslations] = useState<Translation[]>([]);
@@ -283,61 +263,44 @@ export function BibleScreen() {
   }, [load]);
 
   const currentBook = books.find((b) => b.code === bookCode);
-  const bookIndex = books.findIndex((b) => b.code === bookCode);
-
-  // Prev/next cross book boundaries: Gen 50 → Exo 1, and back.
-  const goPrev = () => {
-    if (chapter > 1) {
-      setLocation(bookCode, chapter - 1);
-    } else if (bookIndex > 0) {
-      const prev = books[bookIndex - 1];
-      setLocation(prev.code, prev.chapters);
-    }
-  };
-  const goNext = () => {
-    if (currentBook && chapter < currentBook.chapters) {
-      setLocation(bookCode, chapter + 1);
-    } else if (bookIndex >= 0 && bookIndex < books.length - 1) {
-      setLocation(books[bookIndex + 1].code, 1);
-    }
-  };
-
-  const title = content
-    ? `${content.book_name} ${content.chapter}`
-    : currentBook
-      ? `${currentBook.name} ${chapter}`
-      : '…';
+  const bookName = content?.book_name ?? currentBook?.name ?? '';
+  const chapterNo = content?.chapter ?? chapter;
+  const title = bookName ? `${bookName} ${chapterNo}` : '…';
 
   return (
-    <View flex={1} bg={c.bg} pt={insets.top + 8}>
-      <ScreenHeader title={t('bible.title')} />
+    <View flex={1} bg={c.bg} pt={compact ? insets.top : insets.top + 8}>
+      {!compact && (
+        <>
+          <ScreenHeader title={t('bible.title')} />
 
-      {/* Location chip + tools */}
-      <XStack px="$4" py="$2" items="center" gap="$2">
-        <XStack
-          flex={1}
-          items="center"
-          gap="$2"
-          px="$3"
-          py="$2"
-          rounded={20}
-          bg={c.bgElevated}
-          borderWidth={1}
-          borderColor={c.border}
-          onPress={() => setPickerOpen(true)}
-          pressStyle={{ borderColor: c.accent }}
-        >
-          <Text color={c.strong} fontSize={14} fontWeight="600" flex={1} numberOfLines={1}>
-            {title}
-          </Text>
-          <MaterialCommunityIcons name="chevron-down" size={18} color={c.accent} />
-        </XStack>
-        <HeaderIconButton icon="book-open-variant" onPress={() => setPickerOpen(true)} />
-        <HeaderIconButton icon="magnify" />
-        <HeaderIconButton icon="dots-vertical" />
-      </XStack>
+          {/* Location chip + tools */}
+          <XStack px="$4" py="$2" items="center" gap="$2">
+            <XStack
+              flex={1}
+              items="center"
+              gap="$2"
+              px="$3"
+              py="$2"
+              rounded={20}
+              bg={c.bgElevated}
+              borderWidth={1}
+              borderColor={c.border}
+              onPress={() => setPickerOpen(true)}
+              pressStyle={{ borderColor: c.accent }}
+            >
+              <Text color={c.strong} fontSize={14} fontWeight="600" flex={1} numberOfLines={1}>
+                {title}
+              </Text>
+              <MaterialCommunityIcons name="chevron-down" size={18} color={c.accent} />
+            </XStack>
+            <HeaderIconButton icon="book-open-variant" onPress={() => setPickerOpen(true)} />
+            <HeaderIconButton icon="magnify" />
+            <HeaderIconButton icon="dots-vertical" />
+          </XStack>
 
-      <Separator borderColor={c.border} mx="$4" />
+          <Separator borderColor={c.border} mx="$4" />
+        </>
+      )}
 
       {/* Verse text */}
       {loading && !content ? (
@@ -354,8 +317,11 @@ export function BibleScreen() {
       ) : (
         <ScrollView
           key={`${bookCode}.${chapter}.${translationId}`}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 96 }}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 32 }}
         >
+          <ReaderTitle overline={bookName} main={String(chapterNo)} giant />
           {content?.verses.map((verse) => (
             <Text
               key={verse.entity_id}
@@ -374,11 +340,7 @@ export function BibleScreen() {
         </ScrollView>
       )}
 
-      {/* Chapter navigation */}
-      <XStack position="absolute" b={16} l={0} r={0} px="$4" justify="space-between">
-        <FloatingNav icon="chevron-left" onPress={goPrev} />
-        <FloatingNav icon="chevron-right" onPress={goNext} />
-      </XStack>
+      {compact && <ReaderMiniBar title={title} />}
 
       <BookPicker
         visible={pickerOpen}

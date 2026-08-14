@@ -1,4 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, LayoutAnimation, Modal, Platform, ScrollView, UIManager } from 'react-native';
@@ -6,8 +7,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Separator, Spinner, Text, View, XStack, YStack } from 'tamagui';
 
 import { fetchCatechism } from '@/api/client';
+import { ReaderMiniBar, ReaderTitle, useReaderChrome } from '@/components/ReaderChrome';
 import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
 import { CATECHISM_PARTS, CATECHISM_PROLOGUE } from '@/data/catechism';
+import type { RootTabParamList } from '@/navigation/RootTabs';
 import { useLanguageStore } from '@/store/languageStore';
 import { useAppTheme } from '@/store/themeStore';
 import { serif } from '@/theme/colors';
@@ -221,10 +224,13 @@ function SectionPicker({
 // Reader
 // ---------------------------------------------------------------------------
 
-export function CatechismScreen() {
+type Props = BottomTabScreenProps<RootTabParamList, 'Catechism'>;
+
+export function CatechismScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const c = useAppTheme();
   const { t } = useTranslation();
+  const { compact, onScroll } = useReaderChrome(navigation);
   const appLang = useLanguageStore((s) => s.language);
 
   const [lang, setLang] = useState<Lang>(
@@ -287,35 +293,39 @@ export function CatechismScreen() {
   }, [load]);
 
   return (
-    <View flex={1} bg={c.bg} pt={insets.top + 8}>
-      <ScreenHeader title={t('catechism.title')} />
+    <View flex={1} bg={c.bg} pt={compact ? insets.top : insets.top + 8}>
+      {!compact && (
+        <>
+          <ScreenHeader title={t('catechism.title')} />
 
-      {/* Section chip + tools */}
-      <XStack px="$4" py="$2" items="center" gap="$2">
-        <XStack
-          flex={1}
-          items="center"
-          gap="$2"
-          px="$3"
-          py="$2"
-          rounded={20}
-          bg={c.bgElevated}
-          borderWidth={1}
-          borderColor={c.border}
-          onPress={() => setPickerOpen(true)}
-          pressStyle={{ borderColor: c.accent }}
-        >
-          <Text color={c.strong} fontSize={14} fontWeight="600" flex={1} numberOfLines={1}>
-            {section.label}
-          </Text>
-          <MaterialCommunityIcons name="chevron-down" size={18} color={c.accent} />
-        </XStack>
-        <HeaderIconButton icon="book-open-variant" onPress={() => setPickerOpen(true)} />
-        <HeaderIconButton icon="magnify" />
-        <HeaderIconButton icon="dots-vertical" />
-      </XStack>
+          {/* Section chip + tools */}
+          <XStack px="$4" py="$2" items="center" gap="$2">
+            <XStack
+              flex={1}
+              items="center"
+              gap="$2"
+              px="$3"
+              py="$2"
+              rounded={20}
+              bg={c.bgElevated}
+              borderWidth={1}
+              borderColor={c.border}
+              onPress={() => setPickerOpen(true)}
+              pressStyle={{ borderColor: c.accent }}
+            >
+              <Text color={c.strong} fontSize={14} fontWeight="600" flex={1} numberOfLines={1}>
+                {section.label}
+              </Text>
+              <MaterialCommunityIcons name="chevron-down" size={18} color={c.accent} />
+            </XStack>
+            <HeaderIconButton icon="book-open-variant" onPress={() => setPickerOpen(true)} />
+            <HeaderIconButton icon="magnify" />
+            <HeaderIconButton icon="dots-vertical" />
+          </XStack>
 
-      <Separator borderColor={c.border} mx="$4" />
+          <Separator borderColor={c.border} mx="$4" />
+        </>
+      )}
 
       {error && items.length === 0 ? (
         <YStack flex={1} items="center" justify="center" px="$6" gap="$3">
@@ -329,7 +339,10 @@ export function CatechismScreen() {
           data={items}
           key={`${section.from}.${lang}`}
           keyExtractor={(p) => String(p.number)}
-          contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 32 }}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          ListHeaderComponent={<ReaderTitle overline={t('catechism.title')} main={section.label} />}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32, gap: 16 }}
           onEndReached={() => load(false)}
           onEndReachedThreshold={0.6}
           renderItem={({ item }) => (
@@ -347,6 +360,8 @@ export function CatechismScreen() {
           }
         />
       )}
+
+      {compact && <ReaderMiniBar title={section.label} />}
 
       <SectionPicker
         visible={pickerOpen}

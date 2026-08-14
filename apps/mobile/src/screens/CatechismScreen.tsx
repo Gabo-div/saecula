@@ -183,38 +183,49 @@ export function CatechismScreen() {
   const [error, setError] = useState<string | null>(null);
   const hasMore = useRef(true);
   const nextFrom = useRef(section.from);
+  const inFlight = useRef(false);
+  const gen = useRef(0); // bumped on every fresh load; stale results are ignored
 
   const load = useCallback(
     async (fresh: boolean) => {
-      if (!fresh && (loading || !hasMore.current)) return;
+      if (!fresh && (inFlight.current || !hasMore.current)) return;
+      const myGen = fresh ? ++gen.current : gen.current;
+      if (fresh) {
+        hasMore.current = true;
+        nextFrom.current = section.from;
+      }
+      inFlight.current = true;
       setLoading(true);
       setError(null);
       try {
         const start = fresh ? section.from : nextFrom.current;
         const res = await fetchCatechism(start, section.to, PAGE, lang);
-        setItems((prev) => (fresh ? res.paragraphs : [...prev, ...res.paragraphs]));
+        if (myGen !== gen.current) return; // superseded by a newer fresh load
+        setItems((prev) => {
+          const base = fresh ? [] : prev;
+          const seen = new Set(base.map((p) => p.number));
+          return [...base, ...res.paragraphs.filter((p) => !seen.has(p.number))];
+        });
         hasMore.current = res.has_more;
         if (res.paragraphs.length > 0) {
           nextFrom.current = res.paragraphs[res.paragraphs.length - 1].number + 1;
         }
       } catch {
-        setError(t('catechism.loadError'));
+        if (myGen === gen.current) setError(t('catechism.loadError'));
       } finally {
-        setLoading(false);
+        if (myGen === gen.current) {
+          inFlight.current = false;
+          setLoading(false);
+        }
       }
     },
-    // `loading` intentionally omitted: only pagination guards on it, read fresh.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [section, lang, t],
   );
 
   // Re-scope whenever the section or translation changes.
   useEffect(() => {
-    hasMore.current = true;
-    nextFrom.current = section.from;
     void load(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [section, lang]);
+  }, [load]);
 
   return (
     <View flex={1} bg={c.bg} pt={insets.top + 8}>

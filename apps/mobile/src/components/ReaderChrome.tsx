@@ -38,32 +38,28 @@ const THRESHOLD = 72;
 // won't flip modes. The tab bar is toggled through the navigator's own options.
 export function useReaderChrome(navigation: { setOptions: (o: object) => void }) {
   const [compact, setCompact] = useState(false);
+  const compactRef = useRef(false);
   const lastY = useRef(0);
   const acc = useRef(0); // signed distance accumulated since the last flip
   const settling = useRef(false); // true briefly after a flip while layout resettles
 
-  // Toggling the chrome changes the layout, which fires a spurious scroll event
-  // in the opposite direction. Ignore scrolling for a moment after each flip so
-  // that event can't bounce the mode straight back.
+  // Show/hide the tab bar and open a settle window as a side effect of the mode
+  // change — never during render, which would update the navigator mid-render.
   useEffect(() => {
+    navigation.setOptions({ tabBarStyle: compact ? { display: 'none' } : undefined });
     settling.current = true;
     const id = setTimeout(() => {
       settling.current = false;
     }, 400);
     return () => clearTimeout(id);
-  }, [compact]);
+  }, [compact, navigation]);
 
-  const apply = useCallback(
-    (next: boolean) => {
-      setCompact((cur) => {
-        if (cur === next) return cur;
-        LayoutAnimation.configureNext(ANIM);
-        navigation.setOptions({ tabBarStyle: next ? { display: 'none' } : undefined });
-        return next;
-      });
-    },
-    [navigation],
-  );
+  const apply = useCallback((next: boolean) => {
+    if (compactRef.current === next) return;
+    compactRef.current = next;
+    LayoutAnimation.configureNext(ANIM);
+    setCompact(next);
+  }, []);
 
   const onScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -98,9 +94,16 @@ export function useReaderChrome(navigation: { setOptions: (o: object) => void })
     [apply],
   );
 
-  // Always restore the tab bar when leaving the screen.
+  // Reset to full chrome when leaving the screen.
   useFocusEffect(
-    useCallback(() => () => navigation.setOptions({ tabBarStyle: undefined }), [navigation]),
+    useCallback(
+      () => () => {
+        compactRef.current = false;
+        setCompact(false);
+        navigation.setOptions({ tabBarStyle: undefined });
+      },
+      [navigation],
+    ),
   );
 
   return { compact, onScroll };

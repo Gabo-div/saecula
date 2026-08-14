@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Modal, ScrollView } from 'react-native';
+import { FlatList, LayoutAnimation, Modal, Platform, ScrollView, UIManager } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Separator, Spinner, Text, View, XStack, YStack } from 'tamagui';
 
@@ -12,6 +12,10 @@ import { useLanguageStore } from '@/store/languageStore';
 import { useAppTheme } from '@/store/themeStore';
 import { serif } from '@/theme/colors';
 import type { CatechismParagraph } from '@/types/api';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const PAGE = 50;
 const LANGS = ['en', 'es', 'la'] as const;
@@ -24,13 +28,10 @@ interface Section {
   label: string;
 }
 
-type PickRow =
-  | { kind: 'part'; label: string }
-  | { kind: 'header'; label: string }
-  | { kind: 'article'; label: string; from: number; to: number };
-
 // ---------------------------------------------------------------------------
 // Section + translation picker (modal) — mirrors the Bible's book picker.
+// Parts are collapsible so the sheet opens compact instead of listing every
+// article at once.
 // ---------------------------------------------------------------------------
 
 function SectionPicker({
@@ -49,25 +50,22 @@ function SectionPicker({
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const c = useAppTheme();
+  const [openPart, setOpenPart] = useState<string | null>(null);
 
-  const rows = useMemo<PickRow[]>(() => {
-    const out: PickRow[] = [
-      { kind: 'article', label: t('catechism.prologue'), from: CATECHISM_PROLOGUE.from, to: CATECHISM_PROLOGUE.to },
-    ];
-    for (const part of CATECHISM_PARTS) {
-      out.push({ kind: 'part', label: `${part.roman}. ${t(`catechism.parts.${part.key}`)}` });
-      for (const e of part.entries) {
-        if (e.header) out.push({ kind: 'header', label: e.label });
-        else if (e.from != null && e.to != null)
-          out.push({ kind: 'article', label: e.label, from: e.from, to: e.to });
-      }
-    }
-    return out;
-  }, [t]);
+  const toggle = (key: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setOpenPart((cur) => (cur === key ? null : key));
+  };
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View flex={1} bg="rgba(0,0,0,0.6)" justify="flex-end">
+      <View
+        flex={1}
+        bg="rgba(0,0,0,0.6)"
+        justify="flex-end"
+        onPress={onClose}
+        pressStyle={{ opacity: 1 }}
+      >
         <YStack
           bg={c.bgElevated}
           borderTopLeftRadius={24}
@@ -76,6 +74,7 @@ function SectionPicker({
           borderColor={c.border}
           maxH="85%"
           pb={insets.bottom + 8}
+          onPress={(e) => e.stopPropagation()}
         >
           <XStack items="center" px="$4" py="$3" gap="$3">
             <Text color={c.strong} fontFamily={serif} fontSize={18} fontWeight="600">
@@ -117,41 +116,101 @@ function SectionPicker({
           </YStack>
           <Separator borderColor={c.border} />
 
-          <FlatList
-            data={rows}
-            keyExtractor={(row, i) => `${row.kind}-${i}`}
-            renderItem={({ item }) => {
-              if (item.kind === 'part')
-                return (
-                  <Text px="$4" pt="$4" pb="$1" color={c.accent} fontSize={11} letterSpacing={2} fontWeight="700">
-                    {item.label.toUpperCase()}
-                  </Text>
-                );
-              if (item.kind === 'header')
-                return (
-                  <Text px="$4" pt="$2" pb="$1" color={c.muted} fontSize={12} fontStyle="italic">
-                    {item.label}
-                  </Text>
-                );
+          <ScrollView contentContainerStyle={{ paddingBottom: 8 }}>
+            {/* Prologue — a leaf section */}
+            <XStack
+              px="$4"
+              py="$3"
+              items="center"
+              gap="$2"
+              onPress={() =>
+                onPickSection({
+                  from: CATECHISM_PROLOGUE.from,
+                  to: CATECHISM_PROLOGUE.to,
+                  label: t('catechism.prologue'),
+                })
+              }
+              pressStyle={{ bg: c.bg }}
+            >
+              <Text color={c.strong} fontSize={15} flex={1}>
+                {t('catechism.prologue')}
+              </Text>
+              <Text color={c.muted} fontSize={11}>
+                {CATECHISM_PROLOGUE.from}–{CATECHISM_PROLOGUE.to}
+              </Text>
+            </XStack>
+
+            {/* The four pillars — each collapsible */}
+            {CATECHISM_PARTS.map((part) => {
+              const expanded = openPart === part.key;
               return (
-                <XStack
-                  px="$4"
-                  py="$3"
-                  items="center"
-                  gap="$2"
-                  onPress={() => onPickSection({ from: item.from, to: item.to, label: item.label })}
-                  pressStyle={{ bg: c.bg }}
-                >
-                  <Text color={c.strong} fontSize={15} flex={1}>
-                    {item.label}
-                  </Text>
-                  <Text color={c.muted} fontSize={11}>
-                    {item.from}–{item.to}
-                  </Text>
-                </XStack>
+                <YStack key={part.key}>
+                  <XStack
+                    px="$4"
+                    py="$3"
+                    items="center"
+                    gap="$2"
+                    bg={expanded ? c.bg : 'transparent'}
+                    onPress={() => toggle(part.key)}
+                    pressStyle={{ bg: c.bg }}
+                  >
+                    <Text color={c.accent} fontFamily={serif} fontSize={13} width={22}>
+                      {part.roman}
+                    </Text>
+                    <Text color={c.strong} fontSize={15} fontWeight="600" flex={1}>
+                      {t(`catechism.parts.${part.key}`)}
+                    </Text>
+                    <MaterialCommunityIcons
+                      name={expanded ? 'chevron-up' : 'chevron-down'}
+                      size={20}
+                      color={c.muted}
+                    />
+                  </XStack>
+
+                  {expanded &&
+                    part.entries.map((e, i) =>
+                      e.header ? (
+                        <Text
+                          key={`h-${i}`}
+                          pl="$7"
+                          pr="$4"
+                          pt="$2"
+                          pb="$1"
+                          color={c.muted}
+                          fontSize={12}
+                          fontStyle="italic"
+                        >
+                          {e.label}
+                        </Text>
+                      ) : (
+                        <XStack
+                          key={`a-${i}`}
+                          pl="$7"
+                          pr="$4"
+                          py="$2"
+                          items="center"
+                          gap="$2"
+                          onPress={() =>
+                            e.from != null &&
+                            e.to != null &&
+                            onPickSection({ from: e.from, to: e.to, label: e.label })
+                          }
+                          pressStyle={{ bg: c.bg }}
+                        >
+                          <Text color={c.strong} fontSize={14} flex={1}>
+                            {e.label}
+                          </Text>
+                          <Text color={c.muted} fontSize={11}>
+                            {e.from}–{e.to}
+                          </Text>
+                        </XStack>
+                      ),
+                    )}
+                  <Separator borderColor={c.border} opacity={0.5} />
+                </YStack>
               );
-            }}
-          />
+            })}
+          </ScrollView>
         </YStack>
       </View>
     </Modal>
@@ -234,6 +293,7 @@ export function CatechismScreen() {
       {/* Section chip + tools */}
       <XStack px="$4" py="$2" items="center" gap="$2">
         <XStack
+          flex={1}
           items="center"
           gap="$2"
           px="$3"
@@ -242,7 +302,6 @@ export function CatechismScreen() {
           bg={c.bgElevated}
           borderWidth={1}
           borderColor={c.border}
-          flex={1}
           onPress={() => setPickerOpen(true)}
           pressStyle={{ borderColor: c.accent }}
         >
@@ -251,21 +310,9 @@ export function CatechismScreen() {
           </Text>
           <MaterialCommunityIcons name="chevron-down" size={18} color={c.accent} />
         </XStack>
-        <View
-          px="$3"
-          py="$2"
-          rounded={20}
-          bg={c.chip}
-          borderWidth={1}
-          borderColor={c.border}
-          onPress={() => setPickerOpen(true)}
-          pressStyle={{ opacity: 0.7 }}
-        >
-          <Text color={c.accent} fontSize={12} fontWeight="700">
-            {lang.toUpperCase()}
-          </Text>
-        </View>
-        <HeaderIconButton icon="book-education-outline" onPress={() => setPickerOpen(true)} />
+        <HeaderIconButton icon="book-open-variant" onPress={() => setPickerOpen(true)} />
+        <HeaderIconButton icon="magnify" />
+        <HeaderIconButton icon="dots-vertical" />
       </XStack>
 
       <Separator borderColor={c.border} mx="$4" />

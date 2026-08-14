@@ -63,7 +63,13 @@ function BookPicker({
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={close}>
-      <View flex={1} bg="rgba(0,0,0,0.6)" justify="flex-end">
+      <View
+        flex={1}
+        bg="rgba(0,0,0,0.6)"
+        justify="flex-end"
+        onPress={close}
+        pressStyle={{ opacity: 1 }}
+      >
         <YStack
           bg={c.bgElevated}
           borderTopLeftRadius={24}
@@ -72,6 +78,7 @@ function BookPicker({
           borderColor={c.border}
           maxH="85%"
           pb={insets.bottom + 8}
+          onPress={(e) => e.stopPropagation()}
         >
           <XStack items="center" px="$4" py="$3" gap="$3">
             {step === 'chapter' && (
@@ -308,6 +315,7 @@ export function BibleScreen() {
       {/* Location chip + tools */}
       <XStack px="$4" py="$2" items="center" gap="$2">
         <XStack
+          flex={1}
           items="center"
           gap="$2"
           px="$3"
@@ -319,16 +327,14 @@ export function BibleScreen() {
           onPress={() => setPickerOpen(true)}
           pressStyle={{ borderColor: c.accent }}
         >
-          <Text color={c.strong} fontSize={14} fontWeight="600">
+          <Text color={c.strong} fontSize={14} fontWeight="600" flex={1} numberOfLines={1}>
             {title}
           </Text>
           <MaterialCommunityIcons name="chevron-down" size={18} color={c.accent} />
         </XStack>
-        <XStack ml="auto" gap="$2">
-          <HeaderIconButton icon="book-open-variant" onPress={() => setPickerOpen(true)} />
-          <HeaderIconButton icon="magnify" />
-          <HeaderIconButton icon="dots-vertical" />
-        </XStack>
+        <HeaderIconButton icon="book-open-variant" onPress={() => setPickerOpen(true)} />
+        <HeaderIconButton icon="magnify" />
+        <HeaderIconButton icon="dots-vertical" />
       </XStack>
 
       <Separator borderColor={c.border} mx="$4" />

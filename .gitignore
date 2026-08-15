@@ -12,6 +12,7 @@ dist/
 *.exe
 *.test
 apps/back/tmp/
+apps/back/*.tar.gz
 
 # thesis Word output (regenerable with docs/generate_word.py)
 docs/*.docx

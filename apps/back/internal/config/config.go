@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -20,6 +21,14 @@ type Config struct {
 
 	JWTSecret     []byte
 	JWTExpiration time.Duration
+
+	// AI chat (Ask). Chat is enabled only when GeminiAPIKey is set; otherwise
+	// the endpoint is mounted but returns 503.
+	GeminiAPIKey        string
+	ChatModel           string
+	ChatMaxToolIters    int
+	ChatMaxOutputTokens int
+	ChatRatePerMin      int
 }
 
 func Load() (*Config, error) {
@@ -31,6 +40,12 @@ func Load() (*Config, error) {
 		Neo4jPassword: getEnv("NEO4J_PASSWORD", "saecula_dev_password"),
 		JWTSecret:     []byte(getEnv("JWT_SECRET", "")),
 		JWTExpiration: 24 * time.Hour,
+
+		GeminiAPIKey:        getEnv("GEMINI_API_KEY", ""),
+		ChatModel:           getEnv("CHAT_MODEL", "googleai/gemini-2.5-flash"),
+		ChatMaxToolIters:    getEnvInt("CHAT_MAX_TOOL_ITERS", 5),
+		ChatMaxOutputTokens: getEnvInt("CHAT_MAX_OUTPUT_TOKENS", 1024),
+		ChatRatePerMin:      getEnvInt("CHAT_RATE_PER_MIN", 20),
 	}
 
 	if len(cfg.JWTSecret) == 0 {
@@ -54,6 +69,15 @@ func Load() (*Config, error) {
 func getEnv(key, fallback string) string {
 	if v := os.Getenv(key); v != "" {
 		return v
+	}
+	return fallback
+}
+
+func getEnvInt(key string, fallback int) int {
+	if v := os.Getenv(key); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			return n
+		}
 	}
 	return fallback
 }

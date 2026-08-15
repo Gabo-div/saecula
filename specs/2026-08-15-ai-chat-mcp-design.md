@@ -26,6 +26,9 @@ hand-roll a provider abstraction or an agent loop.
 - Model provider swappable by changing configuration, not code touching the
   front end or the tools. Gemini is the first (and initially only) provider.
 - Conversations persisted in Postgres, scoped to the owning user.
+- A mobile chat UI (Expo/RN) reached from the Home "Ask" action: streamed
+  answers, a conversation history, and citations that deep-link into the Bible
+  and Catechism readers.
 
 ## Non-goals (this iteration)
 
@@ -229,9 +232,77 @@ Add to `internal/config`:
 - `ChatMaxToolIters` (default 5), `ChatMaxOutputTokens` (default 1024),
   `ChatRatePerMin` (default 20).
 
-## Mobile (separate, follow-up)
+## Mobile (Expo / React Native)
 
-The existing "Ask" button opens a chat screen: list conversations, open one,
-stream a new answer via SSE, render citations as tappable links into the Bible /
-Catechism readers (reusing the new scroll-to-verse / focus-paragraph behavior).
-Detailed mobile design is out of scope for this backend spec.
+The feature ships end to end: the "Ask" quick action on Home opens the chat.
+
+### Transport — SSE over `expo/fetch`
+
+Consume the `POST /api/chat` stream with `expo/fetch` (Expo 54:
+`import { fetch } from 'expo/fetch'`), whose `response.body` is a real
+`ReadableStream` and which accepts POST + custom headers (the JWT) + an
+`AbortSignal`. No extra SSE dependency. A small pure parser turns the byte
+stream into SSE frames:
+
+- read `response.body.getReader()`, `TextDecoder` the chunks, buffer and split
+  on `\n\n`, parse `event:`/`data:` lines, dispatch `token` / `tool` / `done` /
+  `error`.
+- the parser is a standalone function so it is unit-tested without a device.
+
+The Authorization bearer comes from the existing auth store; `expo/fetch` is
+used only for the streaming call, the rest of the client stays on axios.
+
+### Navigation
+
+Home becomes a native stack `HomeStack` (mirroring the Calendar/Prayers stacks):
+`HomeHome` (current `HomeScreen`) → `Chat` → `Conversations`. The Home "Ask"
+quick action navigates to `Chat` (a fresh conversation). `Chat`'s header has a
+history icon → `Conversations` (the user's past chats, newest first, with a
+"new chat" action); tapping one opens `Chat` with its `conversationId`.
+
+### Screens
+
+- **ChatScreen** — a message thread (user bubbles right, assistant left, serif
+  body for the assistant), an input bar with send, and an assistant bubble that
+  grows token-by-token while streaming. A small chip ("consulting Scripture…")
+  shows on `tool` events. Input is disabled while streaming; leaving the screen
+  aborts via `AbortController`. On `error`, show a retry affordance. If the
+  backend returns 503 (chat disabled — no API key), show a friendly disabled
+  state.
+- **ConversationsScreen** — list of the user's conversations (title +
+  updated_at), swipe/long-press to delete (confirm), tap to open, plus a
+  "new chat" button.
+
+### Citations → deep links
+
+The assistant is prompted to cite by id. The renderer linkifies ids in the
+answer (`JHN.3.16`, `CCC.2077`) into tappable links:
+- Scripture → switch to the Bible tab and `readerStore.setLocation(book,
+  chapter, verse)` — the reader already scrolls to and highlights the verse.
+- Catechism → switch to the Catechism tab and focus the paragraph. This needs
+  the Catechism reader's target lifted into a small `useCatechismStore`
+  (`focusParagraph`, mirroring `readerStore.targetVerse`), since its
+  language/section/focus are currently local component state. The reader then
+  reuses the existing section-resolution + scroll-to + highlight behavior.
+
+Linkified citations are a defined part of this design; if the catechism-store
+lift proves larger than expected during planning, it may be split into its own
+follow-up plan, but the Bible citations work with the current store as-is.
+
+### State & API client
+
+- `src/api/client.ts`: `streamChat({conversationId?, message, lang, onToken,
+  onTool, signal})`, `listConversations()`, `getConversation(id)`,
+  `deleteConversation(id)`.
+- `src/types/api.ts`: `ChatConversation`, `ChatMessage`, SSE event payloads.
+- Chat thread state is per-screen (messages, streaming flag, partial assistant
+  text); the server is the source of truth, so there is no persisted client
+  store beyond `useCatechismStore.focusParagraph` for deep links.
+- i18n: a new `chat` namespace (title, placeholder, newChat, history, empty,
+  thinking, consulting, error, deleteConfirm, disabled) in en/es/la.
+
+### Mobile testing
+
+The repo has no mobile tests yet; keep it minimal — one unit test for the SSE
+frame parser (the only non-trivial, device-independent logic). Broader mobile
+testing is out of scope.

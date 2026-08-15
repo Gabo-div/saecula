@@ -185,3 +185,28 @@ export interface CatechismSearchResponse {
   lang: string;
   results: CatechismSearchResult[];
 }
+
+// --- Chat (Ask) -------------------------------------------------------------
+
+export interface ChatConversation {
+  id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  created_at: string;
+}
+
+export interface ConversationResponse {
+  conversation: ChatConversation;
+  messages: ChatMessage[];
+}
+
+export interface ConversationsResponse {
+  conversations: ChatConversation[];
+}

@@ -5,6 +5,8 @@ const la: typeof en = {
   common: {
     appName: 'Saecula',
     tagline: 'Viginti saecula, una linea temporum',
+    cancel: 'Cancella',
+    delete: 'Dele',
   },
   tabs: {
     home: 'Domus',
@@ -116,6 +118,20 @@ const la: typeof en = {
     haveAccount: 'Rationem iam habes? Ingredere',
     noAccount: 'Rationem non habes? Inscribere',
     connectionFailed: 'Conexio defecit',
+  },
+  chat: {
+    title: 'Interroga',
+    placeholder: 'Interroga de Scriptura vel Catechismo…',
+    empty: 'Interroga ut incipias.',
+    newChat: 'Novum colloquium',
+    history: 'Historia',
+    emptyHistory: 'Nulla adhuc colloquia.',
+    thinking: 'Cogitans…',
+    consulting: 'Consulens {{source}}…',
+    error: 'Aliquid erravit. Iterum conare.',
+    retry: 'Iterum conare',
+    disabled: 'Auxiliator nondum praesto est.',
+    deleteConfirm: 'Hoc colloquium delere?',
   },
 };
 

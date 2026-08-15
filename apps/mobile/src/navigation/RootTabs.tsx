@@ -8,7 +8,9 @@ import { useTranslation } from 'react-i18next';
 import { BibleScreen } from '@/screens/BibleScreen';
 import { CalendarHubScreen } from '@/screens/CalendarHubScreen';
 import { CatechismScreen } from '@/screens/CatechismScreen';
+import { ChatScreen } from '@/screens/ChatScreen';
 import { CelebrationsScreen } from '@/screens/CelebrationsScreen';
+import { ConversationsScreen } from '@/screens/ConversationsScreen';
 import { DailyReadingsScreen } from '@/screens/DailyReadingsScreen';
 import { ExploreScreen } from '@/screens/ExploreScreen';
 import { GuidedPrayerScreen } from '@/screens/GuidedPrayerScreen';
@@ -27,7 +29,14 @@ export type RootTabParamList = {
   Explore: undefined;
   Calendar: NavigatorScreenParams<CalendarStackParamList> | undefined;
   Prayers: NavigatorScreenParams<PrayersStackParamList> | undefined; // from Home; hidden tab
+  Ask: NavigatorScreenParams<AskStackParamList> | undefined; // from Home; hidden tab
   Profile: undefined; // reachable from Home; hidden from the tab bar
+};
+
+// Ask (hidden tab, opened from Home): the AI chat and its conversation history.
+export type AskStackParamList = {
+  Chat: { conversationId?: string } | undefined;
+  Conversations: undefined;
 };
 
 // The Calendar tab hosts a stack: a hub of dated sections (daily readings,
@@ -62,6 +71,7 @@ const TAB_ICONS: Record<keyof RootTabParamList, IconName> = {
   Explore: 'compass-outline',
   Calendar: 'calendar-month-outline',
   Prayers: 'hands-pray',
+  Ask: 'star-four-points-outline',
   Profile: 'account-circle-outline',
 };
 
@@ -69,6 +79,19 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 const CalendarStack = createNativeStackNavigator<CalendarStackParamList>();
 const PrayersStack = createNativeStackNavigator<PrayersStackParamList>();
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
+const AskStack = createNativeStackNavigator<AskStackParamList>();
+
+function AskStackNavigator() {
+  const c = useAppTheme();
+  return (
+    <AskStack.Navigator
+      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.bg } }}
+    >
+      <AskStack.Screen name="Chat" component={ChatScreen} />
+      <AskStack.Screen name="Conversations" component={ConversationsScreen} />
+    </AskStack.Navigator>
+  );
+}
 
 function CalendarStackNavigator() {
   const c = useAppTheme();
@@ -161,6 +184,16 @@ export function RootTabs() {
                 ? { display: 'none' }
                 : { backgroundColor: c.bg, borderTopColor: c.border, borderTopWidth: 1 },
           };
+        }}
+      />
+      <Tab.Screen
+        name="Ask"
+        component={AskStackNavigator}
+        options={{
+          tabBarButton: () => null,
+          tabBarItemStyle: { display: 'none' },
+          // Full-screen chat: no bottom tab bar while the Ask stack is focused.
+          tabBarStyle: { display: 'none' },
         }}
       />
       <Tab.Screen

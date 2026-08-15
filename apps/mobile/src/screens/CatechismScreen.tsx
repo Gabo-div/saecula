@@ -423,20 +423,12 @@ export function CatechismScreen({ navigation }: Props) {
           onEndReached={() => load(false)}
           onEndReachedThreshold={0.6}
           renderItem={({ item }) => (
-            <XStack gap={6} items="flex-start">
-              <Text
-                color={c.accent}
-                fontFamily={serif}
-                fontSize={Math.round(pFont * 0.6)}
-                lineHeight={Math.round(pFont * 0.9)}
-                mt={3}
-              >
-                {item.number}
+            <Text color={c.text} fontFamily={serif} fontSize={pFont} lineHeight={pLine} mb="$3">
+              <Text color={c.accent} fontSize={Math.round(pFont * 0.62)}>
+                {item.number}{' '}
               </Text>
-              <Text color={c.text} fontFamily={serif} fontSize={pFont} lineHeight={pLine} flex={1}>
-                {item.text}
-              </Text>
-            </XStack>
+              {item.text}
+            </Text>
           )}
           ListFooterComponent={
             loading ? <Spinner mt="$4" size="large" color={c.accent} /> : <YStack height={8} />

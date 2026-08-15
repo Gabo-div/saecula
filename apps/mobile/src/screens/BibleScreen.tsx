@@ -334,20 +334,19 @@ export function BibleScreen({ navigation }: Props) {
         >
           <ReaderTitle overline={bookName} main={String(chapterNo)} giant />
           {content?.verses.map((verse) => (
-            <XStack key={verse.entity_id} gap={6} items="flex-start" mb="$3">
-              <Text
-                color={c.accent}
-                fontFamily={serif}
-                fontSize={Math.round(vFont * 0.6)}
-                lineHeight={Math.round(vFont * 0.9)}
-                mt={3}
-              >
-                {verse.number}
+            <Text
+              key={verse.entity_id}
+              color={c.text}
+              fontFamily={serif}
+              fontSize={vFont}
+              lineHeight={vLine}
+              mb="$3"
+            >
+              <Text color={c.accent} fontSize={Math.round(vFont * 0.62)}>
+                {verse.number}{' '}
               </Text>
-              <Text color={c.text} fontFamily={serif} fontSize={vFont} lineHeight={vLine} flex={1}>
-                {verse.text}
-              </Text>
-            </XStack>
+              {verse.text}
+            </Text>
           ))}
         </ScrollView>
       )}

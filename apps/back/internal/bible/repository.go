@@ -22,6 +22,12 @@ type Verse struct {
 	TranslationID string `json:"translation_id"`
 }
 
+// SearchHit is one full-text match: the verse entity ID and its text.
+type SearchHit struct {
+	EntityID string
+	Text     string
+}
+
 // Translation is one Bible edition present in the translation store.
 type Translation struct {
 	ID           string `json:"id"`
@@ -55,6 +61,9 @@ type TextRepository interface {
 	// DailyFeature returns the curated feature for a date (YYYY-MM-DD), or
 	// nil when none is set (caller falls back to the built-in rotation).
 	DailyFeature(ctx context.Context, date string) (*DailyFeature, error)
+	// SearchVerses full-text searches verse text, ranked by relevance. Empty
+	// translationID searches every edition.
+	SearchVerses(ctx context.Context, query, translationID string, limit int) ([]SearchHit, error)
 }
 
 // ---------------------------------------------------------------------------
@@ -209,6 +218,32 @@ func (repo *PostgresTextRepository) DailyFeature(ctx context.Context, date strin
 		f.ImageURL = *image
 	}
 	return f, nil
+}
+
+func (repo *PostgresTextRepository) SearchVerses(ctx context.Context, query, translationID string, limit int) ([]SearchHit, error) {
+	const sql = `
+		SELECT entity_id, raw_content
+		FROM text_documents
+		WHERE entity_id ~ '^[A-Z0-9]+\.[0-9]+\.[0-9]+$'
+		  AND ($2 = '' OR translation_id = $2)
+		  AND to_tsvector('simple', raw_content) @@ plainto_tsquery('simple', $1)
+		ORDER BY ts_rank(to_tsvector('simple', raw_content), plainto_tsquery('simple', $1)) DESC, entity_id
+		LIMIT $3`
+	rows, err := repo.pool.Query(ctx, sql, query, translationID, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var hits []SearchHit
+	for rows.Next() {
+		var h SearchHit
+		if err := rows.Scan(&h.EntityID, &h.Text); err != nil {
+			return nil, err
+		}
+		hits = append(hits, h)
+	}
+	return hits, rows.Err()
 }
 
 func (repo *PostgresTextRepository) Translations(ctx context.Context) ([]Translation, error) {

@@ -6,6 +6,7 @@ package catechism
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -36,8 +37,56 @@ func (a *API) Pattern() string { return "/catechism" }
 func (a *API) Routes() chi.Router {
 	r := chi.NewRouter()
 	r.Get("/", a.List)
+	r.Get("/search", a.Search)
 	r.Get("/{number}", a.One)
 	return r
+}
+
+type searchResult struct {
+	Number  int    `json:"number"`
+	Snippet string `json:"snippet"`
+}
+
+// GET /api/catechism/search?q=&lang=&limit=
+func (a *API) Search(w http.ResponseWriter, r *http.Request) {
+	q := strings.TrimSpace(r.URL.Query().Get("q"))
+	lang := langParam(r)
+	limit := queryInt(r, "limit", 20)
+	if limit < 1 || limit > 50 {
+		limit = 20
+	}
+
+	results := []searchResult{}
+	if len([]rune(q)) >= 2 {
+		rows, err := a.pool.Query(r.Context(),
+			`SELECT CAST(split_part(entity_id, '.', 2) AS INT) AS num,
+			        ts_headline('simple', raw_content, plainto_tsquery('simple', $1),
+			                    'MaxWords=30,MinWords=12,StartSel=«,StopSel=»') AS snippet
+			 FROM text_documents
+			 WHERE entity_id LIKE 'CCC.%' AND language_code = $2
+			   AND to_tsvector('simple', raw_content) @@ plainto_tsquery('simple', $1)
+			 ORDER BY ts_rank(to_tsvector('simple', raw_content), plainto_tsquery('simple', $1)) DESC, num
+			 LIMIT $3`,
+			q, lang, limit)
+		if err != nil {
+			httpx.WriteError(w, http.StatusInternalServerError, "catechism search failed")
+			return
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var res searchResult
+			if err := rows.Scan(&res.Number, &res.Snippet); err != nil {
+				httpx.WriteError(w, http.StatusInternalServerError, "catechism scan failed")
+				return
+			}
+			results = append(results, res)
+		}
+		if err := rows.Err(); err != nil {
+			httpx.WriteError(w, http.StatusInternalServerError, "catechism read failed")
+			return
+		}
+	}
+	httpx.WriteJSON(w, http.StatusOK, map[string]any{"query": q, "lang": lang, "results": results})
 }
 
 type listResponse struct {

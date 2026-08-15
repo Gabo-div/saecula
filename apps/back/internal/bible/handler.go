@@ -35,6 +35,7 @@ func (a *API) Routes() chi.Router {
 	r.Get("/books", a.Books)
 	r.Get("/translations", a.Translations)
 	r.Get("/daily", a.Daily)
+	r.Get("/search", a.Search)
 	r.Get("/{book}/{chapter}", a.Chapter)
 	return r
 }
@@ -255,6 +256,54 @@ func bookName(b canon.Book, lang string) string {
 		return b.NameES
 	}
 	return b.NameEN
+}
+
+type searchResult struct {
+	BookCode  string `json:"book_code"`
+	BookName  string `json:"book_name"`
+	Chapter   int    `json:"chapter"`
+	Verse     int    `json:"verse"`
+	Reference string `json:"reference"`
+	Text      string `json:"text"`
+}
+
+// GET /api/bible/search?q=&translation=&lang=&limit=
+func (a *API) Search(w http.ResponseWriter, r *http.Request) {
+	q := strings.TrimSpace(r.URL.Query().Get("q"))
+	lang := langParam(r)
+	limit := 20
+	if n, err := strconv.Atoi(r.URL.Query().Get("limit")); err == nil && n > 0 && n <= 50 {
+		limit = n
+	}
+
+	results := []searchResult{}
+	if len([]rune(q)) >= 2 {
+		hits, err := a.texts.SearchVerses(r.Context(), q, r.URL.Query().Get("translation"), limit)
+		if err != nil {
+			slog.Error("bible: search", "error", err)
+			httpx.WriteError(w, http.StatusInternalServerError, "search failed")
+			return
+		}
+		for _, h := range hits {
+			code, chapter, verse, ok := splitEntity(h.EntityID)
+			if !ok {
+				continue
+			}
+			name := code
+			if b, ok := canon.ByCode(code); ok {
+				name = bookName(*b, lang)
+			}
+			results = append(results, searchResult{
+				BookCode:  code,
+				BookName:  name,
+				Chapter:   chapter,
+				Verse:     verse,
+				Reference: fmt.Sprintf("%s %d,%d", name, chapter, verse),
+				Text:      h.Text,
+			})
+		}
+	}
+	httpx.WriteJSON(w, http.StatusOK, map[string]any{"query": q, "results": results})
 }
 
 // splitEntity decomposes a BOOK.CHAPTER.VERSE entity ID.

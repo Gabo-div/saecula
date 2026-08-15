@@ -65,6 +65,6 @@ func init() {
 	scrapeCatechismCmd.Flags().StringVar(&catechismOpts.out, "out", "",
 		"output JSON file (default data/catechism_ccc_<lang>.json)")
 	scrapeCatechismCmd.Flags().StringVar(&catechismOpts.lang, "lang", "en",
-		"language edition: en (scborromeo), es or la (vatican.va)")
+		"language edition (all from vatican.va): en, es or la")
 	scrapeCmd.AddCommand(scrapeCatechismCmd)
 }

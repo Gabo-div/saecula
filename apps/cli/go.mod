@@ -23,6 +23,11 @@ require (
 	golang.org/x/text v0.21.0 // indirect
 )
 
-require saecula/canon v0.0.0
+require (
+	saecula/canon v0.0.0
+	saecula/env v0.0.0
+)
 
 replace saecula/canon => ../../libs/canon
+
+replace saecula/env => ../../libs/env

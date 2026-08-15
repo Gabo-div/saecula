@@ -3,8 +3,10 @@ package chat
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -31,9 +33,10 @@ func dbOrSkip(t *testing.T) *pgxpool.Pool {
 func newUser(t *testing.T, pool *pgxpool.Pool, label string) string {
 	t.Helper()
 	var id string
+	email := fmt.Sprintf("chat-test-%s-%s-%d@example.com", t.Name(), label, time.Now().UnixNano())
 	err := pool.QueryRow(context.Background(),
 		`INSERT INTO users (email, password_hash) VALUES ($1, 'x') RETURNING id`,
-		"chat-test-"+t.Name()+"-"+label+"@example.com").Scan(&id)
+		email).Scan(&id)
 	if err != nil {
 		t.Fatalf("create user: %v", err)
 	}

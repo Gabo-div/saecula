@@ -11,8 +11,13 @@ require (
 	golang.org/x/crypto v0.40.0
 )
 
-require saecula/canon v0.0.0
+require (
+	saecula/canon v0.0.0
+	saecula/env v0.0.0
+)
 
 require github.com/firebase/genkit/go v1.11.0 // indirect
 
 replace saecula/canon => ../../libs/canon
+
+replace saecula/env => ../../libs/env

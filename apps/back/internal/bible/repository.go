@@ -226,8 +226,8 @@ func (repo *PostgresTextRepository) SearchVerses(ctx context.Context, query, tra
 		FROM text_documents
 		WHERE entity_id ~ '^[A-Z0-9]+\.[0-9]+\.[0-9]+$'
 		  AND ($2 = '' OR translation_id = $2)
-		  AND to_tsvector('simple', raw_content) @@ plainto_tsquery('simple', $1)
-		ORDER BY ts_rank(to_tsvector('simple', raw_content), plainto_tsquery('simple', $1)) DESC, entity_id
+		  AND to_tsvector('simple_unaccent', raw_content) @@ plainto_tsquery('simple_unaccent', $1)
+		ORDER BY ts_rank(to_tsvector('simple_unaccent', raw_content), plainto_tsquery('simple_unaccent', $1)) DESC, entity_id
 		LIMIT $3`
 	rows, err := repo.pool.Query(ctx, sql, query, translationID, limit)
 	if err != nil {

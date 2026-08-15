@@ -57,15 +57,34 @@ func (a *API) Search(w http.ResponseWriter, r *http.Request) {
 	}
 
 	results := []searchResult{}
+	seen := map[int]bool{}
+
+	// A bare number jumps straight to that paragraph (the Catechism is cited by
+	// number), which a text search on the digits would never find.
+	if n, convErr := strconv.Atoi(q); convErr == nil && n >= 1 {
+		var text string
+		err := a.pool.QueryRow(r.Context(),
+			`SELECT raw_content FROM text_documents WHERE entity_id = $1 AND language_code = $2`,
+			"CCC."+strconv.Itoa(n), lang).Scan(&text)
+		if err == nil {
+			runes := []rune(text)
+			if len(runes) > 140 {
+				text = string(runes[:140]) + "…"
+			}
+			results = append(results, searchResult{Number: n, Snippet: text})
+			seen[n] = true
+		}
+	}
+
 	if len([]rune(q)) >= 2 {
 		rows, err := a.pool.Query(r.Context(),
 			`SELECT CAST(split_part(entity_id, '.', 2) AS INT) AS num,
-			        ts_headline('simple', raw_content, plainto_tsquery('simple', $1),
+			        ts_headline('simple_unaccent', raw_content, plainto_tsquery('simple_unaccent', $1),
 			                    'MaxWords=30,MinWords=12,StartSel=«,StopSel=»') AS snippet
 			 FROM text_documents
 			 WHERE entity_id LIKE 'CCC.%' AND language_code = $2
-			   AND to_tsvector('simple', raw_content) @@ plainto_tsquery('simple', $1)
-			 ORDER BY ts_rank(to_tsvector('simple', raw_content), plainto_tsquery('simple', $1)) DESC, num
+			   AND to_tsvector('simple_unaccent', raw_content) @@ plainto_tsquery('simple_unaccent', $1)
+			 ORDER BY ts_rank(to_tsvector('simple_unaccent', raw_content), plainto_tsquery('simple_unaccent', $1)) DESC, num
 			 LIMIT $3`,
 			q, lang, limit)
 		if err != nil {
@@ -78,6 +97,9 @@ func (a *API) Search(w http.ResponseWriter, r *http.Request) {
 			if err := rows.Scan(&res.Number, &res.Snippet); err != nil {
 				httpx.WriteError(w, http.StatusInternalServerError, "catechism scan failed")
 				return
+			}
+			if seen[res.Number] {
+				continue
 			}
 			results = append(results, res)
 		}

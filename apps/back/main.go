@@ -8,12 +8,16 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/firebase/genkit/go/ai"
+
 	"saecula/back/internal/auth"
 	"saecula/back/internal/bible"
 	"saecula/back/internal/calendar"
 	"saecula/back/internal/catechism"
+	"saecula/back/internal/chat"
 	"saecula/back/internal/config"
 	"saecula/back/internal/db"
+	"saecula/back/internal/mcptools"
 	"saecula/back/internal/readings"
 	"saecula/back/internal/server"
 	"saecula/back/internal/timeline"
@@ -84,12 +88,26 @@ func run() error {
 	}
 	catechismAPI := catechism.NewAPI(pool)
 
+	// AI assistant ("Ask"): Genkit runs the agent; the tools read the app's
+	// own content and graph. Disabled (503) when no Gemini key is set.
+	genkitApp := chat.InitGenkit(ctx, cfg.GeminiAPIKey)
+	var chatTools []ai.ToolRef
+	if genkitApp != nil {
+		chatTools = mcptools.Register(genkitApp, mcptools.Deps{
+			Scripture: bibleTextRepo,
+			Pool:      pool,
+			Neo4j:     driver,
+		})
+	}
+	chatAPI := chat.NewAPI(chat.NewPostgresRepository(pool), genkitApp, chatTools,
+		cfg.ChatModel, cfg.ChatMaxToolIters, cfg.ChatMaxOutputTokens, cfg.ChatRatePerMin)
+
 	// --- HTTP server --------------------------------------------------------
 	srv := server.New(server.Config{
 		Addr:           cfg.HTTPAddr,
 		AuthMiddleware: auth.Middleware(tokens),
 		PublicAPIs:     []server.API{authAPI},
-		ProtectedAPIs:  []server.API{timelineAPI, bibleAPI, readingsAPI, calendarAPI, catechismAPI},
+		ProtectedAPIs:  []server.API{timelineAPI, bibleAPI, readingsAPI, calendarAPI, catechismAPI, chatAPI},
 	})
 
 	return srv.Run(ctx)

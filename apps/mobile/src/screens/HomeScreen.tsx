@@ -191,7 +191,11 @@ export function HomeScreen({ navigation }: Props) {
               label={t('home.prayers')}
               onPress={() => navigation.navigate('Prayers')}
             />
-            <QuickAction icon="star-four-points-outline" label={t('home.ask')} />
+            <QuickAction
+              icon="star-four-points-outline"
+              label={t('home.ask')}
+              onPress={() => navigation.navigate('Ask')}
+            />
             <QuickAction
               icon="calendar-month-outline"
               label={t('tabs.calendar')}

@@ -4,6 +4,8 @@ const es: typeof en = {
   common: {
     appName: 'Saecula',
     tagline: 'Veinte siglos, una línea del tiempo',
+    cancel: 'Cancelar',
+    delete: 'Eliminar',
   },
   tabs: {
     home: 'Inicio',
@@ -115,6 +117,20 @@ const es: typeof en = {
     haveAccount: '¿Ya tienes cuenta? Entra',
     noAccount: '¿No tienes cuenta? Regístrate',
     connectionFailed: 'Fallo de conexión',
+  },
+  chat: {
+    title: 'Preguntar',
+    placeholder: 'Pregunta sobre la Escritura o el Catecismo…',
+    empty: 'Haz una pregunta para comenzar.',
+    newChat: 'Nueva conversación',
+    history: 'Historial',
+    emptyHistory: 'Aún no hay conversaciones.',
+    thinking: 'Pensando…',
+    consulting: 'Consultando {{source}}…',
+    error: 'Algo salió mal. Inténtalo de nuevo.',
+    retry: 'Reintentar',
+    disabled: 'El asistente aún no está disponible.',
+    deleteConfirm: '¿Eliminar esta conversación?',
   },
 };
 

@@ -19,6 +19,7 @@ import {
 import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
 import { CATECHISM_PARTS, CATECHISM_PROLOGUE, type CatechismEntry } from '@/data/catechism';
 import type { RootTabParamList } from '@/navigation/RootTabs';
+import { useCatechismStore } from '@/store/catechismStore';
 import { useLanguageStore } from '@/store/languageStore';
 import { useReaderPrefs } from '@/store/readerPrefsStore';
 import { useAppTheme } from '@/store/themeStore';
@@ -438,6 +439,17 @@ export function CatechismScreen({ navigation }: Props) {
     const id = setTimeout(() => setHighlight(null), 2600);
     return () => clearTimeout(id);
   }, [highlight]);
+
+  // A chat citation deep-link: open the paragraph's section and focus it,
+  // reusing the same section-resolution + scroll machinery as search.
+  const focusParagraph = useCatechismStore((s) => s.focusParagraph);
+  const clearFocus = useCatechismStore((s) => s.clearFocus);
+  useEffect(() => {
+    if (focusParagraph == null) return;
+    pendingFocus.current = focusParagraph;
+    setSection(sectionForParagraph(focusParagraph, lang));
+    clearFocus();
+  }, [focusParagraph, lang, clearFocus]);
 
   return (
     <View flex={1} bg={c.bg} pt={compact ? insets.top : insets.top + 8}>

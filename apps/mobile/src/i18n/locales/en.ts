@@ -4,6 +4,8 @@ const en: Translations = {
   common: {
     appName: 'Saecula',
     tagline: 'Twenty centuries, one timeline',
+    cancel: 'Cancel',
+    delete: 'Delete',
   },
   tabs: {
     home: 'Home',
@@ -116,11 +118,25 @@ const en: Translations = {
     noAccount: "Don't have an account? Register",
     connectionFailed: 'Connection failed',
   },
+  chat: {
+    title: 'Ask',
+    placeholder: 'Ask about Scripture or the Catechism…',
+    empty: 'Ask a question to begin.',
+    newChat: 'New chat',
+    history: 'History',
+    emptyHistory: 'No conversations yet.',
+    thinking: 'Thinking…',
+    consulting: 'Consulting {{source}}…',
+    error: 'Something went wrong. Please try again.',
+    retry: 'Retry',
+    disabled: 'The assistant is not available yet.',
+    deleteConfirm: 'Delete this conversation?',
+  },
 };
 
 // Shared shape: same keys everywhere, free values per locale.
 export interface Translations {
-  common: { appName: string; tagline: string };
+  common: { appName: string; tagline: string; cancel: string; delete: string };
   tabs: {
     home: string;
     calendar: string;
@@ -208,6 +224,20 @@ export interface Translations {
     language: string;
     translation: string;
     defaultTranslation: string;
+  };
+  chat: {
+    title: string;
+    placeholder: string;
+    empty: string;
+    newChat: string;
+    history: string;
+    emptyHistory: string;
+    thinking: string;
+    consulting: string;
+    error: string;
+    retry: string;
+    disabled: string;
+    deleteConfirm: string;
   };
   login: {
     email: string;

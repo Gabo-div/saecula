@@ -42,7 +42,7 @@ func Load() (*Config, error) {
 		JWTExpiration: 24 * time.Hour,
 
 		GeminiAPIKey:        getEnv("GEMINI_API_KEY", ""),
-		ChatModel:           getEnv("CHAT_MODEL", "googleai/gemini-2.5-flash"),
+		ChatModel:           getEnv("CHAT_MODEL", "googleai/gemini-flash-latest"),
 		ChatMaxToolIters:    getEnvInt("CHAT_MAX_TOOL_ITERS", 5),
 		ChatMaxOutputTokens: getEnvInt("CHAT_MAX_OUTPUT_TOKENS", 1024),
 		ChatRatePerMin:      getEnvInt("CHAT_RATE_PER_MIN", 20),

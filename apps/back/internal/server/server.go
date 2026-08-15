@@ -47,7 +47,7 @@ func New(cfg Config) *Server {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	r.Use(middleware.Timeout(30 * time.Second))
+	r.Use(conditionalTimeout(30 * time.Second))
 	r.Use(corsMiddleware)
 
 	r.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
@@ -73,6 +73,23 @@ func New(cfg Config) *Server {
 			Handler:           r,
 			ReadHeaderTimeout: 10 * time.Second,
 		},
+	}
+}
+
+// conditionalTimeout applies a request timeout to every route except the
+// streaming chat endpoint. middleware.Timeout cancels the request context and
+// wraps the ResponseWriter in a non-flushing buffer, both of which break a
+// long-lived Server-Sent Events response (and abort the upstream LLM call).
+func conditionalTimeout(d time.Duration) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		timed := middleware.Timeout(d)(next)
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodPost && (r.URL.Path == "/api/chat" || r.URL.Path == "/api/chat/") {
+				next.ServeHTTP(w, r)
+				return
+			}
+			timed.ServeHTTP(w, r)
+		})
 	}
 }
 

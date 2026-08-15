@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 	"sync"
@@ -17,6 +18,23 @@ import (
 	"saecula/back/internal/auth"
 	"saecula/back/internal/httpx"
 )
+
+// maxChatRetries bounds retries of transient upstream (LLM) errors.
+const maxChatRetries = 2
+
+// isTransient reports whether an LLM error is a temporary overload/limit worth
+// retrying (model busy, rate limited, briefly unavailable).
+func isTransient(err error) bool {
+	if err == nil {
+		return false
+	}
+	s := err.Error()
+	return strings.Contains(s, "UNAVAILABLE") ||
+		strings.Contains(s, "503") ||
+		strings.Contains(s, "RESOURCE_EXHAUSTED") ||
+		strings.Contains(s, "429") ||
+		strings.Contains(s, "high demand")
+}
 
 const systemPrompt = `You are Saecula's study assistant, helping a Catholic reader
 understand Sacred Scripture and the Catechism of the Catholic Church.
@@ -143,23 +161,48 @@ func (a *API) Chat(w http.ResponseWriter, r *http.Request) {
 
 	// The request context already carries the authenticated userID (set by the
 	// auth middleware), so tools can scope by user without extra wiring.
-	resp, err := genkit.Generate(r.Context(), a.g,
+	streamed := false
+	opts := []ai.GenerateOption{
 		ai.WithSystem(systemPrompt),
 		ai.WithMessages(messages...),
 		ai.WithTools(a.tools...),
 		ai.WithModelName(a.model),
 		ai.WithMaxTurns(a.maxTurns),
-		ai.WithConfig(&ai.GenerationCommonConfig{MaxOutputTokens: a.maxTokens}),
+		// ponytail: no max-output-tokens cap yet — WithConfig needs the
+		// provider's own config struct (e.g. *genai.GenerateContentConfig),
+		// which would couple this to Gemini. Add per-provider config behind the
+		// provider switch when a hard cap is needed; WithMaxTurns bounds tool
+		// loops meanwhile.
 		ai.WithStreaming(func(_ context.Context, chunk *ai.ModelResponseChunk) error {
 			if t := chunk.Text(); t != "" {
+				streamed = true
 				sse(w, flusher, "token", map[string]string{"text": t})
 			}
 			return nil
 		}),
-	)
+	}
+
+	// Retry transient upstream errors (503/UNAVAILABLE/429) with backoff, but
+	// only while nothing has been streamed yet — once tokens are on the wire a
+	// retry would duplicate them.
+	var resp *ai.ModelResponse
+	var err error
+	for attempt := 0; ; attempt++ {
+		resp, err = genkit.Generate(r.Context(), a.g, opts...)
+		if err == nil || streamed || attempt >= maxChatRetries || !isTransient(err) {
+			break
+		}
+		slog.Warn("chat generate transient error; retrying", "attempt", attempt+1, "error", err)
+		time.Sleep(time.Duration(700<<attempt) * time.Millisecond)
+	}
 	if err != nil {
 		// Nothing is persisted on failure, so a retry re-asks cleanly.
-		sse(w, flusher, "error", map[string]string{"message": "the assistant could not answer"})
+		slog.Error("chat generate failed", "error", err, "model", a.model)
+		msg := "the assistant could not answer"
+		if isTransient(err) {
+			msg = "the assistant is busy right now, please try again"
+		}
+		sse(w, flusher, "error", map[string]string{"message": msg})
 		return
 	}
 

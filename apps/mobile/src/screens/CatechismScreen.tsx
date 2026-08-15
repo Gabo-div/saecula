@@ -14,7 +14,7 @@ import {
   useReaderChrome,
 } from '@/components/ReaderChrome';
 import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
-import { CATECHISM_PARTS, CATECHISM_PROLOGUE } from '@/data/catechism';
+import { CATECHISM_PARTS, CATECHISM_PROLOGUE, type CatechismEntry } from '@/data/catechism';
 import type { RootTabParamList } from '@/navigation/RootTabs';
 import { useLanguageStore } from '@/store/languageStore';
 import { useReaderPrefs } from '@/store/readerPrefsStore';
@@ -36,6 +36,37 @@ interface Section {
   to: number;
   label: string;
 }
+
+// A chapter/section group: a header followed by its articles (or a headerless
+// run of articles before the first header). Range spans its articles.
+interface Group {
+  header: CatechismEntry | null;
+  from: number;
+  to: number;
+  articles: CatechismEntry[];
+}
+
+function groupEntries(entries: CatechismEntry[]): Group[] {
+  const groups: Group[] = [];
+  let cur: Group | null = null;
+  for (const e of entries) {
+    if (e.header) {
+      cur = { header: e, from: Infinity, to: 0, articles: [] };
+      groups.push(cur);
+    } else if (e.from != null && e.to != null) {
+      if (!cur) {
+        cur = { header: null, from: Infinity, to: 0, articles: [] };
+        groups.push(cur);
+      }
+      cur.articles.push(e);
+      cur.from = Math.min(cur.from, e.from);
+      cur.to = Math.max(cur.to, e.to);
+    }
+  }
+  return groups;
+}
+
+const easeNext = () => LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
 // ---------------------------------------------------------------------------
 // Section + translation picker (modal) — mirrors the Bible's book picker.
@@ -60,11 +91,45 @@ function SectionPicker({
   const { t } = useTranslation();
   const c = useAppTheme();
   const [openPart, setOpenPart] = useState<string | null>(null);
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
 
-  const toggle = (key: string) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+  const togglePart = (key: string) => {
+    easeNext();
     setOpenPart((cur) => (cur === key ? null : key));
   };
+  const toggleGroup = (key: string) => {
+    easeNext();
+    setOpenGroups((cur) => {
+      const next = new Set(cur);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const articleRow = (e: CatechismEntry, key: string, pl: '$6' | '$8') => (
+    <XStack
+      key={key}
+      pl={pl}
+      pr="$4"
+      py="$2"
+      items="center"
+      gap="$2"
+      onPress={() =>
+        e.from != null &&
+        e.to != null &&
+        onPickSection({ from: e.from, to: e.to, label: e.label[lang] })
+      }
+      pressStyle={{ bg: c.bg }}
+    >
+      <Text color={c.strong} fontSize={14} flex={1}>
+        {e.label[lang]}
+      </Text>
+      <Text color={c.muted} fontSize={11}>
+        {e.from}–{e.to}
+      </Text>
+    </XStack>
+  );
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -149,7 +214,7 @@ function SectionPicker({
               </Text>
             </XStack>
 
-            {/* The four pillars — each collapsible */}
+            {/* The four pillars — collapsible, then collapsible chapters. */}
             {CATECHISM_PARTS.map((part) => {
               const expanded = openPart === part.key;
               return (
@@ -160,7 +225,7 @@ function SectionPicker({
                     items="center"
                     gap="$2"
                     bg={expanded ? c.bg : 'transparent'}
-                    onPress={() => toggle(part.key)}
+                    onPress={() => togglePart(part.key)}
                     pressStyle={{ bg: c.bg }}
                   >
                     <Text color={c.accent} fontFamily={serif} fontSize={13} width={22}>
@@ -168,6 +233,9 @@ function SectionPicker({
                     </Text>
                     <Text color={c.strong} fontSize={15} fontWeight="600" flex={1}>
                       {part.name[lang]}
+                    </Text>
+                    <Text color={c.muted} fontSize={11}>
+                      {part.from}–{part.to}
                     </Text>
                     <MaterialCommunityIcons
                       name={expanded ? 'chevron-up' : 'chevron-down'}
@@ -177,44 +245,41 @@ function SectionPicker({
                   </XStack>
 
                   {expanded &&
-                    part.entries.map((e, i) =>
-                      e.header ? (
-                        <Text
-                          key={`h-${i}`}
-                          pl="$7"
-                          pr="$4"
-                          pt="$2"
-                          pb="$1"
-                          color={c.muted}
-                          fontSize={12}
-                          fontStyle="italic"
-                        >
-                          {e.label[lang]}
-                        </Text>
-                      ) : (
-                        <XStack
-                          key={`a-${i}`}
-                          pl="$7"
-                          pr="$4"
-                          py="$2"
-                          items="center"
-                          gap="$2"
-                          onPress={() =>
-                            e.from != null &&
-                            e.to != null &&
-                            onPickSection({ from: e.from, to: e.to, label: e.label[lang] })
-                          }
-                          pressStyle={{ bg: c.bg }}
-                        >
-                          <Text color={c.strong} fontSize={14} flex={1}>
-                            {e.label[lang]}
-                          </Text>
-                          <Text color={c.muted} fontSize={11}>
-                            {e.from}–{e.to}
-                          </Text>
-                        </XStack>
-                      ),
-                    )}
+                    groupEntries(part.entries).map((g, gi) => {
+                      if (!g.header) {
+                        return g.articles.map((e, ai) =>
+                          articleRow(e, `${part.key}-b-${gi}-${ai}`, '$6'),
+                        );
+                      }
+                      const gkey = `${part.key}-${gi}`;
+                      const gopen = openGroups.has(gkey);
+                      return (
+                        <YStack key={gkey}>
+                          <XStack
+                            pl="$6"
+                            pr="$4"
+                            py="$2.5"
+                            items="center"
+                            gap="$2"
+                            onPress={() => toggleGroup(gkey)}
+                            pressStyle={{ bg: c.bg }}
+                          >
+                            <Text color={c.muted} fontSize={13} fontStyle="italic" flex={1}>
+                              {g.header.label[lang]}
+                            </Text>
+                            <Text color={c.muted} fontSize={11}>
+                              {g.from}–{g.to}
+                            </Text>
+                            <MaterialCommunityIcons
+                              name={gopen ? 'chevron-up' : 'chevron-down'}
+                              size={18}
+                              color={c.muted}
+                            />
+                          </XStack>
+                          {gopen && g.articles.map((e, ai) => articleRow(e, `${gkey}-${ai}`, '$8'))}
+                        </YStack>
+                      );
+                    })}
                   <Separator borderColor={c.border} opacity={0.5} />
                 </YStack>
               );
@@ -358,18 +423,20 @@ export function CatechismScreen({ navigation }: Props) {
           onEndReached={() => load(false)}
           onEndReachedThreshold={0.6}
           renderItem={({ item }) => (
-            <Text
-              color={c.text}
-              fontFamily={serif}
-              fontSize={pFont}
-              lineHeight={pLine}
-              mb="$3"
-            >
-              <Text color={c.accent} fontSize={Math.round(pFont * 0.68)} lineHeight={pLine}>
-                {item.number}{' '}
+            <XStack gap={6} items="flex-start">
+              <Text
+                color={c.accent}
+                fontFamily={serif}
+                fontSize={Math.round(pFont * 0.6)}
+                lineHeight={Math.round(pFont * 0.9)}
+                mt={3}
+              >
+                {item.number}
               </Text>
-              {item.text}
-            </Text>
+              <Text color={c.text} fontFamily={serif} fontSize={pFont} lineHeight={pLine} flex={1}>
+                {item.text}
+              </Text>
+            </XStack>
           )}
           ListFooterComponent={
             loading ? <Spinner mt="$4" size="large" color={c.accent} /> : <YStack height={8} />

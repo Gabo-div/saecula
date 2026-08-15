@@ -13,11 +13,6 @@ dist/
 *.test
 apps/back/tmp/
 
-# scraped data (regenerable with saecula-cli)
-apps/cli/data/bible_*.json
-apps/cli/data/readings_*.json
-apps/cli/data/catechism_*.json
-
 # thesis Word output (regenerable with docs/generate_word.py)
 docs/*.docx
 docs/~$*.docx

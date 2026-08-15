@@ -104,7 +104,7 @@ var (
 	// keeps this from matching a bold paragraph number. Navigation is in-page
 	// fragment links (href="#top"), sibling-page links (href=__PN.HTM, English),
 	// or the copyright line.
-	vatCutRe = regexp.MustCompile(`(?i)<a\s+name|<p[^>]*>\s*<b[^>]*>\s*[^0-9<]|<a[^>]*href=["']?(?:#|__P)|Copyright`)
+	vatCutRe = regexp.MustCompile(`(?i)<hr|<a\s+name|<p[^>]*>\s*<b[^>]*>\s*[^0-9<]|<a[^>]*href=["']?(?:#|__P)|Copyright`)
 )
 
 func (s *VaticanCatechismScraper) ScrapeCatechism(ctx context.Context, progress func(string)) (*model.Document, error) {
@@ -263,5 +263,11 @@ func cleanVaticanText(chunk string, number int) string {
 	chunk = cccWsRe.ReplaceAllString(chunk, " ")
 	chunk = strings.TrimSpace(chunk)
 	chunk = strings.TrimSpace(strings.TrimPrefix(chunk, strconv.Itoa(number)))
+	// Some pages put the number's trailing period outside the bold tag
+	// ("<b>422</b>. text"), leaving a dangling ". " once the number is gone.
+	// Strip it, but not a real list item ("1. ") or an ellipsis ("...").
+	if strings.HasPrefix(chunk, ". ") {
+		chunk = strings.TrimSpace(chunk[2:])
+	}
 	return chunk
 }

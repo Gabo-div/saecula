@@ -1,5 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, LayoutAnimation, Modal, ScrollView } from 'react-native';
@@ -18,7 +19,7 @@ import {
 } from '@/components/ReaderChrome';
 import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
 import { CATECHISM_PARTS, CATECHISM_PROLOGUE, type CatechismEntry } from '@/data/catechism';
-import type { RootTabParamList } from '@/navigation/RootTabs';
+import type { AskStackParamList, RootTabParamList } from '@/navigation/RootTabs';
 import { useCatechismStore } from '@/store/catechismStore';
 import { useLanguageStore } from '@/store/languageStore';
 import { useReaderPrefs } from '@/store/readerPrefsStore';
@@ -317,12 +318,17 @@ function SectionPicker({
 // Reader
 // ---------------------------------------------------------------------------
 
-type Props = BottomTabScreenProps<RootTabParamList, 'Catechism'>;
+// CatechismScreen lives on the Catechism tab and on the Ask stack (when a chat
+// citation jumps here). Only the stack context shows a back chevron.
+type Props =
+  | BottomTabScreenProps<RootTabParamList, 'Catechism'>
+  | NativeStackScreenProps<AskStackParamList, 'Catechism'>;
 
 export function CatechismScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const c = useAppTheme();
   const { t } = useTranslation();
+  const inStack = navigation.getState().type === 'stack';
   const { compact, onScroll } = useReaderChrome(navigation);
   const fontScale = useReaderPrefs((s) => s.fontScale);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -455,7 +461,10 @@ export function CatechismScreen({ navigation }: Props) {
     <View flex={1} bg={c.bg} pt={compact ? insets.top : insets.top + 8}>
       {!compact && (
         <>
-          <ScreenHeader title={t('catechism.title')} />
+          <ScreenHeader
+            title={t('catechism.title')}
+            onBack={inStack ? () => navigation.goBack() : undefined}
+          />
 
           {/* Section chip + tools */}
           <XStack px="$4" py="$2" items="center" gap="$2">

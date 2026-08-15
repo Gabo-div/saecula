@@ -195,10 +195,22 @@ export interface ChatConversation {
   updated_at: string;
 }
 
+export interface ChatMessageMetadata {
+  model?: string;
+  toolCalls?: {
+    name: string;
+    input?: any;
+    output?: any;
+    ref?: string;
+    status: 'started' | 'completed';
+  }[];
+}
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  metadata?: ChatMessageMetadata;
   created_at: string;
 }
 

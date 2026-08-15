@@ -37,7 +37,14 @@ func isTransient(err error) bool {
 }
 
 const systemPrompt = `You are Saecula's study assistant, helping a Catholic reader
-understand Sacred Scripture and the Catechism of the Catholic Church.
+understand Sacred Scripture, the Catechism of the Catholic Church, and the
+Catholic faith.
+
+SCOPE: Only answer questions about Catholicism, Christianity, Scripture,
+theology, Church teaching, liturgy, saints, Church history, or the spiritual
+life. If asked about unrelated topics (politics, sports, technology, other
+religions' doctrines, etc.), politely decline and redirect to faith-related
+matters.
 
 Ground every claim in the app's own sources using the tools:
 - Call search_scripture / search_catechism to find relevant passages before
@@ -47,8 +54,11 @@ Ground every claim in the app's own sources using the tools:
   liturgy).
 
 Always cite by id inline, exactly as returned: Scripture as BOOK.CHAPTER.VERSE
-(e.g. JHN.3.16) and the Catechism as CCC.<number> (e.g. CCC.2077). Be concise,
-faithful to the Magisterium, and answer in the user's language.`
+(e.g. JHN.3.16) and the Catechism as CCC.<number> (e.g. CCC.2077).
+
+FORMAT: Use Markdown for structure — headings (##), bullet points, **bold** for
+emphasis, *italics* for terms. Keep responses concise, faithful to the
+Magisterium, and answer in the user's language.`
 
 // API serves the AI assistant. When Genkit is nil (no API key configured), the
 // chat endpoint reports 503 but conversation history endpoints still work.
@@ -89,6 +99,17 @@ type chatRequest struct {
 	ConversationID string `json:"conversation_id"`
 	Message        string `json:"message"`
 	Lang           string `json:"lang"`
+}
+
+// toolCall summarizes one tool invocation on an assistant turn. It is persisted
+// (and streamed back to the client) so the UI can show which tools produced a
+// message even after a reload.
+type toolCall struct {
+	Name   string `json:"name"`
+	Input  any    `json:"input,omitempty"`
+	Output any    `json:"output,omitempty"`
+	Ref    string `json:"ref,omitempty"`
+	Status string `json:"status"` // "started" | "completed"
 }
 
 // POST /api/chat — streams the answer as Server-Sent Events.
@@ -162,6 +183,7 @@ func (a *API) Chat(w http.ResponseWriter, r *http.Request) {
 	// The request context already carries the authenticated userID (set by the
 	// auth middleware), so tools can scope by user without extra wiring.
 	streamed := false
+	toolCalls := []toolCall{}
 	opts := []ai.GenerateOption{
 		ai.WithSystem(systemPrompt),
 		ai.WithMessages(messages...),
@@ -177,6 +199,35 @@ func (a *API) Chat(w http.ResponseWriter, r *http.Request) {
 			if t := chunk.Text(); t != "" {
 				streamed = true
 				sse(w, flusher, "token", map[string]string{"text": t})
+			}
+			for _, p := range chunk.Content {
+				if p.IsToolRequest() && p.ToolRequest != nil {
+					toolCalls = append(toolCalls, toolCall{
+						Name:   p.ToolRequest.Name,
+						Input:  p.ToolRequest.Input,
+						Ref:    p.ToolRequest.Ref,
+						Status: "started",
+					})
+					sse(w, flusher, "tool_start", map[string]any{
+						"name":  p.ToolRequest.Name,
+						"input": p.ToolRequest.Input,
+						"ref":   p.ToolRequest.Ref,
+					})
+				}
+				if p.IsToolResponse() && p.ToolResponse != nil {
+					for i := range toolCalls {
+						if toolCalls[i].Ref == p.ToolResponse.Ref {
+							toolCalls[i].Output = p.ToolResponse.Output
+							toolCalls[i].Status = "completed"
+							break
+						}
+					}
+					sse(w, flusher, "tool_end", map[string]any{
+						"name":   p.ToolResponse.Name,
+						"output": p.ToolResponse.Output,
+						"ref":    p.ToolResponse.Ref,
+					})
+				}
 			}
 			return nil
 		}),
@@ -222,13 +273,19 @@ func (a *API) Chat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	answer := resp.Text()
-	msg, err := a.repo.AddMessage(r.Context(), convID, "assistant", answer, nil)
+	msg, err := a.repo.AddMessage(r.Context(), convID, "assistant", answer,
+		map[string]any{"model": a.model, "toolCalls": toolCalls})
 	if err != nil {
 		sse(w, flusher, "error", map[string]string{"message": "could not save answer"})
 		return
 	}
 
-	sse(w, flusher, "done", map[string]string{"conversation_id": convID, "message_id": msg.ID})
+	sse(w, flusher, "done", map[string]any{
+		"conversation_id": convID,
+		"message_id":      msg.ID,
+		"model":           a.model,
+		"toolCalls":       toolCalls,
+	})
 }
 
 // title derives a short conversation title from the first user message.

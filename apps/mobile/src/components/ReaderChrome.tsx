@@ -266,9 +266,13 @@ export function ReaderSearchSheet({
   const searchRef = useRef(onSearch);
   searchRef.current = onSearch;
 
+  const query = q.trim();
+  // A bare number is a valid one-character query (jump to a paragraph); text
+  // otherwise needs two letters.
+  const active = query.length >= 2 || /^\d+$/.test(query);
+
   useEffect(() => {
-    const query = q.trim();
-    if (query.length < 2) {
+    if (!active) {
       setItems([]);
       setLoading(false);
       return;
@@ -337,7 +341,7 @@ export function ReaderSearchSheet({
           </XStack>
           <Separator borderColor={c.border} />
 
-          {q.trim().length < 2 ? (
+          {!active ? (
             <Text color={c.muted} px="$4" py="$4" fontSize={13}>
               {t('reader.searchHint')}
             </Text>

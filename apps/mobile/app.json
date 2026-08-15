@@ -15,6 +15,9 @@
     },
     "android": {
       "package": "com.saecula.app"
-    }
+    },
+    "plugins": [
+      "expo-localization"
+    ]
   }
 }

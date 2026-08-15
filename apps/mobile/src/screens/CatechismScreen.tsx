@@ -71,6 +71,28 @@ function groupEntries(entries: CatechismEntry[]): Group[] {
 
 const easeNext = () => LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
+// The article/section that contains a paragraph number — so a search result
+// opens its proper section (with focus on the paragraph) instead of an
+// open-ended range from that number.
+function sectionForParagraph(n: number, lang: Lang): Section {
+  if (n >= CATECHISM_PROLOGUE.from && n <= CATECHISM_PROLOGUE.to) {
+    return { from: CATECHISM_PROLOGUE.from, to: CATECHISM_PROLOGUE.to, label: CATECHISM_PROLOGUE.label[lang] };
+  }
+  for (const part of CATECHISM_PARTS) {
+    for (const e of part.entries) {
+      if (e.from != null && e.to != null && n >= e.from && n <= e.to) {
+        return { from: e.from, to: e.to, label: e.label[lang] };
+      }
+    }
+    // A paragraph in a gap between articles (e.g. a chapter intro) falls back
+    // to the whole part so the reader still lands in the right pillar.
+    if (n >= part.from && n <= part.to) {
+      return { from: part.from, to: part.to, label: part.name[lang] };
+    }
+  }
+  return { from: n, to: 2865, label: String(n) };
+}
+
 // ---------------------------------------------------------------------------
 // Section + translation picker (modal) — mirrors the Bible's book picker.
 // Parts are collapsible so the sheet opens compact instead of listing every
@@ -330,6 +352,12 @@ export function CatechismScreen({ navigation }: Props) {
   const inFlight = useRef(false);
   const gen = useRef(0); // bumped on every fresh load; stale results are ignored
 
+  // Focus a searched paragraph: scroll to it (paging until it's loaded) and
+  // highlight it briefly.
+  const listRef = useRef<FlatList<CatechismParagraph>>(null);
+  const pendingFocus = useRef<number | null>(null);
+  const [highlight, setHighlight] = useState<number | null>(null);
+
   const load = useCallback(
     async (fresh: boolean) => {
       if (!fresh && (inFlight.current || !hasMore.current)) return;
@@ -385,9 +413,35 @@ export function CatechismScreen({ navigation }: Props) {
 
   const pickResult = (item: SearchItem) => {
     const n = Number(item.key);
-    setSection({ from: n, to: 2865, label: item.title });
+    pendingFocus.current = n;
+    setSection(sectionForParagraph(n, lang));
     setSearchOpen(false);
   };
+
+  // Once the section (re)loads, scroll to the pending paragraph; if it isn't
+  // in the loaded page yet, page forward until it is.
+  useEffect(() => {
+    const n = pendingFocus.current;
+    if (n == null) return;
+    const index = items.findIndex((p) => p.number === n);
+    if (index < 0) {
+      if (hasMore.current && !inFlight.current) void load(false);
+      else if (!hasMore.current) pendingFocus.current = null; // absent; give up
+      return;
+    }
+    pendingFocus.current = null;
+    setHighlight(n);
+    requestAnimationFrame(() => {
+      listRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0.15 });
+    });
+  }, [items, load]);
+
+  // Fade the highlight out after a moment.
+  useEffect(() => {
+    if (highlight == null) return;
+    const id = setTimeout(() => setHighlight(null), 2600);
+    return () => clearTimeout(id);
+  }, [highlight]);
 
   return (
     <View flex={1} bg={c.bg} pt={compact ? insets.top : insets.top + 8}>
@@ -433,6 +487,7 @@ export function CatechismScreen({ navigation }: Props) {
         </YStack>
       ) : (
         <FlatList
+          ref={listRef}
           data={items}
           key={`${section.from}.${lang}`}
           keyExtractor={(p) => String(p.number)}
@@ -444,13 +499,38 @@ export function CatechismScreen({ navigation }: Props) {
           contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 32 }}
           onEndReached={() => load(false)}
           onEndReachedThreshold={0.6}
+          onScrollToIndexFailed={(info) => {
+            // The target row isn't measured yet: approximate its offset, then
+            // retry once the list has settled.
+            listRef.current?.scrollToOffset({
+              offset: Math.max(0, info.averageItemLength * info.index - 80),
+              animated: true,
+            });
+            setTimeout(() => {
+              listRef.current?.scrollToIndex({
+                index: info.index,
+                animated: true,
+                viewPosition: 0.15,
+              });
+            }, 350);
+          }}
           renderItem={({ item }) => (
-            <Text color={c.text} fontFamily={serif} fontSize={pFont} lineHeight={pLine} mb="$3">
-              <Text color={c.accent} fontWeight="700">
-                {superscript(item.number)}{' '}
+            <View
+              mx={-8}
+              px={8}
+              mb="$3"
+              rounded={6}
+              borderLeftWidth={3}
+              borderLeftColor={highlight === item.number ? c.accent : 'transparent'}
+              bg={highlight === item.number ? c.bgElevated : 'transparent'}
+            >
+              <Text color={c.text} fontFamily={serif} fontSize={pFont} lineHeight={pLine}>
+                <Text color={c.accent} fontWeight="700">
+                  {superscript(item.number)}{' '}
+                </Text>
+                {item.text}
               </Text>
-              {item.text}
-            </Text>
+            </View>
           )}
           ListFooterComponent={
             loading ? <Spinner mt="$4" size="large" color={c.accent} /> : <YStack height={8} />
@@ -474,6 +554,8 @@ export function CatechismScreen({ navigation }: Props) {
         lang={lang}
         onPickLang={setLang}
         onPickSection={(s) => {
+          pendingFocus.current = null;
+          setHighlight(null);
           setSection(s);
           setPickerOpen(false);
         }}

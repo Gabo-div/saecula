@@ -73,6 +73,9 @@ const la: typeof en = {
   reader: {
     accessibility: 'Accessibilitas',
     fontSize: 'Magnitudo litterarum',
+    searchPlaceholder: 'Quaerere…',
+    searchHint: 'Scribe saltem duas litteras ut quaeras.',
+    noResults: 'Nihil inventum',
   },
   bible: {
     title: 'Biblia',

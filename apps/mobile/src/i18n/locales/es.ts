@@ -72,6 +72,9 @@ const es: typeof en = {
   reader: {
     accessibility: 'Accesibilidad',
     fontSize: 'Tamaño de fuente',
+    searchPlaceholder: 'Buscar…',
+    searchHint: 'Escribe al menos dos letras para buscar.',
+    noResults: 'Sin resultados',
   },
   bible: {
     title: 'Biblia',

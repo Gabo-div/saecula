@@ -72,6 +72,9 @@ const en: Translations = {
   reader: {
     accessibility: 'Accessibility',
     fontSize: 'Font size',
+    searchPlaceholder: 'Search…',
+    searchHint: 'Type at least two letters to search.',
+    noResults: 'No results',
   },
   bible: {
     title: 'Bible',
@@ -175,6 +178,9 @@ export interface Translations {
   reader: {
     accessibility: string;
     fontSize: string;
+    searchPlaceholder: string;
+    searchHint: string;
+    noResults: string;
   };
   bible: {
     title: string;

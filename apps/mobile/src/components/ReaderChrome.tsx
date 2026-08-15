@@ -6,12 +6,14 @@ import {
   LayoutAnimation,
   Modal,
   Platform,
+  ScrollView,
+  TextInput,
   UIManager,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Separator, Text, View, XStack, YStack } from 'tamagui';
+import { Separator, Spinner, Text, View, XStack, YStack } from 'tamagui';
 
 import { FONT_STEPS, useReaderPrefs } from '@/store/readerPrefsStore';
 import { useAppTheme } from '@/store/themeStore';
@@ -228,6 +230,142 @@ export function ReaderSettingsSheet({
               })}
             </XStack>
           </YStack>
+        </YStack>
+      </View>
+    </Modal>
+  );
+}
+
+// One normalized search hit: a title (reference) over a snippet, keyed for nav.
+export interface SearchItem {
+  key: string;
+  title: string;
+  snippet: string;
+}
+
+// A debounced full-text search sheet reused by both readers. The caller
+// supplies the search (normalizing results) and what to do on a pick.
+export function ReaderSearchSheet({
+  visible,
+  onClose,
+  onSearch,
+  onPick,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  onSearch: (q: string) => Promise<SearchItem[]>;
+  onPick: (item: SearchItem) => void;
+}) {
+  const insets = useSafeAreaInsets();
+  const c = useAppTheme();
+  const { t } = useTranslation();
+  const [q, setQ] = useState('');
+  const [items, setItems] = useState<SearchItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const gen = useRef(0);
+  const searchRef = useRef(onSearch);
+  searchRef.current = onSearch;
+
+  useEffect(() => {
+    const query = q.trim();
+    if (query.length < 2) {
+      setItems([]);
+      setLoading(false);
+      return;
+    }
+    const my = ++gen.current;
+    setLoading(true);
+    const id = setTimeout(() => {
+      searchRef
+        .current(query)
+        .then((res) => {
+          if (my === gen.current) setItems(res);
+        })
+        .catch(() => {
+          if (my === gen.current) setItems([]);
+        })
+        .finally(() => {
+          if (my === gen.current) setLoading(false);
+        });
+    }, 300);
+    return () => clearTimeout(id);
+  }, [q]);
+
+  useEffect(() => {
+    if (!visible) {
+      setQ('');
+      setItems([]);
+      gen.current += 1;
+    }
+  }, [visible]);
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <View
+        flex={1}
+        bg="rgba(0,0,0,0.6)"
+        justify="flex-end"
+        onPress={onClose}
+        pressStyle={{ opacity: 1 }}
+      >
+        <YStack
+          bg={c.bgElevated}
+          borderTopLeftRadius={24}
+          borderTopRightRadius={24}
+          borderWidth={1}
+          borderColor={c.border}
+          maxH="85%"
+          pb={insets.bottom + 8}
+          onPress={(e) => e.stopPropagation()}
+        >
+          <XStack items="center" gap="$2" px="$4" py="$3">
+            <MaterialCommunityIcons name="magnify" size={22} color={c.muted} />
+            <TextInput
+              value={q}
+              onChangeText={setQ}
+              placeholder={t('reader.searchPlaceholder')}
+              placeholderTextColor={c.muted}
+              autoFocus
+              returnKeyType="search"
+              style={{ flex: 1, color: c.strong, fontSize: 16, paddingVertical: 6 }}
+            />
+            {loading ? (
+              <Spinner color={c.accent} />
+            ) : (
+              <MaterialCommunityIcons name="close" size={22} color={c.muted} onPress={onClose} />
+            )}
+          </XStack>
+          <Separator borderColor={c.border} />
+
+          {q.trim().length < 2 ? (
+            <Text color={c.muted} px="$4" py="$4" fontSize={13}>
+              {t('reader.searchHint')}
+            </Text>
+          ) : !loading && items.length === 0 ? (
+            <Text color={c.muted} px="$4" py="$4" fontSize={13}>
+              {t('reader.noResults')}
+            </Text>
+          ) : (
+            <ScrollView keyboardShouldPersistTaps="handled">
+              {items.map((it) => (
+                <YStack
+                  key={it.key}
+                  px="$4"
+                  py="$3"
+                  gap="$1"
+                  onPress={() => onPick(it)}
+                  pressStyle={{ bg: c.bg }}
+                >
+                  <Text color={c.accent} fontFamily={serif} fontSize={14} fontWeight="600">
+                    {it.title}
+                  </Text>
+                  <Text color={c.text} fontSize={13} lineHeight={19} numberOfLines={2}>
+                    {it.snippet}
+                  </Text>
+                </YStack>
+              ))}
+            </ScrollView>
+          )}
         </YStack>
       </View>
     </Modal>

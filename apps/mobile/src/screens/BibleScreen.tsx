@@ -6,13 +6,15 @@ import { FlatList, Modal, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Separator, Spinner, Text, View, XStack, YStack } from 'tamagui';
 
-import { fetchBooks, fetchChapter, fetchTranslations } from '@/api/client';
+import { fetchBooks, fetchChapter, fetchTranslations, searchBible } from '@/api/client';
 import {
   ReaderMiniBar,
+  ReaderSearchSheet,
   ReaderSettingsSheet,
   ReaderTitle,
   superscript,
   useReaderChrome,
+  type SearchItem,
 } from '@/components/ReaderChrome';
 import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
 import type { RootTabParamList } from '@/navigation/RootTabs';
@@ -230,10 +232,29 @@ export function BibleScreen({ navigation }: Props) {
   const c = useAppTheme();
   const { t } = useTranslation();
   const language = useLanguageStore((s) => s.language);
-  const { bookCode, chapter, translationId } = useReaderStore();
+  const { bookCode, chapter, translationId, setLocation } = useReaderStore();
   const { compact, onScroll } = useReaderChrome(navigation);
   const fontScale = useReaderPrefs((s) => s.fontScale);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  const runSearch = useCallback(
+    async (q: string): Promise<SearchItem[]> => {
+      const res = await searchBible(q, language);
+      return res.results.map((v) => ({
+        key: `${v.book_code}.${v.chapter}.${v.verse}`,
+        title: v.reference,
+        snippet: v.text,
+      }));
+    },
+    [language],
+  );
+
+  const pickResult = (item: SearchItem) => {
+    const [code, ch] = item.key.split('.');
+    setLocation(code, Number(ch));
+    setSearchOpen(false);
+  };
 
   const vFont = Math.round(17 * fontScale);
   const vLine = Math.round(vFont * 1.6);
@@ -306,7 +327,7 @@ export function BibleScreen({ navigation }: Props) {
               <MaterialCommunityIcons name="chevron-down" size={18} color={c.accent} />
             </XStack>
             <HeaderIconButton icon="book-open-variant" onPress={() => setPickerOpen(true)} />
-            <HeaderIconButton icon="magnify" />
+            <HeaderIconButton icon="magnify" onPress={() => setSearchOpen(true)} />
             <HeaderIconButton icon="dots-vertical" onPress={() => setSettingsOpen(true)} />
           </XStack>
 
@@ -355,6 +376,13 @@ export function BibleScreen({ navigation }: Props) {
       {compact && <ReaderMiniBar title={title} />}
 
       <ReaderSettingsSheet visible={settingsOpen} onClose={() => setSettingsOpen(false)} />
+
+      <ReaderSearchSheet
+        visible={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        onSearch={runSearch}
+        onPick={pickResult}
+      />
 
       <BookPicker
         visible={pickerOpen}

@@ -8,7 +8,9 @@ import type {
   BooksResponse,
   CalendarDayResponse,
   CalendarYearResponse,
+  BibleSearchResponse,
   CatechismListResponse,
+  CatechismSearchResponse,
   ChapterResponse,
   DailyReadingsResponse,
   DailyVerseResponse,
@@ -210,6 +212,24 @@ export async function fetchCatechism(
 ): Promise<CatechismListResponse> {
   const { data } = await api.get<CatechismListResponse>('/api/catechism', {
     params: { from, limit, lang, ...(to ? { to } : {}) },
+  });
+  return data;
+}
+
+export async function searchBible(
+  q: string,
+  lang: string,
+  translation?: string,
+): Promise<BibleSearchResponse> {
+  const { data } = await api.get<BibleSearchResponse>('/api/bible/search', {
+    params: { q, lang, ...(translation ? { translation } : {}) },
+  });
+  return data;
+}
+
+export async function searchCatechism(q: string, lang: string): Promise<CatechismSearchResponse> {
+  const { data } = await api.get<CatechismSearchResponse>('/api/catechism/search', {
+    params: { q, lang },
   });
   return data;
 }

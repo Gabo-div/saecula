@@ -158,3 +158,30 @@ export interface CatechismListResponse {
   has_more: boolean;
   paragraphs: CatechismParagraph[];
 }
+
+// --- Search -----------------------------------------------------------------
+
+export interface BibleSearchResult {
+  book_code: string;
+  book_name: string;
+  chapter: number;
+  verse: number;
+  reference: string;
+  text: string;
+}
+
+export interface BibleSearchResponse {
+  query: string;
+  results: BibleSearchResult[];
+}
+
+export interface CatechismSearchResult {
+  number: number;
+  snippet: string;
+}
+
+export interface CatechismSearchResponse {
+  query: string;
+  lang: string;
+  results: CatechismSearchResult[];
+}

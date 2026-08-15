@@ -6,13 +6,15 @@ import { FlatList, LayoutAnimation, Modal, Platform, ScrollView, UIManager } fro
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Separator, Spinner, Text, View, XStack, YStack } from 'tamagui';
 
-import { fetchCatechism } from '@/api/client';
+import { fetchCatechism, searchCatechism } from '@/api/client';
 import {
   ReaderMiniBar,
+  ReaderSearchSheet,
   ReaderSettingsSheet,
   ReaderTitle,
   superscript,
   useReaderChrome,
+  type SearchItem,
 } from '@/components/ReaderChrome';
 import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
 import { CATECHISM_PARTS, CATECHISM_PROLOGUE, type CatechismEntry } from '@/data/catechism';
@@ -305,6 +307,7 @@ export function CatechismScreen({ navigation }: Props) {
   const { compact, onScroll } = useReaderChrome(navigation);
   const fontScale = useReaderPrefs((s) => s.fontScale);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const pFont = Math.round(16 * fontScale);
   const pLine = Math.round(pFont * 1.6);
   const appLang = useLanguageStore((s) => s.language);
@@ -368,6 +371,24 @@ export function CatechismScreen({ navigation }: Props) {
     void load(true);
   }, [load]);
 
+  const runSearch = useCallback(
+    async (q: string): Promise<SearchItem[]> => {
+      const res = await searchCatechism(q, lang);
+      return res.results.map((p) => ({
+        key: String(p.number),
+        title: `${t('catechism.title')} ${p.number}`,
+        snippet: p.snippet,
+      }));
+    },
+    [lang, t],
+  );
+
+  const pickResult = (item: SearchItem) => {
+    const n = Number(item.key);
+    setSection({ from: n, to: 2865, label: item.title });
+    setSearchOpen(false);
+  };
+
   return (
     <View flex={1} bg={c.bg} pt={compact ? insets.top : insets.top + 8}>
       {!compact && (
@@ -395,7 +416,7 @@ export function CatechismScreen({ navigation }: Props) {
               <MaterialCommunityIcons name="chevron-down" size={18} color={c.accent} />
             </XStack>
             <HeaderIconButton icon="book-open-variant" onPress={() => setPickerOpen(true)} />
-            <HeaderIconButton icon="magnify" />
+            <HeaderIconButton icon="magnify" onPress={() => setSearchOpen(true)} />
             <HeaderIconButton icon="dots-vertical" onPress={() => setSettingsOpen(true)} />
           </XStack>
 
@@ -440,6 +461,13 @@ export function CatechismScreen({ navigation }: Props) {
       {compact && <ReaderMiniBar title={section.label} />}
 
       <ReaderSettingsSheet visible={settingsOpen} onClose={() => setSettingsOpen(false)} />
+
+      <ReaderSearchSheet
+        visible={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        onSearch={runSearch}
+        onPick={pickResult}
+      />
 
       <SectionPicker
         visible={pickerOpen}

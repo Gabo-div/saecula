@@ -11,6 +11,7 @@ import {
   ReaderMiniBar,
   ReaderSettingsSheet,
   ReaderTitle,
+  superscript,
   useReaderChrome,
 } from '@/components/ReaderChrome';
 import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
@@ -424,8 +425,8 @@ export function CatechismScreen({ navigation }: Props) {
           onEndReachedThreshold={0.6}
           renderItem={({ item }) => (
             <Text color={c.text} fontFamily={serif} fontSize={pFont} lineHeight={pLine} mb="$3">
-              <Text color={c.accent} fontSize={Math.round(pFont * 0.62)}>
-                {item.number}{' '}
+              <Text color={c.accent} fontWeight="700">
+                {superscript(item.number)}{' '}
               </Text>
               {item.text}
             </Text>

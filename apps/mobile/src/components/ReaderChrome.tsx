@@ -28,6 +28,20 @@ const ANIM = LayoutAnimation.create(
   LayoutAnimation.Properties.opacity,
 );
 
+// Unicode superscript digits give an inline, raised verse/paragraph number
+// (RN has no vertical-align for nested Text) while the text still wraps to full
+// width.
+const SUP: Record<string, string> = {
+  '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
+  '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+};
+export function superscript(n: number): string {
+  return String(n)
+    .split('')
+    .map((d) => SUP[d] ?? d)
+    .join('');
+}
+
 // Distance (px) the user must scroll in one direction before the chrome flips.
 // Large enough that small nudges don't toggle it.
 const THRESHOLD = 72;

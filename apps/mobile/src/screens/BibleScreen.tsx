@@ -11,6 +11,7 @@ import {
   ReaderMiniBar,
   ReaderSettingsSheet,
   ReaderTitle,
+  superscript,
   useReaderChrome,
 } from '@/components/ReaderChrome';
 import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
@@ -342,8 +343,8 @@ export function BibleScreen({ navigation }: Props) {
               lineHeight={vLine}
               mb="$3"
             >
-              <Text color={c.accent} fontSize={Math.round(vFont * 0.62)}>
-                {verse.number}{' '}
+              <Text color={c.accent} fontWeight="700">
+                {superscript(verse.number)}{' '}
               </Text>
               {verse.text}
             </Text>

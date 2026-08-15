@@ -131,6 +131,33 @@ const en: Translations = {
     retry: 'Retry',
     disabled: 'The assistant is not available yet.',
     deleteConfirm: 'Delete this conversation?',
+    toolDone: 'Done',
+    toolWorking: 'Working…',
+    toolInput: 'Input',
+    toolOutput: 'Output',
+    copy: 'Copy',
+    copied: 'Copied',
+    details: 'Details',
+    close: 'Close',
+    references: 'References',
+    model: 'Model',
+    tools: 'Tools',
+    noTools: 'No tools were used for this answer.',
+    toolSearchScripture: 'Consulting the Scriptures…',
+    toolGetVerses: 'Reading a passage of Scripture…',
+    toolSearchCatechism: 'Searching the Catechism…',
+    toolGetCatechism: 'Reading the Catechism…',
+    toolGraphRelated: 'Looking up related references…',
+    toolSearchScripturePast: 'Consulted the Scriptures',
+    toolGetVersesPast: 'Read a passage of Scripture',
+    toolSearchCatechismPast: 'Searched the Catechism',
+    toolGetCatechismPast: 'Read the Catechism',
+    toolGraphRelatedPast: 'Looked up related references',
+    suggestions: 'Suggested questions',
+    suggestWhatDoesChurchTeach: 'What does the Church teach about grace?',
+    suggestCatechismOnFaith: "What does the Catechism say about faith?",
+    suggestDailyGospel: 'How can I live out today’s Gospel?',
+    suggestExplainBaptism: 'Explain the meaning of Baptism.',
   },
 };
 
@@ -238,6 +265,33 @@ export interface Translations {
     retry: string;
     disabled: string;
     deleteConfirm: string;
+    toolDone: string;
+    toolWorking: string;
+    toolInput: string;
+    toolOutput: string;
+    copy: string;
+    copied: string;
+    details: string;
+    close: string;
+    references: string;
+    model: string;
+    tools: string;
+    noTools: string;
+    toolSearchScripture: string;
+    toolGetVerses: string;
+    toolSearchCatechism: string;
+    toolGetCatechism: string;
+    toolGraphRelated: string;
+    toolSearchScripturePast: string;
+    toolGetVersesPast: string;
+    toolSearchCatechismPast: string;
+    toolGetCatechismPast: string;
+    toolGraphRelatedPast: string;
+    suggestions: string;
+    suggestWhatDoesChurchTeach: string;
+    suggestCatechismOnFaith: string;
+    suggestDailyGospel: string;
+    suggestExplainBaptism: string;
   };
   login: {
     email: string;

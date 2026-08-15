@@ -34,9 +34,13 @@ export type RootTabParamList = {
 };
 
 // Ask (hidden tab, opened from Home): the AI chat and its conversation history.
+// Bible/Catechism are registered here too so citations tapped in the chat push
+// them onto the stack and back returns to the conversation.
 export type AskStackParamList = {
   Chat: { conversationId?: string } | undefined;
   Conversations: undefined;
+  Bible: undefined;
+  Catechism: undefined;
 };
 
 // The Calendar tab hosts a stack: a hub of dated sections (daily readings,
@@ -89,6 +93,8 @@ function AskStackNavigator() {
     >
       <AskStack.Screen name="Chat" component={ChatScreen} />
       <AskStack.Screen name="Conversations" component={ConversationsScreen} />
+      <AskStack.Screen name="Bible" component={BibleScreen} />
+      <AskStack.Screen name="Catechism" component={CatechismScreen} />
     </AskStack.Navigator>
   );
 }

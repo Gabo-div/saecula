@@ -16,9 +16,19 @@ export class ChatError extends Error {
   }
 }
 
+export interface ToolCall {
+  name: string;
+  input?: any;
+  output?: any;
+  ref?: string;
+  status: 'started' | 'completed';
+}
+
 export interface StreamHandlers {
   onToken: (text: string) => void;
   onTool?: (name: string) => void;
+  onToolStart?: (tool: ToolCall) => void;
+  onToolEnd?: (tool: ToolCall) => void;
   signal?: AbortSignal;
 }
 
@@ -40,7 +50,7 @@ function parseFrame(frame: string): { event: string; data: string } {
 export async function streamChat(
   body: { conversation_id?: string; message: string; lang: string },
   h: StreamHandlers,
-): Promise<{ conversation_id: string; message_id: string }> {
+): Promise<{ conversation_id: string; message_id: string; model?: string; toolCalls?: ToolCall[] }> {
   const token = useAuthStore.getState().token;
   const res = await expoFetch(`${API_BASE_URL}/api/chat`, {
     method: 'POST',
@@ -61,7 +71,12 @@ export async function streamChat(
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buf = '';
-  let result: { conversation_id: string; message_id: string } | null = null;
+  let result: {
+    conversation_id: string;
+    message_id: string;
+    model?: string;
+    toolCalls?: ToolCall[];
+  } | null = null;
   let errorMessage: string | null = null;
 
   for (;;) {
@@ -77,6 +92,8 @@ export async function streamChat(
       const payload = JSON.parse(data);
       if (event === 'token') h.onToken(payload.text ?? '');
       else if (event === 'tool') h.onTool?.(payload.name ?? '');
+      else if (event === 'tool_start') h.onToolStart?.({ name: payload.name, input: payload.input, ref: payload.ref, status: 'started' });
+      else if (event === 'tool_end') h.onToolEnd?.({ name: payload.name, output: payload.output, ref: payload.ref, status: 'completed' });
       else if (event === 'done') result = payload;
       else if (event === 'error') errorMessage = payload.message ?? 'error';
     }

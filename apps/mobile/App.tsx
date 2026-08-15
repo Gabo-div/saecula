@@ -1,6 +1,9 @@
+import '@tamagui/sheet/setup-gesture-handler';
+
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { TamaguiProvider } from 'tamagui';
 
@@ -46,17 +49,19 @@ export default function App() {
   };
 
   return (
-    <SafeAreaProvider>
-      <TamaguiProvider config={tamaguiConfig} defaultTheme={isDark ? 'dark' : 'light'}>
-        <StatusBar style={isDark ? 'light' : 'dark'} />
-        {token && isAuthenticated() ? (
-          <NavigationContainer theme={navigationTheme}>
-            <RootTabs />
-          </NavigationContainer>
-        ) : (
-          <LoginScreen />
-        )}
-      </TamaguiProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <TamaguiProvider config={tamaguiConfig} defaultTheme={isDark ? 'dark' : 'light'}>
+          <StatusBar style={isDark ? 'light' : 'dark'} />
+          {token && isAuthenticated() ? (
+            <NavigationContainer theme={navigationTheme}>
+              <RootTabs />
+            </NavigationContainer>
+          ) : (
+            <LoginScreen />
+          )}
+        </TamaguiProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

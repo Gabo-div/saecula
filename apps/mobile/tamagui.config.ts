@@ -1,9 +1,11 @@
 import { defaultConfig } from '@tamagui/config/v5';
+import { animations } from '@tamagui/config/v5-rn';
 import { createTamagui } from 'tamagui';
 
-// Tamagui v2: root-level createTamagui options live inside `settings`.
+// RN Animated driver (no reanimated); enables the Sheet's snap/animate helpers.
 export const tamaguiConfig = createTamagui({
   ...defaultConfig,
+  animations,
   settings: {
     ...defaultConfig.settings,
   },

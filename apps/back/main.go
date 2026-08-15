@@ -21,6 +21,7 @@ import (
 	"saecula/back/internal/readings"
 	"saecula/back/internal/server"
 	"saecula/back/internal/timeline"
+	"saecula/env"
 )
 
 func main() {
@@ -34,6 +35,8 @@ func main() {
 // once here and injected downward. Nothing below this function reaches for
 // globals.
 func run() error {
+	env.Load() // shared root .env; real shell env still wins
+
 	cfg, err := config.Load()
 	if err != nil {
 		return err

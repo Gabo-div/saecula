@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, Modal, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -234,11 +234,39 @@ export function BibleScreen({ navigation }: Props) {
   const c = useAppTheme();
   const { t } = useTranslation();
   const language = useLanguageStore((s) => s.language);
-  const { bookCode, chapter, translationId, setLocation } = useReaderStore();
+  const { bookCode, chapter, translationId, targetVerse, setLocation, clearTarget } =
+    useReaderStore();
   const { compact, onScroll } = useReaderChrome(navigation);
   const fontScale = useReaderPrefs((s) => s.fontScale);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+
+  // Scroll-to-verse: onLayout records each verse's y offset; a search pick
+  // scrolls there and highlights it briefly.
+  const scrollRef = useRef<ScrollView>(null);
+  const verseY = useRef<Record<number, number>>({});
+  const targetRef = useRef<number | null>(null);
+  const [highlight, setHighlight] = useState<number | null>(null);
+
+  const doScroll = useCallback(
+    (num: number) => {
+      const y = verseY.current[num];
+      if (y == null) return;
+      scrollRef.current?.scrollTo({ y: Math.max(0, y - 16), animated: true });
+      setHighlight(num);
+      clearTarget();
+      targetRef.current = null;
+    },
+    [clearTarget],
+  );
+
+  const onVerseLayout = useCallback(
+    (num: number, y: number) => {
+      verseY.current[num] = y;
+      if (num === targetRef.current) doScroll(num);
+    },
+    [doScroll],
+  );
 
   const runSearch = useCallback(
     async (q: string): Promise<SearchItem[]> => {
@@ -253,8 +281,8 @@ export function BibleScreen({ navigation }: Props) {
   );
 
   const pickResult = (item: SearchItem) => {
-    const [code, ch] = item.key.split('.');
-    setLocation(code, Number(ch));
+    const [code, ch, vs] = item.key.split('.');
+    setLocation(code, Number(ch), Number(vs));
     setSearchOpen(false);
   };
 
@@ -296,6 +324,25 @@ export function BibleScreen({ navigation }: Props) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // A new chapter invalidates the recorded verse offsets.
+  useEffect(() => {
+    verseY.current = {};
+  }, [bookCode, chapter]);
+
+  // Handle a pending scroll target: jump now if the verse is already laid out
+  // (same chapter), else onVerseLayout catches it once the chapter renders.
+  useEffect(() => {
+    targetRef.current = targetVerse;
+    if (targetVerse != null && verseY.current[targetVerse] != null) doScroll(targetVerse);
+  }, [targetVerse, content, doScroll]);
+
+  // Fade the highlight out after a moment.
+  useEffect(() => {
+    if (highlight == null) return;
+    const id = setTimeout(() => setHighlight(null), 2600);
+    return () => clearTimeout(id);
+  }, [highlight]);
 
   const currentBook = books.find((b) => b.code === bookCode);
   const bookName = content?.book_name ?? currentBook?.name ?? '';
@@ -352,6 +399,7 @@ export function BibleScreen({ navigation }: Props) {
         </YStack>
       ) : (
         <ScrollView
+          ref={scrollRef}
           key={`${bookCode}.${chapter}.${translationId}`}
           onScroll={onScroll}
           scrollEventThrottle={16}
@@ -359,19 +407,24 @@ export function BibleScreen({ navigation }: Props) {
         >
           <ReaderTitle overline={bookName} main={String(chapterNo)} giant />
           {content?.verses.map((verse) => (
-            <Text
+            <View
               key={verse.entity_id}
-              color={c.text}
-              fontFamily={serif}
-              fontSize={vFont}
-              lineHeight={vLine}
+              onLayout={(e) => onVerseLayout(verse.number, e.nativeEvent.layout.y)}
               mb="$3"
+              mx={-8}
+              px={8}
+              rounded={6}
+              borderLeftWidth={3}
+              borderLeftColor={highlight === verse.number ? c.accent : 'transparent'}
+              bg={highlight === verse.number ? c.bgElevated : 'transparent'}
             >
-              <Text color={c.accent} fontWeight="700">
-                {superscript(verse.number)}{' '}
+              <Text color={c.text} fontFamily={serif} fontSize={vFont} lineHeight={vLine}>
+                <Text color={c.accent} fontWeight="700">
+                  {superscript(verse.number)}{' '}
+                </Text>
+                {verse.text}
               </Text>
-              {verse.text}
-            </Text>
+            </View>
           ))}
         </ScrollView>
       )}

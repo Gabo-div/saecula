@@ -1,0 +1,28 @@
+{
+  "name": "saecula-web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tamagui/config": "^2.7.7",
+    "axios": "^1.7.9",
+    "next": "15.5.23",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-force-graph-2d": "^1.29.1",
+    "react-native-web": "^0.21.2",
+    "tamagui": "^2.7.7",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "typescript": "~5.9.0"
+  }
+}

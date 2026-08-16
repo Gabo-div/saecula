@@ -62,3 +62,38 @@ build nativa + Jest) y **Appium** (genérico/WebDriver, más setup).
 - **Build con `npx`, no `bun x`**: `bunx` inyecta un shim `node`→bun en PATH y gradle falla con "Cannot convert '' to File"; Metro sí corre con bun (`bun --bun x expo start`, node 18 es muy viejo para `metro.config.js`). `e2e.sh` exporta `ANDROID_HOME`/PATH.
 - **Peer mismatch `react@19.1.0` / `react-dom@19.2.7`**: solo afecta a web; irrelevante para este plan (no usamos web).
 - **Determinismo**: el seed con `--test-user` garantiza credenciales fijas (`test@saecula.app` / `saecula123`) para login por UI y por API.
+
+---
+
+# Módulo desktop/web — vista de administración
+
+> **Otro módulo del proyecto** (además del E2E móvil): una app **Next.js** en
+> `apps/web` que sirve de landing pública (SEO) **y** de panel de administración
+> para desarrolladores: visualizar y corregir el grafo de conceptos y los textos
+> multilingües, e insertar datos nuevos. Complementa al móvil (que consume la
+> misma API Go).
+
+## Alcance
+- [x] Decisión de stack: **Next.js 15** (App Router, `@/*` paths) en lugar de Vite (landing + web + admin en una sola app; SEO server-side).
+- [x] Decisión de escritura: se **extiende la API Go** con endpoints admin (no escritura directa a BDs desde la web).
+- [x] Auth: **rol de usuario** (`admin`) en el modelo, JWT con claim de rol y guard `RequireAdmin()` en `/api/admin/*`.
+
+### Backend (API Go)
+- [x] Migración `007_admin_role.sql` + runner de migraciones idempotente al arranque (`internal/db/migrate.go`, tabla `schema_migrations`)
+- [x] Módulo `apps/back/internal/admin`: grafo Neo4j (CRUD nodos + relaciones + `meta`) y textos Postgres (búsqueda de entidades + CRUD de traducciones)
+- [x] Guard de rol admin + tests de integración (admin CRUD grafo/textos, 403 sin rol)
+- [x] Seed con `--test-admin` (`admin@saecula.app` / `saecula123`)
+
+### Frontend `apps/web` (Next.js 15)
+- [x] Landing pública en español (`/`) con SEO (metadata) y arquitectura del proyecto
+- [x] Panel admin (`/admin/*`) detrás de login JWT con rol admin:
+  - [x] `/admin/login` — inicio de sesión
+  - [x] `/admin/grafo` — visualización del grafo (`react-force-graph-2d`, SSR-off) + crear/quitar relaciones enlazando nodos + detalle de nodo
+  - [x] `/admin/nodos` — listar/filtrar/crear/editar/eliminar nodos (props vía editor JSON)
+  - [x] `/admin/textos` — buscar entidades y editar sus traducciones (es/en/la, metadata JSON)
+- [x] Verificación: `tsc --noEmit` y `next build` en verde
+
+## Siguiente módulo (no incluido en esta iteración)
+- [x] **App web pública** del lector: rutas `/biblia`, `/catecismo`, `/lecturas`, `/prayers` y `/chat` (Ask) consumiendo la API existente, sin escribir datos.
+- [ ] E2E web (opcional): reusar la suite Go de integración + flujo Maestro web o Playwright.
+

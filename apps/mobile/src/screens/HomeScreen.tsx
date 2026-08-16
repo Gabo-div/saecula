@@ -1,11 +1,9 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Image } from 'expo-image';
 import type { ComponentProps } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Animated, NativeScrollEvent, NativeSyntheticEvent, RefreshControl, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
+import { Animated, Image, NativeScrollEvent, NativeSyntheticEvent, RefreshControl, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Spinner, Text, View, XStack, YStack } from 'tamagui';
 
@@ -164,11 +162,11 @@ export function HomeScreen({ navigation }: Props) {
   return (
     <View flex={1} bg={c.bg}>
       <Image
-        source={{ uri: background, headers: { 'User-Agent': 'SaeculaMobileApp/1.0' } }}
+        source={{ uri: background }}
         style={StyleSheet.absoluteFillObject}
-        contentFit="cover"
+        resizeMode="cover"
       />
-      <LinearGradient colors={c.overlay} locations={[0, 0.5, 1]} style={{ flex: 1 }}>
+      <View flex={1} style={{ backgroundColor: c.overlay[0] }}>
         <ScrollView
           contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: 24, flexGrow: 1 }}
           refreshControl={
@@ -341,7 +339,7 @@ export function HomeScreen({ navigation }: Props) {
             </YStack>
           )}
         </ScrollView>
-      </LinearGradient>
+      </View>
     </View>
   );
 }

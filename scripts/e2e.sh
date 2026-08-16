@@ -7,6 +7,9 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+export ANDROID_HOME="${ANDROID_HOME:-$HOME/Android/Sdk}"
+export PATH="$ANDROID_HOME/platform-tools:$HOME/.maestro/bin:$HOME/.bun/bin:$PATH"
+
 # The seeded day the suite is anchored to. Keep in sync with the flows.
 ANCHOR_DATE="${E2E_ANCHOR_DATE:-2026-08-15}"
 ANCHOR_YEAR="${ANCHOR_DATE%%-*}"
@@ -87,10 +90,13 @@ adb shell "settings put system system_locales es-ES" >/dev/null 2>&1 || true
 adb shell "am force-stop $APP_ID" >/dev/null 2>&1 || true
 
 # --- 5. App install ---------------------------------------------------------------
+# Build with the real Node, not `bun x`: bunx injects a `node`→bun shim early in
+# PATH, and gradle's `node -e` calls then print nothing, breaking the build
+# ("Cannot convert '' to File" in app/build.gradle).
 log "Building + installing the app (expo run:android, API=$API_URL)"
 (
   cd "$ROOT/apps/mobile"
-  EXPO_PUBLIC_API_URL="$API_URL" bun --bun x expo run:android --variant debug --no-bundler
+  EXPO_PUBLIC_API_URL="$API_URL" npx --no-install expo run:android --variant debug --no-bundler
 )
 
 # --- 5b. Metro bundler ---------------------------------------------------------------

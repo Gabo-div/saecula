@@ -236,7 +236,8 @@ therefore pinned to the seeded day in two places:
 
 - the **server clock** (host) — feeds `/api/bible/daily` and `/api/calendar/daily`
   on Home;
-- the **emulator clock** — feeds the readings screen's "today" and the
+- the **emulator clock** — feeds the readings screen's "today" (the app resolves
+  it from the device's **local** date via `client.todayLocalISO`) and the
   date-picker month. The orchestrator sets it via `adb shell date` (needs
   `adb root`, standard on AVDs).
 
@@ -254,16 +255,17 @@ Each flow is self-contained (it boots the app, logs in with the seeded account
 and forces Spanish) and asserts that its page/section **renders the expected
 content** — the goal is to catch anything that stops a screen from displaying.
 The suite is anchored to the seeded day `2026-08-15` (Assumption); the
-readings flow derives its expected "next day" label from the device clock the
-same way the app does (UTC), so it stays correct regardless of timezone.
+readings flow derives its expected "next day" label from that anchor + 1 day,
+matching how the app resolves "today" from the device's local date.
 
 | Flow | Page / section | Visualization objective (what it asserts renders) |
 |---|---|---|
 | `00_launch` | Bootstrap | The app cold-starts to the login screen, the seeded account signs in, the UI language is forced to Spanish, and Home shows its header (`Inicio`). Shared by every other flow. |
 | `auth` | Login + Profile | Sign-in lands on Profile showing the account (`test@saecula.app`), sign-out returns to the login screen, wrong credentials display the backend error, and correct credentials land back on Home. |
-| `home` | Home + quick actions + tab bar | Home renders the verse of the day, the celebration-of-the-day card, and the quick actions (`Preguntar`, `Oración`); the prayers hub opens from the quick action, and the tab bar navigates Home ↔ Calendar. |
-| `bible` | Bible reader | A chapter renders with its location header, the book/chapter picker opens `Génesis 2` and `Mateo 5`, and full-text search shows results and jumps to the first hit. |
-| `catechism` | Catechism reader | The Prologue section renders, and searching `1422` jumps to paragraph 1422 with its Penance & Reconciliation text visible. |
+| `home` | Home + carousel + quick actions + tab bar | Home renders the verse-of-the-day and catechism-of-the-day carousel pages (swiping between them shows the `CCC n` reference), the celebration-of-the-day card, and the quick actions (`Preguntar`, `Oración`); the prayers hub opens from the quick action, and the tab bar navigates Home ↔ Calendar. |
+| `bible` | Bible reader | A chapter renders with its location header, the book/chapter picker opens `Génesis 2` and `Mateo 5`, and full-text search shows results and jumps to the exact verse (Juan 19,25), which renders after the chrome compacts. |
+| `catechism` | Catechism reader | The Prologue section renders, and searching `1422` jumps to its section (`La Penitencia y la Reconciliación`) with the penance text visible. |
+| `chat` | Ask (AI chat) + history | The `Preguntar` quick action opens the chat with its `Preguntar` header, the history screen renders (`Historial`, empty after a fresh boot), and back navigation returns Home. Sending a message needs a `GEMINI_API_KEY`, so the flow only asserts rendering. |
 | `prayers` | Prayers hub + prayer + guided Rosary | The hub renders (`Oraciones guiadas`), an individual prayer's body switches EN → LA (`Our Father` → `Pater Noster`), and the guided Rosary renders its start button and first step (`Señal de la Cruz`). |
 | `readings` | Calendar hub → daily readings | The hub renders (`Lecturas del día`, `Santoral`), the day's readings scroll through First/Second reading and Gospel, the date picker opens anchored to August 2026 and jumps to "today", and the next/prev day steppers update the fixed date header. |
 | `settings` | Profile + Settings | Profile renders the account, Settings renders theme/accent/language/translation rows, the theme modes (AMOLED/Claro/Oscuro) switch, the language switcher persists (Español ↔ English), and back navigation returns to Home. |

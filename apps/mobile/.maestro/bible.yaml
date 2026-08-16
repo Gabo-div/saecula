@@ -48,8 +48,8 @@ appId: com.saecula.app
     timeout: 15000
 - tapOn:
     id: "search-result"
+# The reader jumps to the exact verse (Juan 19,25) and compacts the chrome, so
+# the location chip scrolls away — assert the highlighted verse text instead.
 - extendedWaitUntil:
-    notVisible: "Buscar…"
+    visible: ".*Junto a la cruz de Jesús estaban su madre.*"
     timeout: 15000
-- assertVisible:
-    id: "bible-location"

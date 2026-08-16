@@ -841,6 +841,7 @@ export function ChatScreen({ navigation, route }: Props) {
             name="chevron-left"
             size={28}
             color={c.strong}
+            testID="chat-back"
             onPress={() => navigation.getParent()?.navigate('Home' as never)}
           />
           <Text color={c.strong} fontFamily={serif} fontSize={18} fontWeight="700" flex={1}>
@@ -864,6 +865,7 @@ export function ChatScreen({ navigation, route }: Props) {
             name="history"
             size={24}
             color={c.accent}
+            testID="chat-history"
             onPress={() => navigation.navigate('Conversations')}
           />
         </XStack>

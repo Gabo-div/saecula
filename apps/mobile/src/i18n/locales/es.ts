@@ -54,6 +54,7 @@ const es: typeof en = {
   home: {
     title: 'Hoy',
     dailyVerse: 'Versículo del día',
+    dailyCatechism: 'Catecismo del día',
     prayers: 'Oración',
     ask: 'Preguntar',
     bible: 'Biblia',

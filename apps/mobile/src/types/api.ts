@@ -91,6 +91,8 @@ export interface DailyVerseResponse {
   reference: string;
   image_url?: string; // curated background; falls back to the app default
   verses: Verse[]; // one verse, or a range
+  catechism_numbers: number[];
+  catechism_paragraphs: { number: number; text: string }[];
 }
 
 // --- Daily readings ---------------------------------------------------------

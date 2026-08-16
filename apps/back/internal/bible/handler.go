@@ -166,13 +166,15 @@ var dailyVerses = []string{
 }
 
 type dailyResponse struct {
-	Date      string  `json:"date"`
-	BookCode  string  `json:"book_code"`
-	BookName  string  `json:"book_name"`
-	Chapter   int     `json:"chapter"`
-	Reference string  `json:"reference"`
-	ImageURL  string  `json:"image_url,omitempty"`
-	Verses    []Verse `json:"verses"`
+	Date                string               `json:"date"`
+	BookCode            string               `json:"book_code"`
+	BookName            string               `json:"book_name"`
+	Chapter             int                  `json:"chapter"`
+	Reference           string               `json:"reference"`
+	ImageURL            string               `json:"image_url,omitempty"`
+	Verses              []Verse              `json:"verses"`
+	CatechismNumbers    []int                `json:"catechism_numbers"`
+	CatechismParagraphs []CatechismParagraph `json:"catechism_paragraphs"`
 }
 
 func (a *API) Daily(w http.ResponseWriter, r *http.Request) {
@@ -180,16 +182,30 @@ func (a *API) Daily(w http.ResponseWriter, r *http.Request) {
 	today := a.now().UTC()
 	date := today.Format("2006-01-02")
 
+	// The client may pin "today" to its own local date (?date=YYYY-MM-DD),
+	// so the verse/catechism roll over at the user's midnight, not UTC's.
+	if dp := r.URL.Query().Get("date"); dp != "" {
+		parsed, err := time.Parse("2006-01-02", dp)
+		if err != nil {
+			httpx.WriteError(w, http.StatusBadRequest, "date must be YYYY-MM-DD")
+			return
+		}
+		today = parsed
+		date = dp
+	}
+
 	// A curated feature (admin/CLI seeded) wins; otherwise fall back to the
 	// deterministic built-in rotation. A lookup error is not fatal — degrade
 	// to the fallback rather than 500 the home screen.
 	var verseIDs []string
 	var imageURL string
+	var catechismNums []int
 	if f, err := a.texts.DailyFeature(r.Context(), date); err != nil {
 		slog.Warn("bible: daily feature lookup failed, using fallback", "error", err)
 	} else if f != nil && len(f.VerseIDs) > 0 {
 		verseIDs = f.VerseIDs
 		imageURL = f.ImageURL
+		catechismNums = f.CatechismNumbers
 	}
 	if len(verseIDs) == 0 {
 		verseIDs = []string{dailyVerses[today.YearDay()%len(dailyVerses)]}
@@ -229,14 +245,24 @@ func (a *API) Daily(w http.ResponseWriter, r *http.Request) {
 		reference = fmt.Sprintf("%s %d,%d-%d", name, chapter, vFirst, vLast)
 	}
 
+	// The daily Catechism paragraph(s), when the feature lists any. A lookup
+	// error degrades to an empty list rather than failing the whole request.
+	catechismParagraphs, err := a.texts.CatechismParagraphs(r.Context(), catechismNums, lang)
+	if err != nil {
+		slog.Warn("bible: daily catechism lookup failed", "error", err)
+		catechismParagraphs = nil
+	}
+
 	httpx.WriteJSON(w, http.StatusOK, dailyResponse{
-		Date:      date,
-		BookCode:  book.Code,
-		BookName:  name,
-		Chapter:   chapter,
-		Reference: reference,
-		ImageURL:  imageURL,
-		Verses:    verses,
+		Date:                date,
+		BookCode:            book.Code,
+		BookName:            name,
+		Chapter:             chapter,
+		Reference:           reference,
+		ImageURL:            imageURL,
+		Verses:              verses,
+		CatechismNumbers:    catechismNums,
+		CatechismParagraphs: catechismParagraphs,
 	})
 }
 

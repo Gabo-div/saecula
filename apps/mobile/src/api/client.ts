@@ -130,6 +130,15 @@ function bibleParams(): Record<string, string> {
   };
 }
 
+// todayLocalISO formats the device's local date as YYYY-MM-DD, so "today"
+// rolls over at the user's own midnight rather than the server's UTC one.
+function todayLocalISO(): string {
+  const d = new Date();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${day}`;
+}
+
 export async function fetchBooks(): Promise<BooksResponse> {
   const { data } = await api.get<BooksResponse>('/api/bible/books', {
     params: { lang: useLanguageStore.getState().language },
@@ -152,7 +161,7 @@ export async function fetchTranslations(): Promise<TranslationsResponse> {
 
 export async function fetchDailyVerse(): Promise<DailyVerseResponse> {
   const { data } = await api.get<DailyVerseResponse>('/api/bible/daily', {
-    params: bibleParams(),
+    params: { ...bibleParams(), date: todayLocalISO() },
   });
   return data;
 }
@@ -163,7 +172,7 @@ export async function fetchDailyVerse(): Promise<DailyVerseResponse> {
 // defaulting to today when omitted. Reuses bibleParams so a pinned
 // translation and the UI language flow through identically.
 export async function fetchDailyReadings(date?: string): Promise<DailyReadingsResponse> {
-  const path = date ? `/api/readings/${date}` : '/api/readings/daily';
+  const path = date ? `/api/readings/${date}` : `/api/readings/${todayLocalISO()}`;
   const { data } = await api.get<DailyReadingsResponse>(path, { params: bibleParams() });
   return data;
 }
@@ -191,9 +200,9 @@ export async function fetchCalendarYear(year: number): Promise<CalendarYearRespo
 }
 
 // fetchCalendarDay loads the celebrations for a single date (ISO YYYY-MM-DD),
-// defaulting to today when omitted.
+// defaulting to the device's local date when omitted.
 export async function fetchCalendarDay(date?: string): Promise<CalendarDayResponse> {
-  const path = date ? `/api/calendar/${date}` : '/api/calendar/daily';
+  const path = date ? `/api/calendar/${date}` : `/api/calendar/${todayLocalISO()}`;
   const { data } = await api.get<CalendarDayResponse>(path, {
     params: { lang: useLanguageStore.getState().language },
   });

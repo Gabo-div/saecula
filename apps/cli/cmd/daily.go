@@ -20,6 +20,7 @@ var dailyOpts struct {
 	date        string
 	verse       string
 	image       string
+	catechism   string
 	postgresDSN string
 }
 
@@ -38,13 +39,26 @@ var dailyPool = []string{
 	"ACT.1.8", "PSA.100.5", "PRO.16.3", "MAT.28.19",
 }
 
+// catechismPool is the rotation used to give ordinary days a "catechism of
+// the day": well-known CCC paragraphs, one per day (wrapping). Feast days
+// from --file override their slot with their own catechism.
+var catechismPool = []int{
+	27, 30, 45, 50, 74, 85, 102, 121, 144, 160,
+	172, 195, 210, 222, 240, 257, 262, 271, 289, 295,
+	305, 321, 332, 344, 358, 362, 371, 386, 398, 421,
+	431, 442, 453, 458, 464, 469, 480, 490, 496, 512,
+	526, 533, 540, 552, 561, 576, 581, 599, 618, 654,
+}
+
 // dailyEntry is one row of a --file feast list. Date is "MM-DD" (a fixed feast
 // applied to --year) or a full "YYYY-MM-DD". Verse is a single reference
 // ("JHN.1.14") or a same-chapter range ("LUK.1.46-49"). Image is optional.
+// Catechism lists CCC paragraph numbers for the same day ("2077" or "1,2,3").
 type dailyEntry struct {
-	Date  string `json:"date"`
-	Verse string `json:"verse"`
-	Image string `json:"image,omitempty"`
+	Date      string `json:"date"`
+	Verse     string `json:"verse"`
+	Image     string `json:"image,omitempty"`
+	Catechism string `json:"catechism,omitempty"`
 }
 
 var dailyCmd = &cobra.Command{
@@ -57,13 +71,16 @@ built-in rotation.
 Two modes:
   --file: a JSON list of feasts (see data/daily_feasts.json). "MM-DD" dates
           are applied to --year (default: current year).
-  --date/--verse/--image: a single row.
+  --date/--verse/--image/--catechism: a single row.
 
 The verse may be one reference ("JHN.1.14") or a same-chapter range
-("LUK.1.46-49"). Idempotent: re-running overwrites the same dates.`,
+("LUK.1.46-49"). --catechism (or a "catechism" field in the file) lists CCC
+paragraph numbers, comma-separated ("2077" or "1,2,3"). Idempotent: re-running
+overwrites the same dates.`,
 	Example: `  saecula-cli daily --file data/daily_feasts.json --year 2026 --fill
   saecula-cli daily --file data/daily_feasts.json --year 2026
-  saecula-cli daily --date 2026-08-06 --verse MAT.17.2 --image https://…`,
+  saecula-cli daily --date 2026-08-06 --verse MAT.17.2 --image https://…
+  saecula-cli daily --date 2026-08-06 --verse MAT.17.2 --catechism 2077`,
 	RunE: runDaily,
 }
 
@@ -104,15 +121,25 @@ func runDaily(cmd *cobra.Command, _ []string) error {
 		if e.Image != "" {
 			image = e.Image
 		}
+		catechismNums, err := parseCatechismArg(e.Catechism)
+		if err != nil {
+			return fmt.Errorf("%s: %w", date, err)
+		}
+		var catechism any
+		if len(catechismNums) > 0 {
+			catechism = catechismNums
+		}
 		if _, err := pool.Exec(ctx,
-			`INSERT INTO daily_features (feature_date, verse_ids, image_url)
-			 VALUES ($1, $2, $3)
+			`INSERT INTO daily_features (feature_date, verse_ids, image_url, catechism_numbers)
+			 VALUES ($1, $2, $3, $4)
 			 ON CONFLICT (feature_date)
-			 DO UPDATE SET verse_ids = EXCLUDED.verse_ids, image_url = EXCLUDED.image_url`,
-			date, ids, image); err != nil {
+			 DO UPDATE SET verse_ids = EXCLUDED.verse_ids, image_url = EXCLUDED.image_url,
+			               catechism_numbers = EXCLUDED.catechism_numbers`,
+			date, ids, image, catechism); err != nil {
 			return fmt.Errorf("upsert %s: %w", date, err)
 		}
-		fmt.Printf("%s → %s (%d verse(s))\n", date, e.Verse, len(ids))
+		fmt.Printf("%s → %s (%d verse(s))%s\n", date, e.Verse, len(ids),
+			catechismNote(catechismNums))
 	}
 	fmt.Printf("done: %d daily features\n", len(entries))
 	return nil
@@ -134,7 +161,34 @@ func dailyEntries() ([]dailyEntry, error) {
 	if dailyOpts.date == "" || dailyOpts.verse == "" {
 		return nil, fmt.Errorf("provide --file, or both --date and --verse")
 	}
-	return []dailyEntry{{Date: dailyOpts.date, Verse: dailyOpts.verse, Image: dailyOpts.image}}, nil
+	return []dailyEntry{{Date: dailyOpts.date, Verse: dailyOpts.verse, Image: dailyOpts.image, Catechism: dailyOpts.catechism}}, nil
+}
+
+// parseCatechismArg splits a comma-separated CCC paragraph list ("2077" or
+// "1,2,3") into ints; an empty string yields nil (no catechism for the day).
+func parseCatechismArg(s string) ([]int, error) {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return nil, nil
+	}
+	var nums []int
+	for _, part := range strings.Split(s, ",") {
+		part = strings.TrimSpace(part)
+		n, err := strconv.Atoi(part)
+		if err != nil || n < 1 {
+			return nil, fmt.Errorf("bad catechism number %q", part)
+		}
+		nums = append(nums, n)
+	}
+	return nums, nil
+}
+
+// catechismNote formats a short progress suffix for the console log.
+func catechismNote(nums []int) string {
+	if len(nums) == 0 {
+		return ""
+	}
+	return fmt.Sprintf(" + CCC %v", nums)
 }
 
 // fillYear produces one entry for every day of --year: the feast from --file
@@ -173,7 +227,11 @@ func fillYear() ([]dailyEntry, error) {
 			f.Date = date
 			entries = append(entries, f)
 		} else {
-			entries = append(entries, dailyEntry{Date: date, Verse: dailyPool[i%len(dailyPool)]})
+			entries = append(entries, dailyEntry{
+				Date:      date,
+				Verse:     dailyPool[i%len(dailyPool)],
+				Catechism: strconv.Itoa(catechismPool[i%len(catechismPool)]),
+			})
 		}
 		day = day.AddDate(0, 0, 1)
 	}
@@ -234,6 +292,7 @@ func init() {
 	dailyCmd.Flags().StringVar(&dailyOpts.date, "date", "", "single date YYYY-MM-DD")
 	dailyCmd.Flags().StringVar(&dailyOpts.verse, "verse", "", "single verse or range, e.g. LUK.1.46-49")
 	dailyCmd.Flags().StringVar(&dailyOpts.image, "image", "", "background image URL (optional)")
+	dailyCmd.Flags().StringVar(&dailyOpts.catechism, "catechism", "", "CCC paragraph numbers, comma-separated (optional), e.g. 2077 or 1,2,3")
 	dailyCmd.Flags().StringVar(&dailyOpts.postgresDSN, "pg-dsn",
 		"postgres://saecula:saecula_dev_password@localhost:5432/saecula?sslmode=disable",
 		"PostgreSQL connection string")

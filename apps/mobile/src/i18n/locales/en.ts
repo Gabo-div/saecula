@@ -54,6 +54,7 @@ const en: Translations = {
   home: {
     title: 'Today',
     dailyVerse: 'Daily verse',
+    dailyCatechism: 'Catechism of the day',
     prayers: 'Prayers',
     ask: 'Ask',
     bible: 'Bible',
@@ -201,6 +202,7 @@ export interface Translations {
   home: {
     title: string;
     dailyVerse: string;
+    dailyCatechism: string;
     prayers: string;
     ask: string;
     bible: string;

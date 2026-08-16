@@ -8,7 +8,9 @@ appId: com.saecula.app
     id: "tab-catechism"
 - assertVisible: "Prólogo"
 - assertVisible: "Catecismo"
-# Number jump: 1422 (Penance & Reconciliation).
+# Number jump: 1422 (Penance & Reconciliation). The reader opens its section
+# ("La Penitencia y la Reconciliación"); the paragraph number renders as a
+# superscript and the penance snippet confirms the jump target.
 - tapOn:
     id: "catechism-search"
 - tapOn:
@@ -20,7 +22,7 @@ appId: com.saecula.app
 - tapOn:
     id: "search-result"
 - extendedWaitUntil:
-    visible: "Catecismo 1422"
+    visible: "La Penitencia y la Reconciliación"
     timeout: 15000
 - extendedWaitUntil:
     visible: ".*sacramento de la penitencia.*"

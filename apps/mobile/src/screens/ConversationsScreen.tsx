@@ -54,6 +54,7 @@ export function ConversationsScreen({ navigation }: Props) {
           name="chevron-left"
           size={28}
           color={c.strong}
+          testID="chat-history-back"
           onPress={() => navigation.goBack()}
         />
         <Text color={c.strong} fontFamily={serif} fontSize={18} fontWeight="700" flex={1}>

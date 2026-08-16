@@ -39,13 +39,14 @@ appId: com.saecula.app
 - extendedWaitUntil:
     visible: "PRIMERA LECTURA"
     timeout: 20000
-# Day steppers: forward a day and back. The app resolves "today" in UTC (see
-# DailyReadingsScreen.isoDate), so the expected label is derived the same way
-# to stay robust to the device timezone and clock.
+# Day steppers: forward a day and back. Since main, the app resolves "today"
+# from the DEVICE's local date (client.todayLocalISO), and e2e.sh pins the
+# emulator clock to the anchored 2026-08-15. So the label after next-day is the
+# local date +1 — derived from the anchor, not from the host's UTC clock.
 - tapOn:
     id: "readings-next-day"
 - assertVisible:
-    text: "${(() => { const today = new Date().toISOString().slice(0, 10); const next = new Date(today + 'T00:00:00Z'); next.setUTCDate(next.getUTCDate() + 1); const label = next.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }); return label.charAt(0).toUpperCase() + label.slice(1); })()}"
+    text: "${(() => { const anchor = '2026-08-15'; const next = new Date(anchor + 'T00:00:00Z'); next.setUTCDate(next.getUTCDate() + 1); const label = next.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }); return label.charAt(0).toUpperCase() + label.slice(1); })()}"
 - tapOn:
     id: "readings-prev-day"
 - extendedWaitUntil:

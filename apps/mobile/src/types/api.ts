@@ -91,6 +91,8 @@ export interface DailyVerseResponse {
   reference: string;
   image_url?: string; // curated background; falls back to the app default
   verses: Verse[]; // one verse, or a range
+  catechism_numbers: number[];
+  catechism_paragraphs: { number: number; text: string }[];
 }
 
 // --- Daily readings ---------------------------------------------------------
@@ -184,4 +186,41 @@ export interface CatechismSearchResponse {
   query: string;
   lang: string;
   results: CatechismSearchResult[];
+}
+
+// --- Chat (Ask) -------------------------------------------------------------
+
+export interface ChatConversation {
+  id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChatMessageMetadata {
+  model?: string;
+  toolCalls?: {
+    name: string;
+    input?: any;
+    output?: any;
+    ref?: string;
+    status: 'started' | 'completed';
+  }[];
+}
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  metadata?: ChatMessageMetadata;
+  created_at: string;
+}
+
+export interface ConversationResponse {
+  conversation: ChatConversation;
+  messages: ChatMessage[];
+}
+
+export interface ConversationsResponse {
+  conversations: ChatConversation[];
 }

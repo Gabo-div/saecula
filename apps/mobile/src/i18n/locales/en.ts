@@ -4,6 +4,8 @@ const en: Translations = {
   common: {
     appName: 'Saecula',
     tagline: 'Twenty centuries, one timeline',
+    cancel: 'Cancel',
+    delete: 'Delete',
   },
   tabs: {
     home: 'Home',
@@ -52,6 +54,7 @@ const en: Translations = {
   home: {
     title: 'Today',
     dailyVerse: 'Daily verse',
+    dailyCatechism: 'Catechism of the day',
     prayers: 'Prayers',
     ask: 'Ask',
     bible: 'Bible',
@@ -116,11 +119,52 @@ const en: Translations = {
     noAccount: "Don't have an account? Register",
     connectionFailed: 'Connection failed',
   },
+  chat: {
+    title: 'Ask',
+    placeholder: 'Ask about Scripture or the Catechism…',
+    empty: 'Ask a question to begin.',
+    newChat: 'New chat',
+    history: 'History',
+    emptyHistory: 'No conversations yet.',
+    thinking: 'Thinking…',
+    consulting: 'Consulting {{source}}…',
+    error: 'Something went wrong. Please try again.',
+    retry: 'Retry',
+    disabled: 'The assistant is not available yet.',
+    deleteConfirm: 'Delete this conversation?',
+    toolDone: 'Done',
+    toolWorking: 'Working…',
+    toolInput: 'Input',
+    toolOutput: 'Output',
+    copy: 'Copy',
+    copied: 'Copied',
+    details: 'Details',
+    close: 'Close',
+    references: 'References',
+    model: 'Model',
+    tools: 'Tools',
+    noTools: 'No tools were used for this answer.',
+    toolSearchScripture: 'Consulting the Scriptures…',
+    toolGetVerses: 'Reading a passage of Scripture…',
+    toolSearchCatechism: 'Searching the Catechism…',
+    toolGetCatechism: 'Reading the Catechism…',
+    toolGraphRelated: 'Looking up related references…',
+    toolSearchScripturePast: 'Consulted the Scriptures',
+    toolGetVersesPast: 'Read a passage of Scripture',
+    toolSearchCatechismPast: 'Searched the Catechism',
+    toolGetCatechismPast: 'Read the Catechism',
+    toolGraphRelatedPast: 'Looked up related references',
+    suggestions: 'Suggested questions',
+    suggestWhatDoesChurchTeach: 'What does the Church teach about grace?',
+    suggestCatechismOnFaith: "What does the Catechism say about faith?",
+    suggestDailyGospel: 'How can I live out today’s Gospel?',
+    suggestExplainBaptism: 'Explain the meaning of Baptism.',
+  },
 };
 
 // Shared shape: same keys everywhere, free values per locale.
 export interface Translations {
-  common: { appName: string; tagline: string };
+  common: { appName: string; tagline: string; cancel: string; delete: string };
   tabs: {
     home: string;
     calendar: string;
@@ -158,6 +202,7 @@ export interface Translations {
   home: {
     title: string;
     dailyVerse: string;
+    dailyCatechism: string;
     prayers: string;
     ask: string;
     bible: string;
@@ -208,6 +253,47 @@ export interface Translations {
     language: string;
     translation: string;
     defaultTranslation: string;
+  };
+  chat: {
+    title: string;
+    placeholder: string;
+    empty: string;
+    newChat: string;
+    history: string;
+    emptyHistory: string;
+    thinking: string;
+    consulting: string;
+    error: string;
+    retry: string;
+    disabled: string;
+    deleteConfirm: string;
+    toolDone: string;
+    toolWorking: string;
+    toolInput: string;
+    toolOutput: string;
+    copy: string;
+    copied: string;
+    details: string;
+    close: string;
+    references: string;
+    model: string;
+    tools: string;
+    noTools: string;
+    toolSearchScripture: string;
+    toolGetVerses: string;
+    toolSearchCatechism: string;
+    toolGetCatechism: string;
+    toolGraphRelated: string;
+    toolSearchScripturePast: string;
+    toolGetVersesPast: string;
+    toolSearchCatechismPast: string;
+    toolGetCatechismPast: string;
+    toolGraphRelatedPast: string;
+    suggestions: string;
+    suggestWhatDoesChurchTeach: string;
+    suggestCatechismOnFaith: string;
+    suggestDailyGospel: string;
+    suggestExplainBaptism: string;
   };
   login: {
     email: string;

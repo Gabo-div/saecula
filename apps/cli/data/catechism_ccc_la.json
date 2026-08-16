@@ -6,7 +6,7 @@
   "end_year": 1992,
   "era": "Modern",
   "source_url": "https://www.vatican.va/archive/catechism_lt/index_lt.htm",
-  "scraped_at": "2026-08-15T00:17:47Z",
+  "scraped_at": "2026-08-15T16:44:13Z",
   "paragraphs": [
     {
       "official_number": 1,
@@ -474,7 +474,7 @@
     },
     {
       "official_number": 117,
-      "text": "Sensus spiritualis . Propter consilii Dei unitatem, non solum Scripturae textus, sed etiam res et eventus de quibus textus loquitur, signa esse possunt. 1. Sensus allegoricus . Profundiorem eventuum acquirere possumus intelligentiam, eorum significationem in Christo agnoscentes; sic transitus per Mare Rubrum signum victoriae est Christi et proinde Baptismi; 2. Sensus moralis . Eventus in Scriptura narrati nos ducere debent ad iuste agendum. Ipsi scripti sunt « ad correptionem nostram » ( 1 Cor 10,11); 3. Sensus anagogicus . Pariter possibile est res et eventus in eorum perspicere aeterna significatione, quatenus nos versus nostram ducunt (graece anagoge ) Patriam. Sic Ecclesia est in terris signum caelestis Ierusalem."
+      "text": "Sensus spiritualis . Propter consilii Dei unitatem, non solum Scripturae textus, sed etiam res et eventus de quibus textus loquitur, signa esse possunt."
     },
     {
       "official_number": 118,
@@ -510,7 +510,7 @@
     },
     {
       "official_number": 126,
-      "text": "In Evangeliorum compositione tres distingui possunt periodi: 1. Iesu vita et doctrina . Ecclesia firmiter tenet quattuor Evangelia, « quorum historicitatem incunctanter affirmat, fideliter tradere quae Iesus Dei Filius, vitam inter homines degens, ad aeternam eorum salutem reapse fecit et docuit, usque in diem qua assumptus est ». 2. Traditio oralis . « Apostoli quidem post Ascensionem Domini, illa quae Ipse dixerat et fecerat, auditoribus ea pleniore intelligentia tradiderunt, qua ipsi, eventibus gloriosis Christi instructi et lumine Spiritus veritatis edocti, fruebantur ». 3. Evangelia scripta . « Auctores autem sacri quattuor Evangelia conscripserunt, quaedam e multis aut ore aut iam scripto traditis seligentes. quaedam in synthesim redigentes, vel statui Ecclesiarum attendendo explanantes, formam denique praeconii retinentes, ita semper ut vera et sincera de Iesu nobiscum communicarent »."
+      "text": "In Evangeliorum compositione tres distingui possunt periodi:"
     },
     {
       "official_number": 127,
@@ -7593,6 +7593,10 @@
       "text": "Ubi peccatum atmospheram pervertit socialem, oportet ad cordium conversionem et ad Dei gratiam accurrere. Caritas ad iustas impellit reformationes. Quaestionis socialis solutio extra Evangelium non habetur ."
     },
     {
+      "official_number": 1897,
+      "text": "« Hominum societas neque bene composita, neque bonorum fecunda esse potest, nisi ei adsint qui, auctoritate legitima decorati, instituta servent et, quantum est satis, in omnium commoda operam curamque impendant suam ». « Auctoritas » appellatur qualitas propter quam personae vel instituta hominibus leges ferunt atque mandata, et ex parte eorum oboedientiam exspectant."
+    },
+    {
       "official_number": 1898,
       "text": "Omnis humana communitas auctoritate eget, quae eam regat. Haec in natura humana suum invenit fundamentum. Ad civitatis unitatem est necessaria. Eius munus consistit in bono communi societatis, in quantum fieri potest, tuendo."
     },
@@ -7713,6 +7717,10 @@
       "text": "Ad Statum pertinet civilis societatis bonum commune defendere et promovere. Commune totius familiae humanae bonum requirit quamdam societatis internationalis organizationem ."
     },
     {
+      "official_number": 1928,
+      "text": "Societas iustitiam praestat socialem, cum condiciones adimplet quae associationibus et singulis individuis id obtinere permittunt quod illis secundum eorum naturam eorumque vocationem debetur. Iustitia socialis cum bono communi et cum auctoritatis conectitur exercitio."
+    },
+    {
       "official_number": 1929,
       "text": "Iustitia socialis non nisi in observantia transcendentis dignitatis hominis obtineri potest. Persona ultimus est scopus societatis quae ad illam ordinatur: Personae humanae dignitatis « defensio et provectio a Creatore nobis sunt commissae, et [...] [illius] proprie debitores sunt viri et mulieres, pro suscepto munere, quovis historiae tempore »."
     },
@@ -7795,6 +7803,10 @@
     {
       "official_number": 1949,
       "text": "Homo, ad beatitudinem vocatus, sed peccato vulneratus, Dei eget salute. Auxilium divinum ei in Christo pervenit per Legem, quae eum dirigit atque in gratia quae eum sustinet: « Cum metu et tremore vestram salutem operamini; Deus est enim, qui operatur in vobis et velle et perficere pro Suo beneplacito » ( Phil 2,12-13)."
+    },
+    {
+      "official_number": 1950,
+      "text": "Lex moralis est Sapientiae divinae opus. Sensu biblico, definiri potest tamquam instructio paterna, Dei paedagogia. Homini praescribit vias, agendi regulas quae ad promissam ducunt beatitudinem; mali vetat vias quae a Deo Eiusque avertunt amore. Eadem simul in suis praeceptis firma et in suis promissis est amabilis."
     },
     {
       "official_number": 1951,
@@ -8111,6 +8123,10 @@
     {
       "official_number": 2029,
       "text": "« Si quis vult post me venire, abneget semetipsum et tollat crucem suam et sequatur me » ( Mt 16,24)."
+    },
+    {
+      "official_number": 2030,
+      "text": "In Ecclesia, in communione cum omnibus baptizatis, christianus suam adimplet vocationem. Ab Ecclesia, Dei accipit Verbum quod doctrinas continet « Legis Christi ». Ab Ecclesia, sacramentorum recipit gratiam quae illum in « via » sustinet. Ab Ecclesia, exemplum sanctitatis discit; cuius figuram et fontem in sanctissima Virgine Maria agnoscit; eam in authentico discernit testimonio eorum qui secundum eam vivunt; eam in traditione detegit spirituali et in longa historia sanctorum qui illum praecesserunt et quos liturgia celebrat in calendarii sanctorum decursu."
     },
     {
       "official_number": 2031,

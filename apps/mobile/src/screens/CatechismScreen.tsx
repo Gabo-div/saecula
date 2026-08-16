@@ -1,5 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, LayoutAnimation, Modal, ScrollView } from 'react-native';
@@ -18,7 +19,8 @@ import {
 } from '@/components/ReaderChrome';
 import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
 import { CATECHISM_PARTS, CATECHISM_PROLOGUE, type CatechismEntry } from '@/data/catechism';
-import type { RootTabParamList } from '@/navigation/RootTabs';
+import type { AskStackParamList, RootTabParamList } from '@/navigation/RootTabs';
+import { useCatechismStore } from '@/store/catechismStore';
 import { useLanguageStore } from '@/store/languageStore';
 import { useReaderPrefs } from '@/store/readerPrefsStore';
 import { useAppTheme } from '@/store/themeStore';
@@ -66,6 +68,28 @@ function groupEntries(entries: CatechismEntry[]): Group[] {
 }
 
 const easeNext = () => LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+
+// The article/section that contains a paragraph number — so a search result
+// opens its proper section (with focus on the paragraph) instead of an
+// open-ended range from that number.
+function sectionForParagraph(n: number, lang: Lang): Section {
+  if (n >= CATECHISM_PROLOGUE.from && n <= CATECHISM_PROLOGUE.to) {
+    return { from: CATECHISM_PROLOGUE.from, to: CATECHISM_PROLOGUE.to, label: CATECHISM_PROLOGUE.label[lang] };
+  }
+  for (const part of CATECHISM_PARTS) {
+    for (const e of part.entries) {
+      if (e.from != null && e.to != null && n >= e.from && n <= e.to) {
+        return { from: e.from, to: e.to, label: e.label[lang] };
+      }
+    }
+    // A paragraph in a gap between articles (e.g. a chapter intro) falls back
+    // to the whole part so the reader still lands in the right pillar.
+    if (n >= part.from && n <= part.to) {
+      return { from: part.from, to: part.to, label: part.name[lang] };
+    }
+  }
+  return { from: n, to: 2865, label: String(n) };
+}
 
 // ---------------------------------------------------------------------------
 // Section + translation picker (modal) — mirrors the Bible's book picker.
@@ -294,12 +318,17 @@ function SectionPicker({
 // Reader
 // ---------------------------------------------------------------------------
 
-type Props = BottomTabScreenProps<RootTabParamList, 'Catechism'>;
+// CatechismScreen lives on the Catechism tab and on the Ask stack (when a chat
+// citation jumps here). Only the stack context shows a back chevron.
+type Props =
+  | BottomTabScreenProps<RootTabParamList, 'Catechism'>
+  | NativeStackScreenProps<AskStackParamList, 'Catechism'>;
 
 export function CatechismScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const c = useAppTheme();
   const { t } = useTranslation();
+  const inStack = navigation.getState().type === 'stack';
   const { compact, onScroll } = useReaderChrome(navigation);
   const fontScale = useReaderPrefs((s) => s.fontScale);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -325,6 +354,12 @@ export function CatechismScreen({ navigation }: Props) {
   const nextFrom = useRef(section.from);
   const inFlight = useRef(false);
   const gen = useRef(0); // bumped on every fresh load; stale results are ignored
+
+  // Focus a searched paragraph: scroll to it (paging until it's loaded) and
+  // highlight it briefly.
+  const listRef = useRef<FlatList<CatechismParagraph>>(null);
+  const pendingFocus = useRef<number | null>(null);
+  const [highlight, setHighlight] = useState<number | null>(null);
 
   const load = useCallback(
     async (fresh: boolean) => {
@@ -367,6 +402,37 @@ export function CatechismScreen({ navigation }: Props) {
     void load(true);
   }, [load]);
 
+  // jumpTo fetches straight to a focused paragraph: the section is fetched in
+  // parallel 200-paragraph chunks (the API's max page size) instead of paging
+  // forward one small page at a time, so deep targets scroll in ~1 round-trip.
+  const jumpTo = useCallback(
+    async (target: number) => {
+      if (inFlight.current) return;
+      inFlight.current = true;
+      const myGen = gen.current;
+      const chunk = 200;
+      const requests: number[] = [];
+      for (let f = section.from; f <= target; f += chunk) requests.push(f);
+      try {
+        const pages = await Promise.all(
+          requests.map((f) =>
+            fetchCatechism(f, Math.min(f + chunk - 1, section.to), chunk, lang),
+          ),
+        );
+        if (myGen !== gen.current) return; // section changed mid-jump
+        const merged = pages.flatMap((p) => p.paragraphs);
+        setItems(merged);
+        if (merged.length > 0) nextFrom.current = merged[merged.length - 1].number + 1;
+        hasMore.current = target < section.to;
+      } catch {
+        // keep whatever items are loaded; the focus effect will retry
+      } finally {
+        inFlight.current = false;
+      }
+    },
+    [section, lang],
+  );
+
   const runSearch = useCallback(
     async (q: string): Promise<SearchItem[]> => {
       const res = await searchCatechism(q, lang);
@@ -381,15 +447,54 @@ export function CatechismScreen({ navigation }: Props) {
 
   const pickResult = (item: SearchItem) => {
     const n = Number(item.key);
-    setSection({ from: n, to: 2865, label: item.title });
+    pendingFocus.current = n;
+    setSection(sectionForParagraph(n, lang));
     setSearchOpen(false);
   };
+
+  // Once the section (re)loads, scroll to the pending paragraph; if it isn't
+  // loaded yet, jump straight to it (parallel chunks) rather than paging.
+  useEffect(() => {
+    const n = pendingFocus.current;
+    if (n == null) return;
+    const index = items.findIndex((p) => p.number === n);
+    if (index < 0) {
+      if (!inFlight.current) void jumpTo(n);
+      return;
+    }
+    pendingFocus.current = null;
+    setHighlight(n);
+    requestAnimationFrame(() => {
+      listRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0.15 });
+    });
+  }, [items, jumpTo]);
+
+  // Fade the highlight out after a moment.
+  useEffect(() => {
+    if (highlight == null) return;
+    const id = setTimeout(() => setHighlight(null), 2600);
+    return () => clearTimeout(id);
+  }, [highlight]);
+
+  // A chat citation deep-link: open the paragraph's section and focus it,
+  // reusing the same section-resolution + scroll machinery as search.
+  const focusParagraph = useCatechismStore((s) => s.focusParagraph);
+  const clearFocus = useCatechismStore((s) => s.clearFocus);
+  useEffect(() => {
+    if (focusParagraph == null) return;
+    pendingFocus.current = focusParagraph;
+    setSection(sectionForParagraph(focusParagraph, lang));
+    clearFocus();
+  }, [focusParagraph, lang, clearFocus]);
 
   return (
     <View flex={1} bg={c.bg} pt={compact ? insets.top : insets.top + 8}>
       {!compact && (
         <>
-          <ScreenHeader title={t('catechism.title')} />
+          <ScreenHeader
+            title={t('catechism.title')}
+            onBack={inStack ? () => navigation.goBack() : undefined}
+          />
 
           {/* Section chip + tools */}
           <XStack px="$4" py="$2" items="center" gap="$2">
@@ -429,6 +534,7 @@ export function CatechismScreen({ navigation }: Props) {
         </YStack>
       ) : (
         <FlatList
+          ref={listRef}
           data={items}
           key={`${section.from}.${lang}`}
           keyExtractor={(p) => String(p.number)}
@@ -440,13 +546,38 @@ export function CatechismScreen({ navigation }: Props) {
           contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 32 }}
           onEndReached={() => load(false)}
           onEndReachedThreshold={0.6}
+          onScrollToIndexFailed={(info) => {
+            // The target row isn't measured yet: approximate its offset, then
+            // retry once the list has settled.
+            listRef.current?.scrollToOffset({
+              offset: Math.max(0, info.averageItemLength * info.index - 80),
+              animated: true,
+            });
+            setTimeout(() => {
+              listRef.current?.scrollToIndex({
+                index: info.index,
+                animated: true,
+                viewPosition: 0.15,
+              });
+            }, 350);
+          }}
           renderItem={({ item }) => (
-            <Text color={c.text} fontFamily={serif} fontSize={pFont} lineHeight={pLine} mb="$3">
-              <Text color={c.accent} fontWeight="700">
-                {superscript(item.number)}{' '}
+            <View
+              mx={-8}
+              px={8}
+              mb="$3"
+              rounded={6}
+              borderLeftWidth={3}
+              borderLeftColor={highlight === item.number ? c.accent : 'transparent'}
+              bg={highlight === item.number ? c.bgElevated : 'transparent'}
+            >
+              <Text color={c.text} fontFamily={serif} fontSize={pFont} lineHeight={pLine}>
+                <Text color={c.accent} fontWeight="700">
+                  {superscript(item.number)}{' '}
+                </Text>
+                {item.text}
               </Text>
-              {item.text}
-            </Text>
+            </View>
           )}
           ListFooterComponent={
             loading ? <Spinner mt="$4" size="large" color={c.accent} /> : <YStack height={8} />
@@ -470,6 +601,8 @@ export function CatechismScreen({ navigation }: Props) {
         lang={lang}
         onPickLang={setLang}
         onPickSection={(s) => {
+          pendingFocus.current = null;
+          setHighlight(null);
           setSection(s);
           setPickerOpen(false);
         }}

@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"saecula/cli/internal/model"
 )
@@ -71,10 +73,9 @@ var vatConfigs = map[string]vatLangCfg{
 // VaticanCatechismScraper extracts one language edition. Scripture
 // cross-references are inline citations on the source and are not resolved to
 // verse IDs here (see the English scraper's ponytail note).
-// ponytail: ~4-5 of the 2865 paragraphs lost their bold/number markup on the
-// source HTML and are skipped (coverage ≈ 99.8%). Chasing each remaining one
-// needs a bespoke rule and risks false positives; add per-number recovery
-// only if a specific paragraph is reported missing.
+// ponytail: coverage is complete (2865/2865) for en/es/la after tolerating the
+// source's inconsistent bold-number padding; if a future scrape drops a
+// paragraph, inspect its marker on the source page and widen vatBoldNumRe.
 type VaticanCatechismScraper struct {
 	fetcher Fetcher
 	lang    string
@@ -90,13 +91,17 @@ func NewVaticanCatechismScraper(fetcher Fetcher, lang string) (*VaticanCatechism
 }
 
 var (
-	// A paragraph opens with its number in bold — either plain (`<b>27</b>`)
-	// or anchored (`<b> <a name="1601"> 1601</a></b>`, used on some pages).
+	// A paragraph opens with its number in bold. The source pads the bold tag
+	// inconsistently: plain (`<b>27</b>`), anchored (`<b> <a name="1601">
+	// 1601</a></b>`), entity-spaced (`<b>&nbsp;2016</b>`), font-wrapped
+	// (`<b><font size="3">2551</font></b>`) or with a stray inline tag before
+	// the close (`<b>1928<i> </i></b>`) — so whitespace, &nbsp;, and the inline
+	// tags actually seen (i/font/a) are tolerated on either side of the digits.
 	// Some paragraphs lost their bold tag and open with a bare number right
-	// after the <p>, possibly wrapped in inline formatting the source added
-	// (`<p align="left">168 …`, `<p class=MsoNormal><i …>656 …`); that is the
-	// second alternative and is range-guarded when parsed.
-	vatBoldNumRe = regexp.MustCompile(`(?i)<b[^>]*>\s*(?:<a[^>]*>\s*)?(\d+)\s*(?:</a>)?\s*</b>|<p[^>]*>(?:\s*<[a-z][^>]*>)*\s*(\d{1,4})\s`)
+	// after the <p>, possibly wrapped in inline formatting and followed by a
+	// period instead of a space (`<p align="left">1917. …`, `<p …>168 …`); that
+	// is the second alternative and is range-guarded when parsed.
+	vatBoldNumRe = regexp.MustCompile(`(?i)<b[^>]*>(?:\s|&nbsp;|&#160;|<i>|</i>|<font[^>]*>|</font>|<a[^>]*>|</a>)*(\d+)(?:\s|&nbsp;|&#160;|<i>|</i>|<font[^>]*>|</font>|<a[^>]*>|</a>)*</b>|<p[^>]*>(?:\s*<[a-z][^>]*>)*\s*(\d{1,4})[.\s]`)
 	vatMaxNumber = 2865 // last CCC paragraph; guards the bare-number fallback
 	// A paragraph ends at the next section heading or the page navigation /
 	// footer. Headings are named anchors (Spanish) or a bold title opening its
@@ -253,6 +258,38 @@ func parseVaticanParagraphs(page string) []model.CatechismParagraph {
 			continue
 		}
 		out = append(out, model.CatechismParagraph{OfficialNumber: number, Text: text})
+	}
+	return splitMerged(out)
+}
+
+// splitMerged separates the few English paragraphs the source runs together in
+// one block, where paragraph N's cleaned text carries its successor inline
+// (`…of the Decalogue. 2077 The gift…`). It splits only on the exact next
+// number (N+1) immediately followed by a capitalised word, so scripture
+// citations, dates, and counts — which are never the sequential next number —
+// can't trigger a false split.
+func splitMerged(ps []model.CatechismParagraph) []model.CatechismParagraph {
+	out := make([]model.CatechismParagraph, 0, len(ps))
+	for _, p := range ps {
+		cur := p
+		for cur.OfficialNumber < vatMaxNumber {
+			marker := " " + strconv.Itoa(cur.OfficialNumber+1) + " "
+			idx := strings.Index(cur.Text, marker)
+			if idx < 0 {
+				break
+			}
+			after := strings.TrimSpace(cur.Text[idx+len(marker):])
+			if r, _ := utf8.DecodeRuneInString(after); !unicode.IsUpper(r) {
+				break
+			}
+			head := strings.TrimSpace(cur.Text[:idx])
+			if head == "" {
+				break
+			}
+			out = append(out, model.CatechismParagraph{OfficialNumber: cur.OfficialNumber, Text: head})
+			cur = model.CatechismParagraph{OfficialNumber: cur.OfficialNumber + 1, Text: after}
+		}
+		out = append(out, cur)
 	}
 	return out
 }

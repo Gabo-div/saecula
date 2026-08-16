@@ -74,7 +74,10 @@ go run .
 
 The API listens on `:8080`. Configuration is environment-driven
 (`HTTP_ADDR`, `POSTGRES_DSN`, `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD`,
-`JWT_SECRET`, `JWT_EXPIRATION`); defaults match docker-compose.
+`JWT_SECRET`, `JWT_EXPIRATION`); defaults match docker-compose. The chat
+assistant is enabled only when `GEMINI_API_KEY` is set — with `CHAT_MODEL`
+(default `googleai/gemini-flash-latest`), `CHAT_MAX_TOOL_ITERS`,
+`CHAT_MAX_OUTPUT_TOKENS` and `CHAT_RATE_PER_MIN` as the tuning knobs.
 
 ### 3. Scrape and seed data
 
@@ -168,6 +171,9 @@ Five tabs in a liturgical theme (mode × accent):
   picker), the santoral (saints by month), and celebrations (the liturgical
   year by month, each tappable for a detail sheet linking to its readings),
   all from `/api/readings` and `/api/calendar`.
+- **Ask** — AI chat tab (streaming thread, tool calls with friendly labels, a
+  details sheet with model + tools + references, suggested questions, a
+  floating input with a bottom fade, and per-message actions).
 
 Profile/settings (theme, accent, language, translation) is reached from a
 button in the Home header, not a tab. **Prayers** are opened the same way
@@ -278,6 +284,10 @@ same way the app does (UTC), so it stays correct regardless of timezone.
 | `GET` | `/api/calendar/year/{year}?lang=` | Bearer | Whole gregorian year of the General Roman calendar |
 | `GET` | `/api/catechism?lang=&from=&limit=` | Bearer | Paginated CCC paragraphs (English) |
 | `GET` | `/api/catechism/{number}?lang=` | Bearer | One CCC paragraph |
+| `POST` | `/api/chat` | Bearer | Streaming chat (SSE: token, tool_start, tool_end, done, error) |
+| `GET` | `/api/chat/conversations` | Bearer | List the user's conversations |
+| `GET` | `/api/chat/conversations/{id}` | Bearer | One conversation + messages (metadata: model, tool calls) |
+| `DELETE` | `/api/chat/conversations/{id}` | Bearer | Delete a conversation |
 | `GET` | `/health` | — | Liveness probe |
 
 New APIs implement the `server.API` interface (`Pattern()`, `Routes()`) and
@@ -319,6 +329,10 @@ negative = BC), `end_year` (integer), and `era` (e.g. `"Patristic"`,
 Relationships created by the seeder so far: `(:Verse)-[:FOLLOWS]->(:Verse)`
 (canonical order) and `(:CatechismParagraph)-[:CITES]->(:Verse)`.
 
+Relationships pending (needed for `graph_related` and cross-reference
+queries): `(:Saint)-[:READS]->(:Verse)`, `(:Council)-[:DEFINES]->(:Dogma)`,
+and Catechism footnote cross-references.
+
 ## Relational schema (PostgreSQL)
 
 - `users(id UUID PK, email UNIQUE, password_hash, created_at)`
@@ -333,26 +347,28 @@ Shipped: Bible reader, daily Mass readings, santoral, celebrations (with
 tap-through detail), the Catechism in English/Spanish/Latin (Bible-style
 reader with a collapsible section picker and a translation switch), an
 immersive reading mode with adjustable font size, curated daily verse/image,
-and a prayers hub with a step-by-step guided Rosary.
+a prayers hub with a step-by-step guided Rosary, **reader search** (the
+magnifier in the Bible and Catechism headers jumps to the exact verse or
+paragraph), a fully-scraped Catechism, and **Ask — AI chat** (streaming
+thread, tool calls, details sheet, suggested questions, floating input,
+per-message actions).
 
 Planned, roughly by value:
 
+- **MCP improvements** — populate the Neo4j graph with more relationships
+  (saints ↔ verses, councils ↔ dogmas, etc.) so the `graph_related` tool and
+  cross-reference queries become useful.
+- **Public MCP server** — expose the existing Genkit tools (`search_scripture`,
+  `get_verses`, `search_catechism`, `get_catechism`, `graph_related`) as a
+  public MCP endpoint for external hosts (Claude, etc.).
 - **Timeline (Explore)** — the app's namesake chronological view over the
   Neo4j concept graph. The backend `/timeline` endpoint and the
   `fetchTimeline` client already exist; the screen is still a placeholder.
-- **Reader search** — the magnifier in the Bible and Catechism headers is
-  inert; wire it to search text and jump to a verse/paragraph.
 - **Santoral detail** — the saints calendar lists days but rows aren't
   tappable; add a saint detail sheet like the celebrations one.
-- **Polish the Catechism scrape** — coverage is ~99.9% (EN misses 2077 &
-  2436; a few source-formatting anomalies remain). Recover the stragglers.
 - **Scripture cross-references in the Catechism** — map CCC footnotes to
   verse entity IDs (`(:CatechismParagraph)-[:CITES]->(:Verse)`).
 - **More guided prayers** — Stations of the Cross, Divine Mercy, Angelus.
-- **"Ask" — AI chat** — the Home quick action is the entry point for a
-  planned conversational assistant (ask questions about the faith, a reading,
-  or a saint). The button exists; the chat backend and screen are not built
-  yet.
 - **Feast art** — extend curated images beyond the current fixed feasts.
 - **Account** — password reset and profile editing.
 

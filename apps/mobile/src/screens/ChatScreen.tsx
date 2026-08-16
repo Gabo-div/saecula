@@ -1,7 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { LinearGradient } from 'expo-linear-gradient';
-import * as Clipboard from 'expo-clipboard';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
@@ -551,7 +549,12 @@ export function ChatScreen({ navigation, route }: Props) {
   );
 
   const copyTurn = useCallback(async (turn: Turn, key: string) => {
-    await Clipboard.setStringAsync(turn.content);
+    try {
+      const Clipboard = await import('expo-clipboard');
+      await Clipboard.setStringAsync(turn.content);
+    } catch {
+      // expo-clipboard not available (Expo Go) — silently ignore
+    }
     setCopiedId(key);
     setTimeout(() => setCopiedId((cur) => (cur === key ? null : cur)), 1500);
   }, []);
@@ -761,9 +764,8 @@ export function ChatScreen({ navigation, route }: Props) {
         {/* Bottom fade: the chat content softly fades into the background at the
             very bottom of the screen, behind the floating input pill. */}
         {!disabled && (
-          <LinearGradient
-            colors={['transparent', c.bg]}
-            style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 120 }}
+          <View
+            style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 120, backgroundColor: c.bg }}
             pointerEvents="none"
           />
         )}
@@ -825,14 +827,14 @@ export function ChatScreen({ navigation, route }: Props) {
         style={{ position: 'absolute', top: 0, left: 0, right: 0 }}
         pointerEvents="box-none"
       >
-        <LinearGradient
-          colors={[c.bg, 'transparent']}
+        <View
           style={{
             position: 'absolute',
             left: 0,
             right: 0,
             top: 0,
             height: insets.top + 6 + 70,
+            backgroundColor: c.bg,
           }}
           pointerEvents="none"
         />

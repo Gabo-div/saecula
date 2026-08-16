@@ -3,15 +3,16 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
 import type { ComponentProps } from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
+import { Animated, NativeScrollEvent, NativeSyntheticEvent, RefreshControl, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Spinner, Text, View, XStack, YStack } from 'tamagui';
 
 import { fetchCalendarDay, fetchDailyVerse } from '@/api/client';
 import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
 import type { RootTabParamList } from '@/navigation/RootTabs';
+import { useCatechismStore } from '@/store/catechismStore';
 import { useLanguageStore } from '@/store/languageStore';
 import { useReaderStore } from '@/store/readerStore';
 import { useAppTheme } from '@/store/themeStore';
@@ -67,6 +68,33 @@ function QuickAction({
 
 type Props = BottomTabScreenProps<RootTabParamList, 'Home'>;
 
+// CarouselDot springs between a small dot and an elongated pill so the active
+// page transition feels smooth instead of snapping.
+function CarouselDot({ active }: { active: boolean }) {
+  const c = useAppTheme();
+  const anim = useRef(new Animated.Value(active ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.spring(anim, {
+      toValue: active ? 1 : 0,
+      useNativeDriver: false,
+      friction: 8,
+      tension: 60,
+    }).start();
+  }, [active, anim]);
+
+  return (
+    <Animated.View
+      style={{
+        width: anim.interpolate({ inputRange: [0, 1], outputRange: [8, 22] }),
+        height: 7,
+        borderRadius: 4,
+        backgroundColor: active ? c.accent : c.muted,
+      }}
+    />
+  );
+}
+
 export function HomeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const c = useAppTheme();
@@ -77,6 +105,21 @@ export function HomeScreen({ navigation }: Props) {
   const [daily, setDaily] = useState<DailyVerseResponse | null>(null);
   const [calDay, setCalDay] = useState<CalendarDayResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [carouselIndex, setCarouselIndex] = useState(0);
+  const { width: winWidth } = useWindowDimensions();
+  // Pages are narrower than the screen so the next card's edge peeks in,
+  // hinting the carousel is swipeable.
+  const cardW = winWidth - 48;
+  // Fixed page height so the nested horizontal ScrollView never stretches
+  // taller than the card content (3 lines + chip + reference).
+  const cardH = 152;
+
+  const onCarouselEnd = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      setCarouselIndex(Math.round(e.nativeEvent.contentOffset.x / cardW));
+    },
+    [cardW],
+  );
 
   // Load the verse and today's liturgical day together; one failing source
   // must not blank the other.
@@ -99,9 +142,18 @@ export function HomeScreen({ navigation }: Props) {
 
   const openDailyInBible = () => {
     if (daily) {
-      setLocation(daily.book_code, daily.chapter);
+      setLocation(daily.book_code, daily.chapter, daily.verses[0]?.number);
     }
     navigation.navigate('Bible');
+  };
+
+  // Opens the Catechism reader on today's paragraph (if any).
+  const dailyParagraph = daily?.catechism_paragraphs?.[0];
+  const openDailyInCatechism = () => {
+    if (dailyParagraph) {
+      useCatechismStore.getState().focus(dailyParagraph.number);
+      navigation.navigate('Catechism');
+    }
   };
 
   // The day's main celebration (precedence-ordered) and any distinct saints.
@@ -144,48 +196,98 @@ export function HomeScreen({ navigation }: Props) {
           {/* Spacer: lets the artwork breathe, pushing content to the bottom. */}
           <View flex={1} />
 
-          {/* Daily verse — compact, low on the screen. */}
-          <YStack px="$4" gap="$2">
-            <XStack
-              self="flex-start"
-              items="center"
-              gap="$2"
-              px="$3"
-              py="$1"
-              rounded={20}
-              bg={c.chip}
-              borderWidth={1}
-              borderColor={c.accentDim}
-            >
-              <MaterialCommunityIcons name="weather-sunny" size={13} color={c.accent} />
-              <Text color={c.accent} fontSize={10} letterSpacing={2} fontWeight="600">
-                {t('home.dailyVerse').toUpperCase()}
-              </Text>
-            </XStack>
+          {/* Daily cards — a paging carousel of verse + catechism, with dots. */}
+          {loading && !daily ? (
+            <Spinner size="large" color={c.accent} self="center" />
+          ) : (
+            <>
+              <ScrollView
+                horizontal
+                snapToInterval={cardW}
+                decelerationRate="fast"
+                showsHorizontalScrollIndicator={false}
+                style={{ height: 0 }}
+                onMomentumScrollEnd={onCarouselEnd}
+              >
+                {/* Daily verse page */}
+                <YStack width={cardW} height={cardH} px="$4" gap="$2">
+                  <XStack
+                    self="flex-start"
+                    items="center"
+                    gap="$2"
+                    px="$3"
+                    py="$1"
+                    rounded={20}
+                    bg={c.chip}
+                    borderWidth={1}
+                    borderColor={c.accentDim}
+                  >
+                    <MaterialCommunityIcons name="weather-sunny" size={13} color={c.accent} />
+                    <Text color={c.accent} fontSize={10} letterSpacing={2} fontWeight="600">
+                      {t('home.dailyVerse').toUpperCase()}
+                    </Text>
+                  </XStack>
+                  <Text
+                    color={c.strong}
+                    fontFamily={serif}
+                    fontSize={17}
+                    lineHeight={27}
+                    numberOfLines={4}
+                    onPress={openDailyInBible}
+                  >
+                    {verseText}
+                  </Text>
+                  <Text color={c.accent} fontFamily={serif} fontSize={15}>
+                    — {daily?.reference ?? ''}
+                  </Text>
+                </YStack>
 
-            {loading && !daily ? (
-              <Spinner size="large" color={c.accent} self="flex-start" />
-            ) : (
-              <>
-                <Text
-                  color={c.strong}
-                  fontFamily={serif}
-                  fontSize={19}
-                  lineHeight={29}
-                  numberOfLines={4}
-                  onPress={openDailyInBible}
-                >
-                  {verseText}
-                </Text>
-                <Text color={c.accent} fontFamily={serif} fontSize={15}>
-                  — {daily?.reference ?? ''}
-                </Text>
-              </>
-            )}
-          </YStack>
+                {/* Daily catechism page */}
+                {dailyParagraph && (
+                  <YStack width={cardW} height={cardH} px="$4" gap="$2">
+                    <XStack
+                      self="flex-start"
+                      items="center"
+                      gap="$2"
+                      px="$3"
+                      py="$1"
+                      rounded={20}
+                      bg={c.chip}
+                      borderWidth={1}
+                      borderColor={c.accentDim}
+                    >
+                      <MaterialCommunityIcons name="book-open-page-variant" size={13} color={c.accent} />
+                      <Text color={c.accent} fontSize={10} letterSpacing={2} fontWeight="600">
+                        {t('home.dailyCatechism').toUpperCase()}
+                      </Text>
+                    </XStack>
+                    <Text
+                      color={c.strong}
+                      fontFamily={serif}
+                      fontSize={17}
+                      lineHeight={27}
+                      numberOfLines={4}
+                      onPress={openDailyInCatechism}
+                    >
+                      {dailyParagraph.text}
+                    </Text>
+                    <Text color={c.accent} fontFamily={serif} fontSize={15}>
+                      — CCC {dailyParagraph.number}
+                    </Text>
+                  </YStack>
+                )}
+              </ScrollView>
+
+              {/* Carousel dots — active page springs into an elongated pill */}
+              <XStack items="center" justify="center" gap="$2" mt="$2">
+                <CarouselDot active={carouselIndex === 0} />
+                {dailyParagraph && <CarouselDot active={carouselIndex === 1} />}
+              </XStack>
+            </>
+          )}
 
           {/* Quick actions */}
-          <XStack px="$4" pt="$7" gap="$2">
+          <XStack px="$4" pt="$5" gap="$2">
             <QuickAction
               icon="hands-pray"
               label={t('home.prayers')}

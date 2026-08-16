@@ -42,11 +42,19 @@ type GraphRepository interface {
 	ChapterCounts(ctx context.Context) (map[string]int64, error)
 }
 
-// DailyFeature is a curated verse-of-the-day (one verse or a range) and an
-// optional background image for a specific date.
+// DailyFeature is a curated verse-of-the-day (one verse or a range), an
+// optional background image, and optionally one or more Catechism paragraphs
+// for a specific date.
 type DailyFeature struct {
-	VerseIDs []string
-	ImageURL string
+	VerseIDs         []string
+	ImageURL         string
+	CatechismNumbers []int
+}
+
+// CatechismParagraph is one numbered CCC paragraph's text in a language.
+type CatechismParagraph struct {
+	Number int    `json:"number"`
+	Text   string `json:"text"`
 }
 
 // TextRepository abstracts the localized translation store for Bible reads.
@@ -61,6 +69,10 @@ type TextRepository interface {
 	// DailyFeature returns the curated feature for a date (YYYY-MM-DD), or
 	// nil when none is set (caller falls back to the built-in rotation).
 	DailyFeature(ctx context.Context, date string) (*DailyFeature, error)
+	// CatechismParagraphs returns the text of the given CCC paragraph numbers
+	// in lang, in the requested order; numbers without a translation are
+	// skipped.
+	CatechismParagraphs(ctx context.Context, numbers []int, lang string) ([]CatechismParagraph, error)
 	// SearchVerses full-text searches verse text, ranked by relevance. Empty
 	// translationID searches every edition.
 	SearchVerses(ctx context.Context, query, translationID string, limit int) ([]SearchHit, error)
@@ -203,21 +215,62 @@ func (repo *PostgresTextRepository) VerseText(ctx context.Context, entityID, lan
 
 func (repo *PostgresTextRepository) DailyFeature(ctx context.Context, date string) (*DailyFeature, error) {
 	var ids []string
+	var catechismNums []int
 	var image *string
 	err := repo.pool.QueryRow(ctx,
-		`SELECT verse_ids, image_url FROM daily_features WHERE feature_date = $1`, date).
-		Scan(&ids, &image)
+		`SELECT verse_ids, image_url, catechism_numbers
+		 FROM daily_features WHERE feature_date = $1`, date).
+		Scan(&ids, &image, &catechismNums)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	f := &DailyFeature{VerseIDs: ids}
+	f := &DailyFeature{VerseIDs: ids, CatechismNumbers: catechismNums}
 	if image != nil {
 		f.ImageURL = *image
 	}
 	return f, nil
+}
+
+func (repo *PostgresTextRepository) CatechismParagraphs(ctx context.Context, numbers []int, lang string) ([]CatechismParagraph, error) {
+	if len(numbers) == 0 {
+		return nil, nil
+	}
+	rows, err := repo.pool.Query(ctx,
+		`SELECT CAST(split_part(entity_id, '.', 2) AS INT) AS num, raw_content
+		 FROM text_documents
+		 WHERE entity_id LIKE 'CCC.%' AND language_code = $1
+		   AND CAST(split_part(entity_id, '.', 2) AS INT) = ANY($2::int[])
+		 ORDER BY num`,
+		lang, numbers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	byNumber := map[int]string{}
+	for rows.Next() {
+		var num int
+		var text string
+		if err := rows.Scan(&num, &text); err != nil {
+			return nil, err
+		}
+		byNumber[num] = text
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	// Preserve the requested order (dates may list paragraphs out of order).
+	out := make([]CatechismParagraph, 0, len(numbers))
+	for _, n := range numbers {
+		if text, ok := byNumber[n]; ok {
+			out = append(out, CatechismParagraph{Number: n, Text: text})
+		}
+	}
+	return out, nil
 }
 
 func (repo *PostgresTextRepository) SearchVerses(ctx context.Context, query, translationID string, limit int) ([]SearchHit, error) {

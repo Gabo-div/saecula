@@ -55,6 +55,7 @@ const la: typeof en = {
   home: {
     title: 'Hodie',
     dailyVerse: 'Versiculus diei',
+    dailyCatechism: 'Catechismus diei',
     prayers: 'Preces',
     ask: 'Interroga',
     bible: 'Biblia',

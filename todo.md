@@ -38,24 +38,27 @@ build nativa + Jest) y **Appium** (genérico/WebDriver, más setup).
 
 ### 3. E2E móvil (Maestro)
 - [x] Instalar CLI de Maestro (`curl -Ls https://get.maestro.mobile.dev | bash`) — hecho en este entorno: Maestro 2.8.0 + JDK 21 en espacio de usuario (`~/.local/jdk21`, `JAVA_HOME` y PATH en `~/.bashrc`)
-- [ ] Emulador Android (AVD / Android Studio) con la app instalada (`bun --bun x expo run:android`) o dev client
-- [ ] Apuntar la app al back del host: `EXPO_PUBLIC_API_URL=http://10.0.2.2:8080` (emulador) en `.env`
+- [x] Emulador Android (AVD / Android Studio) con la app instalada (`expo run:android` debug) o dev client
+- [x] Apuntar la app al back del host: `EXPO_PUBLIC_API_URL=http://10.0.2.2:8080` (emulador) en `.env` (lo inyecta `e2e.sh`)
 - [x] Flujos `.maestro/*.yaml` (`apps/mobile/.maestro/`, helper `00_launch.yaml`):
   - [x] `auth.yaml` — login (credenciales malas → error; buenas → Home) y sign-out
-  - [x] `home.yaml` — verso del día + tarjeta de celebración + accesos rápidos
-  - [x] `bible.yaml` — leer capítulo, picker libro/capítulo (Génesis→Mateo), buscar y saltar
-  - [x] `catechism.yaml` — párrafos cargan, salto por número (1422), búsqueda
-  - [x] `readings.yaml` — calendario → lecturas del día, cambiar fecha (anclado a 2026-08-15)
+  - [x] `home.yaml` — carrusel verso del día + catecismo del día (`CCC n`) + tarjeta de celebración + accesos rápidos
+  - [x] `bible.yaml` — leer capítulo, picker libro/capítulo (Génesis→Mateo), buscar y saltar al versículo exacto
+  - [x] `catechism.yaml` — párrafos cargan, salto por número (1422 → sección "La Penitencia y la Reconciliación"), búsqueda
+  - [x] `readings.yaml` — calendario → lecturas del día, cambiar fecha (anclado a 2026-08-15, "hoy" = fecha local del dispositivo)
   - [x] `prayers.yaml` — oración individual con cambio EN/ES/LA + flujo del Rosario
+  - [x] `chat.yaml` — Ask (chat AI): render + historial vacío + navegación de vuelta
   - [x] `settings.yaml` — tema/idioma/traducción; sign out cubierto en `auth.yaml`
 
 ### 4. Orquestación y docs
-- [x] Script orquestador `scripts/e2e.sh` (compose + seed + back + fecha/locale emulador + maestro) y `npm run test:e2e` en el móvil
+- [x] Script orquestador `scripts/e2e.sh` (compose + seed + back + fecha/locale emulador + build + maestro) y `bun run test:e2e` en el móvil
 - [x] Sección E2E en el `README.md` raíz (prerequisitos: docker, go, bun, emulador Android, maestro; cómo correr)
-- [ ] Correr la suite completa en local y ajustar timeouts
+- [x] Correr la suite completa en local (9/9 flujos verdes) y ajustar timeouts
 
 ## Decisiones / riesgos
 - **Volúmenes**: conservarlos entre corridas (el seed es idempotente); `docker compose down -v` para re-aplicar migraciones o datos limpios.
 - **Endpoints "daily"**: dependen del reloj del server → assertions sobre **fechas fijas seedeadas** y aserción estructural en "hoy".
+- **"Hoy" en el móvil = fecha local del dispositivo** (`client.todayLocalISO`), no UTC: `e2e.sh` ancla el reloj del emulador a `2026-08-15` y `readings.yaml` deriva el label esperado de ese ancla +1.
+- **Build con `npx`, no `bun x`**: `bunx` inyecta un shim `node`→bun en PATH y gradle falla con "Cannot convert '' to File"; Metro sí corre con bun (`bun --bun x expo start`, node 18 es muy viejo para `metro.config.js`). `e2e.sh` exporta `ANDROID_HOME`/PATH.
 - **Peer mismatch `react@19.1.0` / `react-dom@19.2.7`**: solo afecta a web; irrelevante para este plan (no usamos web).
 - **Determinismo**: el seed con `--test-user` garantiza credenciales fijas (`test@saecula.app` / `saecula123`) para login por UI y por API.

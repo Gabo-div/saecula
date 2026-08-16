@@ -183,8 +183,8 @@ Rosary that walks the day's mysteries bead by bead.
 
 ```bash
 cd apps/mobile
-npm install
-npm start
+bun install
+bun run start
 ```
 
 The backend URL comes from `.env` (`EXPO_PUBLIC_API_URL`, default
@@ -213,7 +213,7 @@ The E2E suite drives the **full native pipeline** — docker-compose databases,
 
 ```bash
 cd apps/mobile
-npm run test:e2e          # orchestrator: compose + seed + back + emulator + maestro
+bun run test:e2e         # orchestrator: compose + seed + back + emulator + maestro
 ```
 
 The orchestrator (`scripts/e2e.sh`) does, in order:

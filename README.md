@@ -27,7 +27,8 @@ saecula/
 ├── apps/
 │   ├── back/       # Go REST API (chi) — modular APIs, DI composition root
 │   ├── cli/        # Go CLI (cobra) — scrape → generic JSON, seed as a separate step
-│   └── mobile/     # React Native app (Expo + TypeScript, Tamagui v2, Zustand, Axios)
+│   ├── mobile/     # React Native app (Expo + TypeScript, Tamagui v2, Zustand, Axios)
+│   └── web/        # Next.js 15 public reader + admin panel (Tamagui v2, SSR-safe)
 ├── libs/
 │   └── canon/      # Shared Go module: canonical catalog of the 73 books
 ├── docker-compose.yml
@@ -196,6 +197,45 @@ variable at bundle time, so **restart `expo start` after editing `.env`**.
 Every request is logged to the Metro/browser console in dev
 (`[api] → …` / `[api] ← …`).
 
+### 5. Run the web reader (public)
+
+The web app in `apps/web` is a **Next.js 15** App Router app that serves two purposes: a public read-only Bible/Catechism/Readings/Prayers/Ask reader, and an admin panel for graph and translation editing.
+
+**Public reader routes** (no login required):
+
+| Route | Content |
+|---|---|
+| `/biblia` | Bible reader — book/chapter picker, verse text, EN/ES/LA switch |
+| `/catecismo` | Catechism reader — numbered CCC paragraphs, language switch |
+| `/lecturas` | Daily Mass readings — date picker, full reading text |
+| `/prayers` | Prayers hub — individual prayers with EN/ES/LA selector |
+| `/chat` | Ask (AI chat) — requires backend with `GEMINI_API_KEY` |
+
+```bash
+cd apps/web
+bun install
+bun run dev     # http://localhost:3000
+```
+
+The web app consumes the **same Go API** as the mobile app. The API URL defaults to `http://localhost:8080` and is configurable via `NEXT_PUBLIC_API_URL` in `.env`.
+
+Admin panel routes (`/admin/*`) require a JWT with the `admin` role — see the admin section below for details.
+
+### 6. Run the admin panel
+
+The admin panel is built into `apps/web` and protected behind JWT auth with an `admin` role claim.
+
+```bash
+# In apps/web:
+bun run dev     # then visit http://localhost:3000/admin/login
+```
+
+Login with `admin@saecula.app` / `saecula123` (seeded via `saecula-cli seed --test-admin`). Admin routes:
+
+- `/admin/grafo` — interactive graph visualization + node relationship editor
+- `/admin/nodos` — CRUD for concept nodes (with JSON props editor)
+- `/admin/textos` — search entities and edit translations (EN/ES/LA)
+
 ## End-to-end testing (E2E)
 
 The E2E suite drives the **full native pipeline** — docker-compose databases,
@@ -227,6 +267,28 @@ The orchestrator (`scripts/e2e.sh`) does, in order:
    `2026-08-15`) and the locale to `es-ES` (the flows assert Spanish UI text).
 5. Builds/installs the app with `expo run:android`.
 6. Runs `maestro test apps/mobile/.maestro`.
+
+### Expo Go mode (no native build)
+
+For faster iteration you can skip the native build and run the tests against **Expo Go** directly:
+
+```bash
+cd apps/mobile
+bun run test:e2e:expo-go
+```
+
+This script (`scripts/e2e-expo-go.sh`):
+
+1. Starts Metro in the background (with `--dev-client` disabled).
+2. Waits for Expo Go to be detected via `adb`.
+3. Deep-links into the app via `adb shell am start`.
+4. Patches the Maestro flows at runtime to use `host.exp.exponent` as the
+   app ID (Expo Go's package name) instead of the production bundle ID.
+
+**Note:** Expo Go mode uses the JS-bundled versions of all dependencies.
+Native modules (`expo-image`, `expo-linear-gradient`, `expo-clipboard`) have
+been replaced with pure JS / React Native equivalents so the app runs
+unchanged in Expo Go.
 
 ### Anchored date
 

@@ -36,7 +36,7 @@ var (
 )
 
 type vatLangCfg struct {
-	base          string // page base URL
+	base          string         // page base URL
 	suffix        string         // appended to each pageRe capture ("" if it captures the whole filename)
 	pageRe        *regexp.Regexp // extracts content-page names from the index
 	translationID string

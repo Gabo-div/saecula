@@ -406,6 +406,37 @@ export function CatechismScreen({ navigation }: Props) {
     void load(true);
   }, [load]);
 
+  // jumpTo fetches straight to a focused paragraph: the section is fetched in
+  // parallel 200-paragraph chunks (the API's max page size) instead of paging
+  // forward one small page at a time, so deep targets scroll in ~1 round-trip.
+  const jumpTo = useCallback(
+    async (target: number) => {
+      if (inFlight.current) return;
+      inFlight.current = true;
+      const myGen = gen.current;
+      const chunk = 200;
+      const requests: number[] = [];
+      for (let f = section.from; f <= target; f += chunk) requests.push(f);
+      try {
+        const pages = await Promise.all(
+          requests.map((f) =>
+            fetchCatechism(f, Math.min(f + chunk - 1, section.to), chunk, lang),
+          ),
+        );
+        if (myGen !== gen.current) return; // section changed mid-jump
+        const merged = pages.flatMap((p) => p.paragraphs);
+        setItems(merged);
+        if (merged.length > 0) nextFrom.current = merged[merged.length - 1].number + 1;
+        hasMore.current = target < section.to;
+      } catch {
+        // keep whatever items are loaded; the focus effect will retry
+      } finally {
+        inFlight.current = false;
+      }
+    },
+    [section, lang],
+  );
+
   const runSearch = useCallback(
     async (q: string): Promise<SearchItem[]> => {
       const res = await searchCatechism(q, lang);
@@ -426,14 +457,13 @@ export function CatechismScreen({ navigation }: Props) {
   };
 
   // Once the section (re)loads, scroll to the pending paragraph; if it isn't
-  // in the loaded page yet, page forward until it is.
+  // loaded yet, jump straight to it (parallel chunks) rather than paging.
   useEffect(() => {
     const n = pendingFocus.current;
     if (n == null) return;
     const index = items.findIndex((p) => p.number === n);
     if (index < 0) {
-      if (hasMore.current && !inFlight.current) void load(false);
-      else if (!hasMore.current) pendingFocus.current = null; // absent; give up
+      if (!inFlight.current) void jumpTo(n);
       return;
     }
     pendingFocus.current = null;
@@ -441,7 +471,7 @@ export function CatechismScreen({ navigation }: Props) {
     requestAnimationFrame(() => {
       listRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0.15 });
     });
-  }, [items, load]);
+  }, [items, jumpTo]);
 
   // Fade the highlight out after a moment.
   useEffect(() => {

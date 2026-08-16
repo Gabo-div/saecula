@@ -190,6 +190,78 @@ variable at bundle time, so **restart `expo start` after editing `.env`**.
 Every request is logged to the Metro/browser console in dev
 (`[api] → …` / `[api] ← …`).
 
+## End-to-end testing (E2E)
+
+The E2E suite drives the **full native pipeline** — docker-compose databases,
+`saecula-cli` seed, the Go backend, and the app on an Android emulator — with
+**Maestro** flows (`apps/mobile/.maestro/*.yaml`). No web build involved.
+
+### Prerequisites
+
+- Docker, Go, Bun, and the Maestro CLI (`curl -Ls https://get.maestro.mobile.dev | bash`)
+- An Android emulator (AVD) running and booted, with `adb` on `PATH`
+- The app is installed via `expo run:android` (a debug dev build); the backend
+  URL for the emulator is inlined as `EXPO_PUBLIC_API_URL=http://10.0.2.2:8080`
+
+### Running
+
+```bash
+cd apps/mobile
+npm run test:e2e          # orchestrator: compose + seed + back + emulator + maestro
+```
+
+The orchestrator (`scripts/e2e.sh`) does, in order:
+
+1. Starts Postgres + Neo4j (`docker compose up -d`) and waits for health.
+2. Seeds the databases idempotently: the CEE Bible, the Catechism in
+   EN/ES/LA, the USCCB readings, the daily features, and the test account
+   `test@saecula.app` / `saecula123` (`--test-user`).
+3. Builds and starts the backend on `:8080` (it is stopped on exit).
+4. Pins the **emulator clock** to the seeded anchor date (default
+   `2026-08-15`) and the locale to `es-ES` (the flows assert Spanish UI text).
+5. Builds/installs the app with `expo run:android`.
+6. Runs `maestro test apps/mobile/.maestro`.
+
+### Anchored date
+
+The flows assert content that must be **seeded**: the 2026-08-15 Mass readings
+(Assumption), the Prologue of the Catechism, paragraph 1422, etc. The suite is
+therefore pinned to the seeded day in two places:
+
+- the **server clock** (host) — feeds `/api/bible/daily` and `/api/calendar/daily`
+  on Home;
+- the **emulator clock** — feeds the readings screen's "today" and the
+  date-picker month. The orchestrator sets it via `adb shell date` (needs
+  `adb root`, standard on AVDs).
+
+Change `E2E_ANCHOR_DATE` (and re-seed) to move the suite to a different day.
+Individual flows are self-contained: each logs in with the seeded account when
+needed and forces the Spanish UI language, so they can also be run alone, e.g.:
+
+```bash
+maestro test apps/mobile/.maestro/readings.yaml
+```
+
+### Flow coverage and visualization objectives
+
+Each flow is self-contained (it boots the app, logs in with the seeded account
+and forces Spanish) and asserts that its page/section **renders the expected
+content** — the goal is to catch anything that stops a screen from displaying.
+The suite is anchored to the seeded day `2026-08-15` (Assumption); the
+readings flow derives its expected "next day" label from the device clock the
+same way the app does (UTC), so it stays correct regardless of timezone.
+
+| Flow | Page / section | Visualization objective (what it asserts renders) |
+|---|---|---|
+| `00_launch` | Bootstrap | The app cold-starts to the login screen, the seeded account signs in, the UI language is forced to Spanish, and Home shows its header (`Inicio`). Shared by every other flow. |
+| `auth` | Login + Profile | Sign-in lands on Profile showing the account (`test@saecula.app`), sign-out returns to the login screen, wrong credentials display the backend error, and correct credentials land back on Home. |
+| `home` | Home + quick actions + tab bar | Home renders the verse of the day, the celebration-of-the-day card, and the quick actions (`Preguntar`, `Oración`); the prayers hub opens from the quick action, and the tab bar navigates Home ↔ Calendar. |
+| `bible` | Bible reader | A chapter renders with its location header, the book/chapter picker opens `Génesis 2` and `Mateo 5`, and full-text search shows results and jumps to the first hit. |
+| `catechism` | Catechism reader | The Prologue section renders, and searching `1422` jumps to paragraph 1422 with its Penance & Reconciliation text visible. |
+| `prayers` | Prayers hub + prayer + guided Rosary | The hub renders (`Oraciones guiadas`), an individual prayer's body switches EN → LA (`Our Father` → `Pater Noster`), and the guided Rosary renders its start button and first step (`Señal de la Cruz`). |
+| `readings` | Calendar hub → daily readings | The hub renders (`Lecturas del día`, `Santoral`), the day's readings scroll through First/Second reading and Gospel, the date picker opens anchored to August 2026 and jumps to "today", and the next/prev day steppers update the fixed date header. |
+| `settings` | Profile + Settings | Profile renders the account, Settings renders theme/accent/language/translation rows, the theme modes (AMOLED/Claro/Oscuro) switch, the language switcher persists (Español ↔ English), and back navigation returns to Home. |
+
 ## API
 
 | Method | Path | Auth | Description |

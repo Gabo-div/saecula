@@ -1,0 +1,55 @@
+appId: com.saecula.app
+---
+# Bible reader: chapter loads, book/chapter picker (Génesis → Mateo), and a
+# full-text search whose first hit is opened in the reader.
+- runFlow:
+    file: 00_launch.yaml
+- tapOn:
+    id: "tab-bible"
+- extendedWaitUntil:
+    visible:
+      id: "bible-location"
+    timeout: 20000
+# Picker: Génesis 1 → 2.
+- tapOn:
+    id: "bible-location"
+- tapOn:
+    id: "book-GEN"
+- tapOn:
+    id: "chapter-2"
+- extendedWaitUntil:
+    visible: "Génesis 2"
+    timeout: 20000
+# Picker: scroll to Mateo and open chapter 5.
+- tapOn:
+    id: "bible-location"
+- scrollUntilVisible:
+    element:
+      id: "book-MAT"
+    direction: DOWN
+- tapOn:
+    id: "book-MAT"
+- tapOn:
+    id: "chapter-5"
+- extendedWaitUntil:
+    visible: "Mateo 5"
+    timeout: 20000
+# Search "maría" and open the first hit (matches by id — the typed query
+# collides case-insensitively with every result snippet otherwise).
+- tapOn:
+    id: "bible-search"
+- assertVisible: "Buscar…"
+- tapOn:
+    id: "reader-search-input"
+- inputText: "maría"
+- extendedWaitUntil:
+    visible:
+      id: "search-result"
+    timeout: 15000
+- tapOn:
+    id: "search-result"
+- extendedWaitUntil:
+    notVisible: "Buscar…"
+    timeout: 15000
+- assertVisible:
+    id: "bible-location"

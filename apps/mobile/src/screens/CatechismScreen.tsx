@@ -2,7 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, LayoutAnimation, Modal, Platform, ScrollView, UIManager } from 'react-native';
+import { FlatList, LayoutAnimation, Modal, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Separator, Spinner, Text, View, XStack, YStack } from 'tamagui';
 
@@ -24,10 +24,6 @@ import { useReaderPrefs } from '@/store/readerPrefsStore';
 import { useAppTheme } from '@/store/themeStore';
 import { serif } from '@/theme/colors';
 import type { CatechismParagraph } from '@/types/api';
-
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 const PAGE = 50;
 const LANGS = ['en', 'es', 'la'] as const;
@@ -416,7 +412,7 @@ export function CatechismScreen({ navigation }: Props) {
               <MaterialCommunityIcons name="chevron-down" size={18} color={c.accent} />
             </XStack>
             <HeaderIconButton icon="book-open-variant" onPress={() => setPickerOpen(true)} />
-            <HeaderIconButton icon="magnify" onPress={() => setSearchOpen(true)} />
+            <HeaderIconButton icon="magnify" testID="catechism-search" onPress={() => setSearchOpen(true)} />
             <HeaderIconButton icon="dots-vertical" onPress={() => setSettingsOpen(true)} />
           </XStack>
 

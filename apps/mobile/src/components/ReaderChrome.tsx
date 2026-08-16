@@ -3,12 +3,11 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  KeyboardAvoidingView,
   LayoutAnimation,
   Modal,
-  Platform,
   ScrollView,
   TextInput,
-  UIManager,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
@@ -18,10 +17,6 @@ import { Separator, Spinner, Text, View, XStack, YStack } from 'tamagui';
 import { FONT_STEPS, useReaderPrefs } from '@/store/readerPrefsStore';
 import { useAppTheme } from '@/store/themeStore';
 import { serif } from '@/theme/colors';
-
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 // A gentle fade+resize so the chrome eases in and out instead of snapping.
 const ANIM = LayoutAnimation.create(
@@ -312,65 +307,69 @@ export function ReaderSearchSheet({
         onPress={onClose}
         pressStyle={{ opacity: 1 }}
       >
-        <YStack
-          bg={c.bgElevated}
-          borderTopLeftRadius={24}
-          borderTopRightRadius={24}
-          borderWidth={1}
-          borderColor={c.border}
-          maxH="85%"
-          pb={insets.bottom + 8}
-          onPress={(e) => e.stopPropagation()}
-        >
-          <XStack items="center" gap="$2" px="$4" py="$3">
-            <MaterialCommunityIcons name="magnify" size={22} color={c.muted} />
-            <TextInput
-              value={q}
-              onChangeText={setQ}
-              placeholder={t('reader.searchPlaceholder')}
-              placeholderTextColor={c.muted}
-              autoFocus
-              returnKeyType="search"
-              style={{ flex: 1, color: c.strong, fontSize: 16, paddingVertical: 6 }}
-            />
-            {loading ? (
-              <Spinner color={c.accent} />
-            ) : (
-              <MaterialCommunityIcons name="close" size={22} color={c.muted} onPress={onClose} />
-            )}
-          </XStack>
-          <Separator borderColor={c.border} />
+        <KeyboardAvoidingView behavior="padding">
+          <YStack
+            bg={c.bgElevated}
+            borderTopLeftRadius={24}
+            borderTopRightRadius={24}
+            borderWidth={1}
+            borderColor={c.border}
+            maxH="85%"
+            pb={insets.bottom + 8}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <XStack items="center" gap="$2" px="$4" py="$3">
+              <MaterialCommunityIcons name="magnify" size={22} color={c.muted} />
+              <TextInput
+                testID="reader-search-input"
+                value={q}
+                onChangeText={setQ}
+                placeholder={t('reader.searchPlaceholder')}
+                placeholderTextColor={c.muted}
+                autoFocus
+                returnKeyType="search"
+                style={{ flex: 1, color: c.strong, fontSize: 16, paddingVertical: 6 }}
+              />
+              {loading ? (
+                <Spinner color={c.accent} />
+              ) : (
+                <MaterialCommunityIcons name="close" size={22} color={c.muted} onPress={onClose} />
+              )}
+            </XStack>
+            <Separator borderColor={c.border} />
 
-          {!active ? (
-            <Text color={c.muted} px="$4" py="$4" fontSize={13}>
-              {t('reader.searchHint')}
-            </Text>
-          ) : !loading && items.length === 0 ? (
-            <Text color={c.muted} px="$4" py="$4" fontSize={13}>
-              {t('reader.noResults')}
-            </Text>
-          ) : (
-            <ScrollView keyboardShouldPersistTaps="handled">
-              {items.map((it) => (
-                <YStack
-                  key={it.key}
-                  px="$4"
-                  py="$3"
-                  gap="$1"
-                  onPress={() => onPick(it)}
-                  pressStyle={{ bg: c.bg }}
-                >
-                  <Text color={c.accent} fontFamily={serif} fontSize={14} fontWeight="600">
-                    {it.title}
-                  </Text>
-                  <Text color={c.text} fontSize={13} lineHeight={19} numberOfLines={2}>
-                    {it.snippet}
-                  </Text>
-                </YStack>
-              ))}
-            </ScrollView>
-          )}
-        </YStack>
+            {!active ? (
+              <Text color={c.muted} px="$4" py="$4" fontSize={13}>
+                {t('reader.searchHint')}
+              </Text>
+            ) : !loading && items.length === 0 ? (
+              <Text color={c.muted} px="$4" py="$4" fontSize={13}>
+                {t('reader.noResults')}
+              </Text>
+            ) : (
+              <ScrollView keyboardShouldPersistTaps="handled">
+                {items.map((it) => (
+                  <YStack
+                    key={it.key}
+                    testID="search-result"
+                    px="$4"
+                    py="$3"
+                    gap="$1"
+                    onPress={() => onPick(it)}
+                    pressStyle={{ bg: c.bg }}
+                  >
+                    <Text color={c.accent} fontFamily={serif} fontSize={14} fontWeight="600">
+                      {it.title}
+                    </Text>
+                    <Text color={c.text} fontSize={13} lineHeight={19} numberOfLines={2}>
+                      {it.snippet}
+                    </Text>
+                  </YStack>
+                ))}
+              </ScrollView>
+            )}
+          </YStack>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );

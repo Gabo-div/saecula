@@ -129,10 +129,12 @@ export function HomeScreen({ navigation }: Props) {
               <>
                 <HeaderIconButton
                   icon="hands-pray"
+                  testID="home-prayers"
                   onPress={() => navigation.navigate('Prayers')}
                 />
                 <HeaderIconButton
                   icon="account-circle-outline"
+                  testID="home-profile"
                   onPress={() => navigation.navigate('Profile')}
                 />
               </>

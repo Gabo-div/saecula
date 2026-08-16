@@ -130,22 +130,30 @@ export function RootTabs() {
         ),
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: t('tabs.home') }} />
-      <Tab.Screen name="Bible" component={BibleScreen} options={{ tabBarLabel: t('tabs.bible') }} />
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{ tabBarLabel: t('tabs.home'), tabBarButtonTestID: 'tab-home' }}
+      />
+      <Tab.Screen
+        name="Bible"
+        component={BibleScreen}
+        options={{ tabBarLabel: t('tabs.bible'), tabBarButtonTestID: 'tab-bible' }}
+      />
       <Tab.Screen
         name="Catechism"
         component={CatechismScreen}
-        options={{ tabBarLabel: t('tabs.catechism') }}
+        options={{ tabBarLabel: t('tabs.catechism'), tabBarButtonTestID: 'tab-catechism' }}
       />
       <Tab.Screen
         name="Explore"
         component={ExploreScreen}
-        options={{ tabBarLabel: t('tabs.explore') }}
+        options={{ tabBarLabel: t('tabs.explore'), tabBarButtonTestID: 'tab-explore' }}
       />
       <Tab.Screen
         name="Calendar"
         component={CalendarStackNavigator}
-        options={{ tabBarLabel: t('tabs.calendar') }}
+        options={{ tabBarLabel: t('tabs.calendar'), tabBarButtonTestID: 'tab-calendar' }}
       />
       <Tab.Screen
         name="Prayers"

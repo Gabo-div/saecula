@@ -120,6 +120,7 @@ export function DatePickerSheet({
           {/* Month stepper */}
           <XStack items="center" justify="space-between" px="$4" py="$3">
             <View
+              testID="picker-prev-month"
               width={40}
               height={40}
               rounded={20}
@@ -135,6 +136,7 @@ export function DatePickerSheet({
               {monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1)}
             </Text>
             <View
+              testID="picker-next-month"
               width={40}
               height={40}
               rounded={20}
@@ -202,6 +204,7 @@ export function DatePickerSheet({
           {/* Jump to today */}
           <XStack px="$4" pt="$3">
             <View
+              testID="picker-today"
               flex={1}
               items="center"
               py="$3"

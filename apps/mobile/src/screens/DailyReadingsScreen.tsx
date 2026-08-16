@@ -83,6 +83,7 @@ export function DailyReadingsScreen({ navigation, route }: Props) {
       {/* Date stepper */}
       <XStack items="center" px="$4" py="$2" gap="$2">
         <View
+          testID="readings-prev-day"
           width={40}
           height={40}
           rounded={20}
@@ -95,6 +96,7 @@ export function DailyReadingsScreen({ navigation, route }: Props) {
           <MaterialCommunityIcons name="chevron-left" size={24} color={c.accent} />
         </View>
         <XStack
+          testID="readings-date"
           height={40}
           items="center"
           justify="center"
@@ -112,6 +114,7 @@ export function DailyReadingsScreen({ navigation, route }: Props) {
           <MaterialCommunityIcons name="calendar-month-outline" size={16} color={c.accent} />
         </XStack>
         <View
+          testID="readings-next-day"
           width={40}
           height={40}
           rounded={20}

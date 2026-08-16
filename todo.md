@@ -19,39 +19,39 @@ build nativa + Jest) y **Appium** (genérico/WebDriver, más setup).
 ## Pasos
 
 ### 1. Infraestructura (BDs + datos)
-- [ ] `docker compose up -d --force-recreate` y esperar healthchecks (Postgres + Neo4j)
-- [ ] `go build` del CLI y seed con los datos reales:
+- [x] `docker compose up -d --force-recreate` y esperar healthchecks (Postgres + Neo4j)
+- [x] `go build` del CLI y seed con los datos reales:
       `seed --file data/bible_cee.json --file data/catechism_ccc_en.json
             --file data/catechism_ccc_es.json --file data/catechism_ccc_la.json
             --file data/readings_usccb.json --test-user`
-- [ ] `daily --fill` (verso del día) sobre `data/daily_feasts.json`
+- [x] `daily --fill` (verso del día) sobre `data/daily_feasts.json`
 
 ### 2. E2E de la API (Go, integración)
-- [ ] Suite de integración en `apps/back` (package `internal/*` con `//go:build integration` o dir aparte) que levanta el server real contra las BDs seedeadas:
-  - [ ] `GET /health`
-  - [ ] `POST /auth/login` (test@saecula.app / saecula123) → JWT
-  - [ ] `GET /api/bible/books?lang=es`
-  - [ ] `GET /api/bible/GEN/1?lang=es`
-  - [ ] `GET /api/catechism/1`
-  - [ ] `GET /api/readings/{fecha fija seedeada}`
-  - [ ] `GET /api/bible/search` y `GET /api/catechism/search`
+- [x] Suite de integración en `apps/back` (`integration_test.go`, server real vía `httptest` contra las BDs seedeadas; skips si no hay stack):
+  - [x] `GET /health`
+  - [x] `POST /auth/login` (test@saecula.app / saecula123) → JWT
+  - [x] `GET /api/bible/books?lang=es`
+  - [x] `GET /api/bible/GEN/1?lang=es`
+  - [x] `GET /api/catechism/1`
+  - [x] `GET /api/readings/{fecha fija seedeada}`
+  - [x] `GET /api/bible/search` y `GET /api/catechism/search`
 
 ### 3. E2E móvil (Maestro)
-- [ ] Instalar CLI de Maestro (`curl -Ls https://get.maestro.mobile.dev | bash`)
+- [x] Instalar CLI de Maestro (`curl -Ls https://get.maestro.mobile.dev | bash`) — hecho en este entorno: Maestro 2.8.0 + JDK 21 en espacio de usuario (`~/.local/jdk21`, `JAVA_HOME` y PATH en `~/.bashrc`)
 - [ ] Emulador Android (AVD / Android Studio) con la app instalada (`bun --bun x expo run:android`) o dev client
 - [ ] Apuntar la app al back del host: `EXPO_PUBLIC_API_URL=http://10.0.2.2:8080` (emulador) en `.env`
-- [ ] Flujos `.maestro/*.yaml`:
-  - [ ] `auth.yaml` — login (credenciales malas → error; buenas → Home) y sign-out
-  - [ ] `home.yaml` — verso del día + tarjeta de celebración + accesos rápidos
-  - [ ] `bible.yaml` — leer capítulo, picker libro/capítulo, buscar y saltar
-  - [ ] `catechism.yaml` — párrafos cargan, salto por número, búsqueda
-  - [ ] `readings.yaml` — calendario → lecturas del día, cambiar fecha (anclado a fecha fija seedeada)
-  - [ ] `prayers.yaml` — oración individual con cambio EN/ES/LA + flujo del Rosario
-  - [ ] `settings.yaml` — tema/acento/idioma/traducción persisten; sign out
+- [x] Flujos `.maestro/*.yaml` (`apps/mobile/.maestro/`, helper `00_launch.yaml`):
+  - [x] `auth.yaml` — login (credenciales malas → error; buenas → Home) y sign-out
+  - [x] `home.yaml` — verso del día + tarjeta de celebración + accesos rápidos
+  - [x] `bible.yaml` — leer capítulo, picker libro/capítulo (Génesis→Mateo), buscar y saltar
+  - [x] `catechism.yaml` — párrafos cargan, salto por número (1422), búsqueda
+  - [x] `readings.yaml` — calendario → lecturas del día, cambiar fecha (anclado a 2026-08-15)
+  - [x] `prayers.yaml` — oración individual con cambio EN/ES/LA + flujo del Rosario
+  - [x] `settings.yaml` — tema/idioma/traducción; sign out cubierto en `auth.yaml`
 
 ### 4. Orquestación y docs
-- [ ] Script orquestador (p.ej. `scripts/e2e.sh`: compose + seed + back + maestro) y `npm run test:e2e` en el móvil si aplica
-- [ ] Sección E2E en el `README.md` raíz (prerequisitos: docker, go, bun, emulador Android, maestro; cómo correr)
+- [x] Script orquestador `scripts/e2e.sh` (compose + seed + back + fecha/locale emulador + maestro) y `npm run test:e2e` en el móvil
+- [x] Sección E2E en el `README.md` raíz (prerequisitos: docker, go, bun, emulador Android, maestro; cómo correr)
 - [ ] Correr la suite completa en local y ajustar timeouts
 
 ## Decisiones / riesgos

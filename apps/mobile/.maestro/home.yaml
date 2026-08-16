@@ -1,0 +1,28 @@
+appId: com.saecula.app
+---
+# Home: daily verse, celebration card, quick actions, tab navigation.
+# Requires the server + device clock anchored to a seeded day (see e2e.sh).
+- runFlow:
+    file: 00_launch.yaml
+- assertVisible: "Versículo del día"
+- extendedWaitUntil:
+    visible: "Celebración del día"
+    timeout: 20000
+- assertVisible: "Celebración del día"
+- assertVisible: "Preguntar"
+- assertVisible: "Oración"
+# Quick action opens the prayers hub (hidden tab).
+- tapOn: "Oración"
+- assertVisible: "Oraciones guiadas"
+- assertVisible: "El Santo Rosario"
+- tapOn:
+    id: "screen-back"
+- assertVisible: "Versículo del día"
+# Tab bar navigation.
+- tapOn:
+    id: "tab-calendar"
+- assertVisible: "Lecturas del día"
+- assertVisible: "Santoral"
+- tapOn:
+    id: "tab-home"
+- assertVisible: "Versículo del día"

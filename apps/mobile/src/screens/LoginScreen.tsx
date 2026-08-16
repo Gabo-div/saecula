@@ -56,6 +56,7 @@ export function LoginScreen() {
         </Text>
 
         <Input
+          testID="login-email"
           placeholder={t('login.email')}
           placeholderTextColor={c.muted as never}
           autoCapitalize="none"
@@ -69,6 +70,7 @@ export function LoginScreen() {
           focusStyle={{ borderColor: c.accent }}
         />
         <Input
+          testID="login-password"
           placeholder={t('login.password')}
           placeholderTextColor={c.muted as never}
           secureTextEntry
@@ -88,6 +90,7 @@ export function LoginScreen() {
         )}
 
         <Button
+          testID="login-submit"
           size="$4"
           bg={c.accent}
           color={c.bg}

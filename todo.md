@@ -50,6 +50,12 @@ build nativa + Jest) y **Appium** (genérico/WebDriver, más setup).
   - [x] `chat.yaml` — Ask (chat AI): render + historial vacío + navegación de vuelta
   - [x] `settings.yaml` — tema/idioma/traducción; sign out cubierto en `auth.yaml`
 
+### 3b. E2E móvil — modo Expo Go (sin build nativa)
+- [x] Reemplazar `expo-image` → `Image` de RN, `expo-linear-gradient` → `View` con estilo, `expo-clipboard` → dynamic import con fallback
+- [x] Script `scripts/e2e-expo-go.sh`: lanza Metro, espera Expo Go, deep-link con `adb shell am start`, patch Maestro flows con sed para usar `host.exp.exponent` como appId
+- [x] npm script `test:e2e:expo-go` en `apps/mobile/package.json`
+- [x] Verificación: `tsc --noEmit` en verde (mobile + web)
+
 ### 4. Orquestación y docs
 - [x] Script orquestador `scripts/e2e.sh` (compose + seed + back + fecha/locale emulador + build + maestro) y `bun run test:e2e` en el móvil
 - [x] Sección E2E en el `README.md` raíz (prerequisitos: docker, go, bun, emulador Android, maestro; cómo correr)
@@ -60,7 +66,7 @@ build nativa + Jest) y **Appium** (genérico/WebDriver, más setup).
 - **Endpoints "daily"**: dependen del reloj del server → assertions sobre **fechas fijas seedeadas** y aserción estructural en "hoy".
 - **"Hoy" en el móvil = fecha local del dispositivo** (`client.todayLocalISO`), no UTC: `e2e.sh` ancla el reloj del emulador a `2026-08-15` y `readings.yaml` deriva el label esperado de ese ancla +1.
 - **Build con `npx`, no `bun x`**: `bunx` inyecta un shim `node`→bun en PATH y gradle falla con "Cannot convert '' to File"; Metro sí corre con bun (`bun --bun x expo start`, node 18 es muy viejo para `metro.config.js`). `e2e.sh` exporta `ANDROID_HOME`/PATH.
-- **Peer mismatch `react@19.1.0` / `react-dom@19.2.7`**: solo afecta a web; irrelevante para este plan (no usamos web).
+- **Peer mismatch `react@19.1.0` / `react-dom@19.2.7`**: resuelto — `react-dom@19.1.pinned` en `apps/web` para alinear con `react@19.1.0`.
 - **Determinismo**: el seed con `--test-user` garantiza credenciales fijas (`test@saecula.app` / `saecula123`) para login por UI y por API.
 
 ---
@@ -95,5 +101,6 @@ build nativa + Jest) y **Appium** (genérico/WebDriver, más setup).
 
 ## Siguiente módulo (no incluido en esta iteración)
 - [x] **App web pública** del lector: rutas `/biblia`, `/catecismo`, `/lecturas`, `/prayers` y `/chat` (Ask) consumiendo la API existente, sin escribir datos.
+- [x] **E2E Expo Go** — modo sin build nativa para desarrollo rápido (Metro + Expo Go + deep-link + Maestro con appId patched)
 - [ ] E2E web (opcional): reusar la suite Go de integración + flujo Maestro web o Playwright.
 

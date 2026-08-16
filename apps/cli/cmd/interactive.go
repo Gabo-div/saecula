@@ -87,6 +87,12 @@ var scrapeSources = map[string][]huh.Option[string]{
 		huh.NewOption("Vatican — vatican.va (Spanish, paragraphs 1–2865)", "es"),
 		huh.NewOption("Vatican — vatican.va (Latin, paragraphs 1–2865)", "la"),
 	},
+	"citations": {
+		huh.NewOption("Catechism — all three editions (es + en + la)", "all"),
+		huh.NewOption("Catechism — Spanish (richest inline citations)", "es"),
+		huh.NewOption("Catechism — English", "en"),
+		huh.NewOption("Catechism — Latin", "la"),
+	},
 }
 
 func interactiveScrape(cmd *cobra.Command) error {
@@ -98,6 +104,7 @@ func interactiveScrape(cmd *cobra.Command) error {
 				huh.NewOption("Bible — the complete canon, text included", "bible"),
 				huh.NewOption("Daily Mass readings — verse references only", "readings"),
 				huh.NewOption("Catechism — numbered paragraphs, text included", "catechism"),
+				huh.NewOption("Citations — extract references from the Catechism (es/en/la)", "citations"),
 			).
 			Value(&scrapeType),
 	)).Run()
@@ -125,6 +132,15 @@ func interactiveScrape(cmd *cobra.Command) error {
 	case "catechism":
 		catechismOpts.lang = source
 		return interactiveScrapeCatechism(cmd)
+	case "citations":
+		if source == "all" {
+			citationsOpts.all = true
+			citationsOpts.lang = ""
+		} else {
+			citationsOpts.all = false
+			citationsOpts.lang = source
+		}
+		return interactiveScrapeCitations(cmd)
 	}
 	return nil
 }
@@ -158,6 +174,38 @@ func interactiveScrapeCatechism(cmd *cobra.Command) error {
 
 	catechismOpts.out = outPath
 	return runScrapeCatechism(cmd, nil)
+}
+
+// ---------------------------------------------------------------------------
+// Citations scrape wizard — the Catechism's citation apparatus, merged into
+// one catalog. Editions were already picked in the source select.
+// ---------------------------------------------------------------------------
+
+func interactiveScrapeCitations(cmd *cobra.Command) error {
+	outPath := citationsOpts.out
+	if outPath == "" {
+		outPath = "data/citations_catechism.json"
+	}
+	confirmed := true
+
+	err := newForm(huh.NewGroup(
+		huh.NewInput().
+			Title("Output catalog file").
+			Value(&outPath).
+			Validate(validateNotEmpty),
+		huh.NewConfirm().
+			Title("Scrape the Catechism's citations (~100 pages per edition)?").
+			Value(&confirmed),
+	)).Run()
+	if err != nil {
+		return err
+	}
+	if !confirmed {
+		return nil
+	}
+
+	citationsOpts.out = outPath
+	return runScrapeCitations(cmd, nil)
 }
 
 // ---------------------------------------------------------------------------

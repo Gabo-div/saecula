@@ -19,6 +19,7 @@ import { PrayerDetailScreen } from '@/screens/PrayerDetailScreen';
 import { PrayersHubScreen } from '@/screens/PrayersHubScreen';
 import { ProfileScreen } from '@/screens/ProfileScreen';
 import { SaintsScreen } from '@/screens/SaintsScreen';
+import { SavedVersesScreen } from '@/screens/SavedVersesScreen';
 import { SettingsScreen } from '@/screens/SettingsScreen';
 import { useAppTheme } from '@/store/themeStore';
 
@@ -63,6 +64,7 @@ export type PrayersStackParamList = {
 // The Profile tab hosts its own stack so Settings pushes on top of it.
 export type ProfileStackParamList = {
   ProfileHome: undefined;
+  SavedVerses: undefined;
   Settings: undefined;
 };
 
@@ -133,6 +135,7 @@ function ProfileStackNavigator() {
       screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.bg } }}
     >
       <ProfileStack.Screen name="ProfileHome" component={ProfileScreen} />
+      <ProfileStack.Screen name="SavedVerses" component={SavedVersesScreen} />
       <ProfileStack.Screen name="Settings" component={SettingsScreen} />
     </ProfileStack.Navigator>
   );

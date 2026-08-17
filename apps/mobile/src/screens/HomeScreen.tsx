@@ -297,9 +297,9 @@ export function HomeScreen({ navigation }: Props) {
               onPress={() => navigation.navigate('Ask')}
             />
             <QuickAction
-              icon="calendar-month-outline"
-              label={t('tabs.calendar')}
-              onPress={() => navigation.navigate('Calendar')}
+              icon="bookmark-multiple-outline"
+              label={t('bookmarks.title')}
+              onPress={() => navigation.navigate('Profile')}
             />
             <QuickAction
               icon="book-cross"

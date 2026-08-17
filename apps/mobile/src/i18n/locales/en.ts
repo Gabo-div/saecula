@@ -160,6 +160,30 @@ const en: Translations = {
     suggestDailyGospel: 'How can I live out today’s Gospel?',
     suggestExplainBaptism: 'Explain the meaning of Baptism.',
   },
+  bookmarks: {
+    title: 'Saved Verses',
+    all: 'All',
+    highlighted: 'Highlighted',
+    withNotes: 'With notes',
+    empty: 'No saved verses yet. Tap and hold any verse in the Bible to save it.',
+    save: 'Save verse',
+    saved: 'Saved',
+    remove: 'Remove from saved',
+    highlight: 'Highlight',
+    addNote: 'Add a note',
+    editNote: 'Edit note',
+    notePlaceholder: 'Write your personal note…',
+    saveNote: 'Save note',
+    share: 'Share verse',
+    shareImage: 'Share as image',
+    shareText: 'Share as text',
+    copyLink: 'Copy link',
+    shareVia: 'Shared via Saecula',
+    saveError: 'Could not save the verse',
+    removeError: 'Could not remove the verse',
+    highlightError: 'Could not apply highlight',
+    noteError: 'Could not save the note',
+  },
 };
 
 // Shared shape: same keys everywhere, free values per locale.
@@ -303,6 +327,30 @@ export interface Translations {
     haveAccount: string;
     noAccount: string;
     connectionFailed: string;
+  };
+  bookmarks: {
+    title: string;
+    all: string;
+    highlighted: string;
+    withNotes: string;
+    empty: string;
+    save: string;
+    saved: string;
+    remove: string;
+    highlight: string;
+    addNote: string;
+    editNote: string;
+    notePlaceholder: string;
+    saveNote: string;
+    share: string;
+    shareImage: string;
+    shareText: string;
+    copyLink: string;
+    shareVia: string;
+    saveError: string;
+    removeError: string;
+    highlightError: string;
+    noteError: string;
   };
 }
 

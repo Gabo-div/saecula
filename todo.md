@@ -47,8 +47,9 @@ build nativa + Jest) y **Appium** (genérico/WebDriver, más setup).
   - [x] `catechism.yaml` — párrafos cargan, salto por número (1422 → sección "La Penitencia y la Reconciliación"), búsqueda
   - [x] `readings.yaml` — calendario → lecturas del día, cambiar fecha (anclado a 2026-08-15, "hoy" = fecha local del dispositivo)
   - [x] `prayers.yaml` — oración individual con cambio EN/ES/LA + flujo del Rosario
-  - [x] `chat.yaml` — Ask (chat AI): render + historial vacío + navegación de vuelta
-  - [x] `settings.yaml` — tema/idioma/traducción; sign out cubierto en `auth.yaml`
+- [x] `chat.yaml` — Ask (chat AI): render + historial vacío + navegación de vuelta
+- [x] `settings.yaml` — tema/idioma/traducción; sign out cubierto en `auth.yaml`
+- [x] `saved_verses.yaml` — guardar versículo, toggle highlight (5 colores), nota personal, share (imagen/link/texto), listado filtrado (All/Highlighted/With Notes), eliminar
 
 ### 3b. E2E móvil — modo Expo Go (sin build nativa)
 - [x] Reemplazar `expo-image` → `Image` de RN, `expo-linear-gradient` → `View` con estilo, `expo-clipboard` → dynamic import con fallback

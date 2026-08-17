@@ -3,7 +3,7 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Modal, ScrollView } from 'react-native';
+import { Alert, FlatList, Modal, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Separator, Spinner, Text, View, XStack, YStack } from 'tamagui';
 
@@ -18,13 +18,15 @@ import {
   type SearchItem,
 } from '@/components/ReaderChrome';
 import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
+import { VerseContextMenu } from '@/components/VerseContextMenu';
 import type { AskStackParamList, RootTabParamList } from '@/navigation/RootTabs';
+import { useBookmarksStore } from '@/store/bookmarksStore';
 import { useLanguageStore } from '@/store/languageStore';
 import { useReaderPrefs } from '@/store/readerPrefsStore';
 import { useReaderStore } from '@/store/readerStore';
 import { useAppTheme } from '@/store/themeStore';
 import { serif } from '@/theme/colors';
-import type { Book, ChapterResponse, Translation } from '@/types/api';
+import type { Book, ChapterResponse, Translation, Verse } from '@/types/api';
 
 // ---------------------------------------------------------------------------
 // Book + chapter + translation picker (modal)
@@ -302,6 +304,11 @@ export function BibleScreen({ navigation }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
 
+  // Verse context menu state
+  const [contextMenuVerse, setContextMenuVerse] = useState<Verse | null>(null);
+  const [contextMenuVisible, setContextMenuVisible] = useState(false);
+  const byEntity = useBookmarksStore((s) => s.byEntity);
+
   // Catalog + editions load once per language.
   useEffect(() => {
     void (async () => {
@@ -415,26 +422,55 @@ export function BibleScreen({ navigation }: Props) {
           contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 32 }}
         >
           <ReaderTitle overline={bookName} main={String(chapterNo)} giant />
-          {content?.verses.map((verse) => (
-            <View
-              key={verse.entity_id}
-              onLayout={(e) => onVerseLayout(verse.number, e.nativeEvent.layout.y)}
-              mb="$3"
-              mx={-8}
-              px={8}
-              rounded={6}
-              borderLeftWidth={3}
-              borderLeftColor={highlight === verse.number ? c.accent : 'transparent'}
-              bg={highlight === verse.number ? c.bgElevated : 'transparent'}
-            >
-              <Text color={c.text} fontFamily={serif} fontSize={vFont} lineHeight={vLine}>
-                <Text color={c.accent} fontWeight="700">
-                  {superscript(verse.number)}{' '}
+          {content?.verses.map((verse) => {
+            const saved = byEntity[verse.entity_id];
+            const isHighlighted = !!saved?.highlight_color;
+            const hasNote = !!saved?.note;
+            return (
+              <View
+                key={verse.entity_id}
+                onLayout={(e) => onVerseLayout(verse.number, e.nativeEvent.layout.y)}
+                mb="$3"
+                mx={-8}
+                px={8}
+                rounded={6}
+                borderLeftWidth={isHighlighted ? 3 : highlight === verse.number ? 3 : 0}
+                borderLeftColor={
+                  isHighlighted
+                    ? saved.highlight_color!
+                    : highlight === verse.number
+                      ? c.accent
+                      : 'transparent'
+                }
+                bg={
+                  isHighlighted
+                    ? `${saved.highlight_color!}18`
+                    : highlight === verse.number
+                      ? c.bgElevated
+                      : 'transparent'
+                }
+                onPress={() => {
+                  setContextMenuVerse(verse);
+                  setContextMenuVisible(true);
+                }}
+              >
+                <Text color={c.text} fontFamily={serif} fontSize={vFont} lineHeight={vLine}>
+                  <Text color={c.accent} fontWeight="700">
+                    {superscript(verse.number)}{' '}
+                  </Text>
+                  {verse.text}
                 </Text>
-                {verse.text}
-              </Text>
-            </View>
-          ))}
+                {hasNote && (
+                  <XStack mt="$1" items="center" gap="$1">
+                    <MaterialCommunityIcons name="note-text-outline" size={12} color={c.accentDim} />
+                    <Text color={c.accentDim} fontSize={11} numberOfLines={1} flex={1}>
+                      {saved.note}
+                    </Text>
+                  </XStack>
+                )}
+              </View>
+            );
+          })}
         </ScrollView>
       )}
 
@@ -454,6 +490,17 @@ export function BibleScreen({ navigation }: Props) {
         books={books}
         translations={translations}
         onClose={() => setPickerOpen(false)}
+      />
+
+      <VerseContextMenu
+        visible={contextMenuVisible}
+        verse={contextMenuVerse}
+        bookName={bookName}
+        chapter={chapterNo}
+        onClose={() => {
+          setContextMenuVisible(false);
+          setContextMenuVerse(null);
+        }}
       />
     </View>
   );

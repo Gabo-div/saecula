@@ -180,7 +180,12 @@ Profile/settings (theme, accent, language, translation) is reached from a
 button in the Home header, not a tab. **Prayers** are opened the same way
 (Home header / quick action): a hub of individual prayers — each on its own
 page with an EN/ES/LA selector — and a full-screen, step-by-step guided
-Rosary that walks the day's mysteries bead by bead.
+Rosary that walks the day's mysteries bead by bead. From Profile, users can
+access **Saved Verses** — a personal collection of bookmarked Bible verses
+with optional highlights (5 colours) and personal notes. Tapping any verse
+in the Bible reader opens a context menu to save, highlight, annotate, or
+share it. Sharing offers three options: a styled image card (via
+react-native-view-shot), a deep link, or plain text.
 
 ```bash
 cd apps/mobile

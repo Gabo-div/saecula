@@ -14,6 +14,8 @@ import type {
   ChapterResponse,
   DailyReadingsResponse,
   DailyVerseResponse,
+  SavedVersesResponse,
+  SavedVerse,
   TimelineResponse,
   TranslationsResponse,
 } from '@/types/api';
@@ -241,4 +243,59 @@ export async function searchCatechism(q: string, lang: string): Promise<Catechis
     params: { q, lang },
   });
   return data;
+}
+
+// --- Bookmarks / Saved Verses ------------------------------------------------
+
+export async function fetchSavedVerses(filter?: string): Promise<SavedVersesResponse> {
+  const { data } = await api.get<SavedVersesResponse>('/api/bookmarks', {
+    params: filter ? { filter } : {},
+  });
+  return data;
+}
+
+export async function getSavedVerse(entityId: string): Promise<SavedVerse | null> {
+  try {
+    const { data } = await api.get<SavedVerse>(
+      `/api/bookmarks/${encodeURIComponent(entityId)}`,
+    );
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveVerse(payload: {
+  entity_id: string;
+  reference: string;
+  verse_text: string;
+  highlight_color?: string | null;
+  note?: string | null;
+}): Promise<SavedVerse> {
+  const { data } = await api.post<SavedVerse>('/api/bookmarks', payload);
+  return data;
+}
+
+export async function setHighlight(
+  entityId: string,
+  color: string | null,
+): Promise<void> {
+  await api.put(
+    `/api/bookmarks/${encodeURIComponent(entityId)}/highlight`,
+    { color },
+  );
+}
+
+export async function setNote(
+  entityId: string,
+  note: string | null,
+): Promise<void> {
+  await api.put(
+    `/api/bookmarks/${encodeURIComponent(entityId)}/note`,
+    { note },
+  );
+}
+
+export async function deleteSavedVerse(entityId: string): Promise<void> {
+  await api.delete(`/api/bookmarks/${encodeURIComponent(entityId)}`);
 }

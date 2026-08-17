@@ -12,6 +12,7 @@ import (
 
 	"saecula/back/internal/auth"
 	"saecula/back/internal/bible"
+	"saecula/back/internal/bookmarks"
 	"saecula/back/internal/calendar"
 	"saecula/back/internal/catechism"
 	"saecula/back/internal/chat"
@@ -79,6 +80,7 @@ func run() error {
 	bibleTextRepo := bible.NewPostgresTextRepository(pool)
 	readingsGraphRepo := readings.NewNeo4jGraphRepository(driver)
 	readingsTextRepo := readings.NewPostgresTextRepository(pool)
+	bookmarksRepo := bookmarks.NewPostgresRepository(pool)
 
 	// --- APIs ---------------------------------------------------------------
 	authAPI := auth.NewAPI(userRepo, tokens)
@@ -90,6 +92,7 @@ func run() error {
 		return err
 	}
 	catechismAPI := catechism.NewAPI(pool)
+	bookmarksAPI := bookmarks.NewAPI(bookmarksRepo)
 
 	// AI assistant ("Ask"): Genkit runs the agent; the tools read the app's
 	// own content and graph. Disabled (503) when no Gemini key is set.
@@ -110,7 +113,7 @@ func run() error {
 		Addr:           cfg.HTTPAddr,
 		AuthMiddleware: auth.Middleware(tokens),
 		PublicAPIs:     []server.API{authAPI},
-		ProtectedAPIs:  []server.API{timelineAPI, bibleAPI, readingsAPI, calendarAPI, catechismAPI, chatAPI},
+		ProtectedAPIs:  []server.API{timelineAPI, bibleAPI, readingsAPI, calendarAPI, catechismAPI, chatAPI, bookmarksAPI},
 	})
 
 	return srv.Run(ctx)

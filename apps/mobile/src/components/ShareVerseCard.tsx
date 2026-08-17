@@ -54,25 +54,31 @@ export function ShareVerseCard({ visible, verse, verses, bookName, chapter, onCl
   };
 
   const handleShareImage = async () => {
-    if (!cardRef.current || Platform.OS === 'web' || isMulti) return;
-    const v = items[0]!;
-    const ref = `${bookName} ${chapter}:${v.number}`;
+    if (!cardRef.current || Platform.OS === 'web') return;
+    const refLabel =
+      items.length === 1
+        ? `${bookName} ${chapter}:${items[0]!.number}`
+        : `${bookName} ${chapter}:${items[0]!.number}–${items[items.length - 1]!.number}`;
     try {
       const uri = await captureRef(cardRef, {
         format: 'png',
         quality: 1,
         result: 'tmpfile',
+        width: 1080,
       });
       await Share.share({
         url: uri,
-        message: `"${v.text}" — ${ref}\n\n${t('bookmarks.shareVia')}`,
+        message: `${refLabel}\n\n${t('bookmarks.shareVia')}`,
       });
     } catch {
-      await Share.share({
-        message: `"${v.text}" — ${ref}`,
-      });
+      await Share.share({ message: `${refLabel}\n\n${t('bookmarks.shareVia')}` });
     }
   };
+
+  const verseCount = items.length;
+  const vFontSize = verseCount <= 1 ? 18 : verseCount === 2 ? 16 : 14;
+  const vLineHeight = Math.round(vFontSize * 1.55);
+  const refFontSize = verseCount <= 1 ? 15 : verseCount === 2 ? 13 : 12;
 
   const buildShareText = () => {
     if (items.length === 1) {
@@ -122,19 +128,20 @@ export function ShareVerseCard({ visible, verse, verses, bookName, chapter, onCl
           {items.map((v, i) => {
             const ref = `${bookName} ${chapter}:${v.number}`;
             return (
-              <YStack key={v.entity_id} gap="$3" items="center">
+              <YStack key={v.entity_id} gap={verseCount <= 1 ? 12 : 8} items="center">
                 {i > 0 && <View width={32} height={1} rounded={1} bg={c.border} my="$1" />}
                 <Text
                   color={c.text}
                   fontFamily={serif}
-                  fontSize={18}
-                  lineHeight={28}
+                  fontSize={vFontSize}
+                  lineHeight={vLineHeight}
                   text="center"
                   fontStyle="italic"
+                  numberOfLines={verseCount >= 3 ? 4 : undefined}
                 >
                   &ldquo;{v.text}&rdquo;
                 </Text>
-                <Text color={c.accent} fontFamily={serif} fontSize={15} fontWeight="600">
+                <Text color={c.accent} fontFamily={serif} fontSize={refFontSize} fontWeight="600">
                   — {ref}
                 </Text>
               </YStack>
@@ -149,14 +156,12 @@ export function ShareVerseCard({ visible, verse, verses, bookName, chapter, onCl
         </View>
 
         <YStack gap="$2">
-          {!isMulti && (
-            <ShareButton
-              icon="image-outline"
-              label={t('bookmarks.shareImage')}
-              onPress={handleShareImage}
-              accent
-            />
-          )}
+          <ShareButton
+            icon="image-outline"
+            label={t('bookmarks.shareImage')}
+            onPress={handleShareImage}
+            accent
+          />
           <ShareButton
             icon="link-variant"
             label={t('bookmarks.copyLink')}

@@ -314,6 +314,7 @@ export function BibleScreen({ navigation }: Props) {
   const [multiSelectMode, setMultiSelectMode] = useState(false);
   const [selectedVerseIds, setSelectedVerseIds] = useState<Set<string>>(new Set());
   const [multiToolbarVisible, setMultiToolbarVisible] = useState(false);
+  const longPressFired = useRef(false);
 
   // Catalog + editions load once per language.
   useEffect(() => {
@@ -461,6 +462,10 @@ export function BibleScreen({ navigation }: Props) {
                         : 'transparent'
                 }
                 onPress={() => {
+                  if (longPressFired.current) {
+                    longPressFired.current = false;
+                    return;
+                  }
                   if (multiSelectMode) {
                     setSelectedVerseIds((prev) => {
                       const next = new Set(prev);
@@ -481,6 +486,7 @@ export function BibleScreen({ navigation }: Props) {
                   }
                 }}
                 onLongPress={() => {
+                  longPressFired.current = true;
                   if (!multiSelectMode) {
                     setMultiSelectMode(true);
                     setSelectedVerseIds(new Set([verse.entity_id]));

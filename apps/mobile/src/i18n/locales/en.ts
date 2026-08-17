@@ -183,6 +183,14 @@ const en: Translations = {
     removeError: 'Could not remove the verse',
     highlightError: 'Could not apply highlight',
     noteError: 'Could not save the note',
+    multiSelect: '{count} selected',
+    multiSelectOne: '1 selected',
+    highlightSelected: 'Highlight selected',
+    noteForSelected: 'Add note to selected',
+    noteForSelectedPlaceholder: 'Write a note for the selected verses…',
+    shareMulti: 'Share as text',
+    shareMultiImage: 'Share as image',
+    shareMultiImageHint: 'Max 3 verses for image share',
   },
 };
 
@@ -351,6 +359,14 @@ export interface Translations {
     removeError: string;
     highlightError: string;
     noteError: string;
+    multiSelect: string;
+    multiSelectOne: string;
+    highlightSelected: string;
+    noteForSelected: string;
+    noteForSelectedPlaceholder: string;
+    shareMulti: string;
+    shareMultiImage: string;
+    shareMultiImageHint: string;
   };
 }
 

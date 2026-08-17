@@ -14,33 +14,49 @@ import type { Verse } from '@/types/api';
 
 type Props = {
   visible: boolean;
-  verse: Verse;
+  verse?: Verse;
+  verses?: Verse[];
   bookName: string;
   chapter: number;
   onClose: () => void;
 };
 
-export function ShareVerseCard({ visible, verse, bookName, chapter, onClose }: Props) {
+export function ShareVerseCard({ visible, verse, verses, bookName, chapter, onClose }: Props) {
   const insets = useSafeAreaInsets();
   const c = useAppTheme();
   const { t } = useTranslation();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const cardRef = useRef<any>(null);
 
-  const reference = `${bookName} ${chapter}:${verse.number}`;
+  const items = verses ?? (verse ? [verse] : []);
+  const isMulti = items.length > 1;
+  const firstRef = items[0] ? `${bookName} ${chapter}:${items[0].number}` : '';
+  const lastRef = items.length > 1 && items[items.length - 1]
+    ? `${bookName} ${chapter}:${items[items.length - 1]!.number}`
+    : firstRef;
+  const referenceLabel = isMulti ? `${firstRef}–${lastRef}` : firstRef;
 
-  if (!visible) return null;
+  if (!visible || items.length === 0) return null;
 
   const handleCopyLink = async () => {
-    const webLink = `https://saecula.app/bible/${encodeURIComponent(verse.entity_id)}`;
-    await Clipboard.setStringAsync(webLink);
+    if (items.length === 1) {
+      const webLink = `https://saecula.app/bible/${encodeURIComponent(items[0]!.entity_id)}`;
+      await Clipboard.setStringAsync(webLink);
+    } else {
+      const links = items
+        .map((v) => `https://saecula.app/bible/${encodeURIComponent(v.entity_id)}`)
+        .join('\n');
+      await Clipboard.setStringAsync(links);
+    }
     if (Platform.OS !== 'web') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
   };
 
   const handleShareImage = async () => {
-    if (!cardRef.current || Platform.OS === 'web') return;
+    if (!cardRef.current || Platform.OS === 'web' || isMulti) return;
+    const v = items[0]!;
+    const ref = `${bookName} ${chapter}:${v.number}`;
     try {
       const uri = await captureRef(cardRef, {
         format: 'png',
@@ -49,19 +65,30 @@ export function ShareVerseCard({ visible, verse, bookName, chapter, onClose }: P
       });
       await Share.share({
         url: uri,
-        message: `"${verse.text}" — ${reference}\n\n${t('bookmarks.shareVia')}`,
+        message: `"${v.text}" — ${ref}\n\n${t('bookmarks.shareVia')}`,
       });
     } catch {
       await Share.share({
-        message: `"${verse.text}" — ${reference}`,
+        message: `"${v.text}" — ${ref}`,
       });
     }
   };
 
-  const handleShareText = async () => {
-    await Share.share({
-      message: `"${verse.text}" — ${reference}`,
+  const buildShareText = () => {
+    if (items.length === 1) {
+      const v = items[0]!;
+      const ref = `${bookName} ${chapter}:${v.number}`;
+      return `"${v.text}" — ${ref}`;
+    }
+    const lines = items.map((v) => {
+      const ref = `${bookName} ${chapter}:${v.number}`;
+      return `"${v.text}" — ${ref}`;
     });
+    return lines.join('\n\n');
+  };
+
+  const handleShareText = async () => {
+    await Share.share({ message: buildShareText() });
   };
 
   return (
@@ -92,19 +119,27 @@ export function ShareVerseCard({ visible, verse, bookName, chapter, onClose }: P
           gap="$4"
         >
           <View width={48} height={2} rounded={1} bg={c.accent} opacity={0.4} />
-          <Text
-            color={c.text}
-            fontFamily={serif}
-            fontSize={18}
-            lineHeight={28}
-            text="center"
-            fontStyle="italic"
-          >
-            &ldquo;{verse.text}&rdquo;
-          </Text>
-          <Text color={c.accent} fontFamily={serif} fontSize={15} fontWeight="600">
-            — {reference}
-          </Text>
+          {items.map((v, i) => {
+            const ref = `${bookName} ${chapter}:${v.number}`;
+            return (
+              <YStack key={v.entity_id} gap="$3" items="center">
+                {i > 0 && <View width={32} height={1} rounded={1} bg={c.border} my="$1" />}
+                <Text
+                  color={c.text}
+                  fontFamily={serif}
+                  fontSize={18}
+                  lineHeight={28}
+                  text="center"
+                  fontStyle="italic"
+                >
+                  &ldquo;{v.text}&rdquo;
+                </Text>
+                <Text color={c.accent} fontFamily={serif} fontSize={15} fontWeight="600">
+                  — {ref}
+                </Text>
+              </YStack>
+            );
+          })}
           <XStack items="center" gap="$1" mt="$1">
             <MaterialCommunityIcons name="book-cross" size={14} color={c.muted} />
             <Text color={c.muted} fontSize={11} letterSpacing={1}>
@@ -114,12 +149,14 @@ export function ShareVerseCard({ visible, verse, bookName, chapter, onClose }: P
         </View>
 
         <YStack gap="$2">
-          <ShareButton
-            icon="image-outline"
-            label={t('bookmarks.shareImage')}
-            onPress={handleShareImage}
-            accent
-          />
+          {!isMulti && (
+            <ShareButton
+              icon="image-outline"
+              label={t('bookmarks.shareImage')}
+              onPress={handleShareImage}
+              accent
+            />
+          )}
           <ShareButton
             icon="link-variant"
             label={t('bookmarks.copyLink')}
@@ -127,7 +164,7 @@ export function ShareVerseCard({ visible, verse, bookName, chapter, onClose }: P
           />
           <ShareButton
             icon="text-box-outline"
-            label={t('bookmarks.shareText')}
+            label={isMulti ? t('bookmarks.shareMulti') : t('bookmarks.shareText')}
             onPress={handleShareText}
           />
         </YStack>

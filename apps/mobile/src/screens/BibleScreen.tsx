@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Separator, Spinner, Text, View, XStack, YStack } from 'tamagui';
 
 import { fetchBooks, fetchChapter, fetchTranslations, searchBible } from '@/api/client';
+import { MultiSelectToolbar } from '@/components/MultiSelectToolbar';
 import {
   ReaderMiniBar,
   ReaderSearchSheet,
@@ -309,6 +310,11 @@ export function BibleScreen({ navigation }: Props) {
   const [contextMenuVisible, setContextMenuVisible] = useState(false);
   const byEntity = useBookmarksStore((s) => s.byEntity);
 
+  // Multi-select state
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
+  const [selectedVerseIds, setSelectedVerseIds] = useState<Set<string>>(new Set());
+  const [multiToolbarVisible, setMultiToolbarVisible] = useState(false);
+
   // Catalog + editions load once per language.
   useEffect(() => {
     void (async () => {
@@ -426,6 +432,7 @@ export function BibleScreen({ navigation }: Props) {
             const saved = byEntity[verse.entity_id];
             const isHighlighted = !!saved?.highlight_color;
             const hasNote = !!saved?.note;
+            const isSelected = selectedVerseIds.has(verse.entity_id);
             return (
               <View
                 key={verse.entity_id}
@@ -434,7 +441,9 @@ export function BibleScreen({ navigation }: Props) {
                 mx={-8}
                 px={8}
                 rounded={6}
-                borderLeftWidth={isHighlighted ? 3 : highlight === verse.number ? 3 : 0}
+                borderWidth={isSelected ? 2 : 0}
+                borderColor={isSelected ? c.accent : 'transparent'}
+                borderLeftWidth={isSelected ? 0 : isHighlighted ? 3 : highlight === verse.number ? 3 : 0}
                 borderLeftColor={
                   isHighlighted
                     ? saved.highlight_color!
@@ -443,17 +452,51 @@ export function BibleScreen({ navigation }: Props) {
                       : 'transparent'
                 }
                 bg={
-                  isHighlighted
-                    ? `${saved.highlight_color!}18`
-                    : highlight === verse.number
-                      ? c.bgElevated
-                      : 'transparent'
+                  isSelected
+                    ? `${c.accent}20`
+                    : isHighlighted
+                      ? `${saved.highlight_color!}18`
+                      : highlight === verse.number
+                        ? c.bgElevated
+                        : 'transparent'
                 }
                 onPress={() => {
-                  setContextMenuVerse(verse);
-                  setContextMenuVisible(true);
+                  if (multiSelectMode) {
+                    setSelectedVerseIds((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(verse.entity_id)) {
+                        next.delete(verse.entity_id);
+                      } else {
+                        next.add(verse.entity_id);
+                      }
+                      if (next.size === 0) {
+                        setMultiSelectMode(false);
+                        setMultiToolbarVisible(false);
+                      }
+                      return next;
+                    });
+                  } else {
+                    setContextMenuVerse(verse);
+                    setContextMenuVisible(true);
+                  }
                 }}
+                onLongPress={() => {
+                  if (!multiSelectMode) {
+                    setMultiSelectMode(true);
+                    setSelectedVerseIds(new Set([verse.entity_id]));
+                    setMultiToolbarVisible(true);
+                  }
+                }}
+                pressStyle={{ opacity: multiSelectMode ? 1 : 0.85 }}
               >
+                {multiSelectMode && (
+                  <MaterialCommunityIcons
+                    name={isSelected ? 'checkbox-marked-circle' : 'checkbox-blank-circle-outline'}
+                    size={18}
+                    color={isSelected ? c.accent : c.muted}
+                    style={{ position: 'absolute', right: 8, top: 4 }}
+                  />
+                )}
                 <Text color={c.text} fontFamily={serif} fontSize={vFont} lineHeight={vLine}>
                   <Text color={c.accent} fontWeight="700">
                     {superscript(verse.number)}{' '}
@@ -500,6 +543,18 @@ export function BibleScreen({ navigation }: Props) {
         onClose={() => {
           setContextMenuVisible(false);
           setContextMenuVerse(null);
+        }}
+      />
+
+      <MultiSelectToolbar
+        visible={multiToolbarVisible}
+        selected={content?.verses.filter((v) => selectedVerseIds.has(v.entity_id)) ?? []}
+        bookName={bookName}
+        chapter={chapterNo}
+        onDone={() => {
+          setMultiSelectMode(false);
+          setSelectedVerseIds(new Set());
+          setMultiToolbarVisible(false);
         }}
       />
     </View>

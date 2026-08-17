@@ -313,7 +313,7 @@ export function BibleScreen({ navigation }: Props) {
   // Multi-select state
   const [multiSelectMode, setMultiSelectMode] = useState(false);
   const [selectedVerseIds, setSelectedVerseIds] = useState<Set<string>>(new Set());
-  const [multiToolbarVisible, setMultiToolbarVisible] = useState(false);
+  const [multiActionsVisible, setMultiActionsVisible] = useState(false);
   const longPressFired = useRef(false);
 
   // Catalog + editions load once per language.
@@ -476,7 +476,6 @@ export function BibleScreen({ navigation }: Props) {
                       }
                       if (next.size === 0) {
                         setMultiSelectMode(false);
-                        setMultiToolbarVisible(false);
                       }
                       return next;
                     });
@@ -490,7 +489,6 @@ export function BibleScreen({ navigation }: Props) {
                   if (!multiSelectMode) {
                     setMultiSelectMode(true);
                     setSelectedVerseIds(new Set([verse.entity_id]));
-                    setMultiToolbarVisible(true);
                   }
                 }}
                 pressStyle={{ opacity: multiSelectMode ? 1 : 0.85 }}
@@ -525,6 +523,70 @@ export function BibleScreen({ navigation }: Props) {
 
       {compact && <ReaderMiniBar title={title} />}
 
+      {/* Floating checkmark FAB for multi-select */}
+      {multiSelectMode && selectedVerseIds.size > 0 && (
+        <View
+          style={{
+            position: 'absolute',
+            bottom: insets.bottom + 20,
+            right: 20,
+            zIndex: 50,
+            shadowColor: 'rgba(0,0,0,0.3)',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.3,
+            shadowRadius: 4,
+            elevation: 5,
+          } as any}
+          width={56}
+          height={56}
+          rounded={28}
+          bg={c.accent}
+          items="center"
+          justify="center"
+          onPress={() => setMultiActionsVisible(true)}
+          pressStyle={{ opacity: 0.8 }}
+        >
+          <MaterialCommunityIcons name="check" size={28} color={c.bg} />
+          <View
+            style={{ position: 'absolute', top: -4, right: -4 } as any}
+            width={22}
+            height={22}
+            rounded={11}
+            bg={c.bg}
+            borderWidth={2}
+            borderColor={c.accent}
+            items="center"
+            justify="center"
+          >
+            <Text color={c.accent} fontSize={11} fontWeight="700">
+              {selectedVerseIds.size}
+            </Text>
+          </View>
+        </View>
+      )}
+
+      {/* Multi-select exit button (X) when no action sheet open */}
+      {multiSelectMode && !multiActionsVisible && (
+        <View
+          style={{ position: 'absolute', bottom: insets.bottom + 84, right: 20, zIndex: 50 } as any}
+          width={40}
+          height={40}
+          rounded={20}
+          bg={c.bgElevated}
+          borderWidth={1}
+          borderColor={c.border}
+          items="center"
+          justify="center"
+          onPress={() => {
+            setMultiSelectMode(false);
+            setSelectedVerseIds(new Set());
+          }}
+          pressStyle={{ opacity: 0.7 }}
+        >
+          <MaterialCommunityIcons name="close" size={18} color={c.muted} />
+        </View>
+      )}
+
       <ReaderSettingsSheet visible={settingsOpen} onClose={() => setSettingsOpen(false)} />
 
       <ReaderSearchSheet
@@ -553,14 +615,14 @@ export function BibleScreen({ navigation }: Props) {
       />
 
       <MultiSelectToolbar
-        visible={multiToolbarVisible}
+        visible={multiActionsVisible}
         selected={content?.verses.filter((v) => selectedVerseIds.has(v.entity_id)) ?? []}
         bookName={bookName}
         chapter={chapterNo}
-        onDone={() => {
+        onClose={() => {
+          setMultiActionsVisible(false);
           setMultiSelectMode(false);
           setSelectedVerseIds(new Set());
-          setMultiToolbarVisible(false);
         }}
       />
     </View>

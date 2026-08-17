@@ -23,14 +23,14 @@ type Props = {
   selected: Verse[];
   bookName: string;
   chapter: number;
-  onDone: () => void;
+  onClose: () => void;
 };
 
-export function MultiSelectToolbar({ visible, selected, bookName, chapter, onDone }: Props) {
+export function MultiSelectToolbar({ visible, selected, bookName, chapter, onClose }: Props) {
   const insets = useSafeAreaInsets();
   const c = useAppTheme();
   const { t } = useTranslation();
-  const { save, toggleHighlight, updateNote } = useBookmarksStore();
+  const { toggleHighlight, updateNote } = useBookmarksStore();
 
   const [noteInput, setNoteInput] = useState(false);
   const [noteText, setNoteText] = useState('');
@@ -46,7 +46,7 @@ export function MultiSelectToolbar({ visible, selected, bookName, chapter, onDon
         const ref = `${bookName} ${chapter}:${v.number}`;
         await toggleHighlight(v.entity_id, ref, v.text, color);
       }
-      onDone();
+      onClose();
     } catch {
       Alert.alert(t('bookmarks.highlightError'));
     }
@@ -59,7 +59,7 @@ export function MultiSelectToolbar({ visible, selected, bookName, chapter, onDon
         await updateNote(v.entity_id, ref, v.text, noteText);
       }
       setNoteInput(false);
-      onDone();
+      onClose();
     } catch {
       Alert.alert(t('bookmarks.noteError'));
     }
@@ -71,16 +71,11 @@ export function MultiSelectToolbar({ visible, selected, bookName, chapter, onDon
         flex={1}
         bg="rgba(0,0,0,0.5)"
         style={{ ...StyleSheet.absoluteFillObject, zIndex: 100 } as any}
-        onPress={onDone}
+        onPress={onClose}
         pressStyle={{ opacity: 1 }}
       >
         <View
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-          }}
+          style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}
           bg={c.bgElevated}
           borderTopLeftRadius={24}
           borderTopRightRadius={24}
@@ -104,7 +99,7 @@ export function MultiSelectToolbar({ visible, selected, bookName, chapter, onDon
               py="$1"
               rounded={10}
               bg={c.accent}
-              onPress={onDone}
+              onPress={onClose}
               pressStyle={{ opacity: 0.7 }}
             >
               <Text color={c.bg} fontSize={13} fontWeight="600">
@@ -170,19 +165,12 @@ export function MultiSelectToolbar({ visible, selected, bookName, chapter, onDon
           ) : (
             <YStack gap="$1" pt="$2">
               <YStack>
-                <XStack
-                  items="center"
-                  gap="$3"
-                  px="$3"
-                  py="$3"
-                  rounded={10}
+                <ActionRow
+                  icon="format-color-fill"
+                  label={t('bookmarks.highlightSelected')}
+                  color={c.strong}
                   onPress={() => {}}
-                >
-                  <MaterialCommunityIcons name="format-color-fill" size={22} color={c.strong as any} />
-                  <Text color={c.strong as any} fontSize={15}>
-                    {t('bookmarks.highlightSelected')}
-                  </Text>
-                </XStack>
+                />
                 <XStack px="$8" pb="$2" gap="$3" items="center">
                   {HIGHLIGHT_COLORS.map((hc) => (
                     <View
@@ -214,14 +202,12 @@ export function MultiSelectToolbar({ visible, selected, bookName, chapter, onDon
 
               <Separator borderColor={c.border} my="$1" />
 
-              {count <= 3 && (
-                <ActionRow
-                  icon="share-variant-outline"
-                  label={t('bookmarks.shareMultiImage')}
-                  color={c.strong}
-                  onPress={() => setShareVisible(true)}
-                />
-              )}
+              <ActionRow
+                icon="share-variant-outline"
+                label={count <= 3 ? t('bookmarks.shareMultiImage') : t('bookmarks.shareMulti')}
+                color={c.strong}
+                onPress={() => setShareVisible(true)}
+              />
             </YStack>
           )}
         </View>
@@ -234,7 +220,7 @@ export function MultiSelectToolbar({ visible, selected, bookName, chapter, onDon
         chapter={chapter}
         onClose={() => {
           setShareVisible(false);
-          onDone();
+          onClose();
         }}
       />
     </>

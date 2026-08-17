@@ -2,6 +2,7 @@ package bookmarks
 
 import (
 	"context"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -15,8 +16,8 @@ type SavedVerse struct {
 	VerseText      string  `json:"verse_text"`
 	HighlightColor *string `json:"highlight_color,omitempty"`
 	Note           *string `json:"note,omitempty"`
-	CreatedAt      string  `json:"created_at"`
-	UpdatedAt      string  `json:"updated_at"`
+	CreatedAt      time.Time  `json:"created_at"`
+	UpdatedAt      time.Time  `json:"updated_at"`
 }
 
 // Repository defines the data-access contract for user saved verses.

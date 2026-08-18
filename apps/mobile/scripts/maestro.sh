@@ -9,6 +9,8 @@ set -euo pipefail
 # Usage (from apps/mobile):
 #   bun run maestro            # dev build (expo run:android)
 #   bun run maestro:expo       # Expo Go (no native build)
+#   bun run maestro --expo     # same as maestro:expo
+#   bun run maestro --dev      # force dev build (default)
 #
 # Env:
 #   E2E_RUNNER   devbuild (default) | expo
@@ -25,17 +27,28 @@ export PATH="$ANDROID_HOME/platform-tools:$HOME/.maestro/bin:$HOME/.bun/bin:$PAT
 log() { printf '\n\033[1;34m[saecula-maestro]\033[0m %s\n' "$*"; }
 fail() { printf '\033[1;31m[saecula-maestro] FAIL:\033[0m %s\n' "$*"; exit 1; }
 
+# Parse --dev / --expo flags, which override E2E_RUNNER.
+RUNNER_FLAG=""
+for arg in "$@"; do
+  case "$arg" in
+    --dev) RUNNER_FLAG="devbuild" ;;
+    --expo) RUNNER_FLAG="expo" ;;
+    *) fail "unknown argument: $arg (expected --dev or --expo)" ;;
+  esac
+done
+RUNNER="${RUNNER_FLAG:-${E2E_RUNNER:-devbuild}}"
+case "$RUNNER" in
+  devbuild|expo) ;;
+  *) fail "E2E_RUNNER must be 'devbuild' or 'expo' (got '$RUNNER')" ;;
+esac
+
 ANCHOR_DATE="${E2E_ANCHOR_DATE:-2026-08-15}"
 ANCHOR_YEAR="${ANCHOR_DATE%%-*}"
 ANCHOR_MMDD="$(printf '%s%s' "${ANCHOR_DATE:5:2}" "${ANCHOR_DATE:8:2}")"   # 0815
 ANCHOR_CCYY="${ANCHOR_DATE:0:4}"                                            # 2026
 HOST_IP="$(ip -4 route get 8.8.8.8 2>/dev/null | sed -n 's/.*src \([0-9.]*\).*/\1/p')"
 [ -n "$HOST_IP" ] || HOST_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
-RUNNER="${E2E_RUNNER:-devbuild}"
-case "$RUNNER" in
-  devbuild|expo) ;;
-  *) fail "E2E_RUNNER must be 'devbuild' or 'expo' (got '$RUNNER')" ;;
-esac
+
 if [ "$RUNNER" = expo ]; then
   APP_ID="host.exp.exponent"
   EXPO_URL="${EXPO_URL:-exp://${HOST_IP}:8081}"

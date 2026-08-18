@@ -60,7 +60,7 @@ build nativa + Jest) y **Appium** (genérico/WebDriver, más setup).
 - [x] `packages/contracts` — tipos del contrato de la API (single source of truth; mobile re-exporta `@/types/api`)
 - [x] `packages/config` — configs compartidas de TS, ESLint, Prettier
 - [x] Mobile adaptado: metro `watchFolders`, tsconfig paths, symlinks de workspace
-- [x] Script **independiente** de Maestro: `apps/mobile/scripts/maestro.sh` (`bun run maestro` / `bun run maestro:expo`)
+- [x] Script **independiente** de Maestro: `apps/mobile/scripts/maestro.sh` (`bun run maestro [--expo]` / `bun run maestro:expo`)
 - [x] `scripts/e2e.sh` orquesta infra y **delega** la fase Maestro en `maestro.sh`
 - [x] Scripts raíz con bun: `bun run typecheck|lint|test|e2e`
 - [x] `scripts/go-test.sh` — tests Go de back + cli bajo `bun run test`

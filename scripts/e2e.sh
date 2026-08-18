@@ -8,15 +8,30 @@ set -euo pipefail
 # The mobile/Maestro portion lives in apps/mobile and can be run on its own
 # (from apps/mobile: `bun run maestro`) — this script composes the infra
 # around it. See README "End-to-end testing (E2E)".
+#
+# Usage (from repo root):
+#   bun run e2e          # dev build (default)
+#   bun run e2e:expo     # Expo Go
+#   bun run e2e --expo   # same as e2e:expo
+#   bun run e2e --dev    # force dev build
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 log() { printf '\n\033[1;34m[saecula-e2e]\033[0m %s\n' "$*"; }
 fail() { printf '\033[1;31m[saecula-e2e] FAIL:\033[0m %s\n' "$*"; exit 1; }
 
+# Parse --dev / --expo flags, which override E2E_RUNNER.
+RUNNER_FLAG=""
+for arg in "$@"; do
+  case "$arg" in
+    --dev) RUNNER_FLAG="devbuild" ;;
+    --expo) RUNNER_FLAG="expo" ;;
+    *) fail "unknown argument: $arg (expected --dev or --expo)" ;;
+  esac
+done
 ANCHOR_DATE="${E2E_ANCHOR_DATE:-2026-08-15}"
 ANCHOR_YEAR="${ANCHOR_DATE%%-*}"
-RUNNER="${E2E_RUNNER:-devbuild}"
+RUNNER="${RUNNER_FLAG:-${E2E_RUNNER:-devbuild}}"
 case "$RUNNER" in
   devbuild|expo) ;;
   *) fail "E2E_RUNNER must be 'devbuild' or 'expo' (got '$RUNNER')" ;;

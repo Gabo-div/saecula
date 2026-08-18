@@ -62,15 +62,20 @@ bun run typecheck     # tsc across @saecula/contracts and the mobile app
 bun run lint          # eslint across the mobile app
 bun run test          # turbo test + go test (back + cli)
 bun run e2e           # full pipeline: compose + seed + back + Maestro (dev build)
-bun run e2e:expo      # same, with the app running in Expo Go
+bun run e2e --expo    # same, with the app running in Expo Go
 ```
 
 The mobile app's Maestro runner is **independent** — from `apps/mobile`:
 
 ```bash
-bun run maestro       # device + app + Metro + Maestro flows (dev build)
-bun run maestro:expo  # same, using Expo Go (no native build)
+bun run maestro          # device + app + Metro + Maestro flows (dev build)
+bun run maestro --expo   # same, using Expo Go (no native build)
+bun run maestro:expo     # shorthand for `bun run maestro --expo`
 ```
+
+Both scripts accept `--dev` / `--expo` flags (they override `E2E_RUNNER`); the
+`*:expo` package scripts are just convenience aliases that set
+`E2E_RUNNER=expo`.
 
 `scripts/e2e.sh` (the repo-wide orchestrator) brings up the infrastructure
 (databases, seed, backend) and then **delegates** the device/Metro/Maestro
@@ -255,16 +260,16 @@ The E2E suite drives the **full native pipeline** — docker-compose databases,
 **Full pipeline (infra + Maestro)** — from the repo root:
 
 ```bash
-bun run e2e          # compose + seed + back + emulator + maestro (dev build)
-bun run e2e:expo     # same, but run the app inside Expo Go (no native build)
+bun run e2e            # compose + seed + back + emulator + maestro (dev build)
+bun run e2e --expo     # same, but run the app inside Expo Go (no native build)
 ```
 
 **Maestro only** — from `apps/mobile` (assumes the backend and databases are
 already up):
 
 ```bash
-bun run maestro        # device + app + Metro + Maestro flows (dev build)
-bun run maestro:expo   # same, but run the app inside Expo Go
+bun run maestro          # device + app + Metro + Maestro flows (dev build)
+bun run maestro --expo   # same, but run the app inside Expo Go
 ```
 
 The `maestro` runner is self-contained and independent; the repo-wide

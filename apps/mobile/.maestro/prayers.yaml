@@ -1,4 +1,4 @@
-appId: com.saecula.app
+appId: ${APP_ID || "com.saecula.app"}
 ---
 # Prayers: an individual prayer with its EN/ES/LA selector, plus the guided
 # Rosary walked to its first step. Persisted language makes these ES strings

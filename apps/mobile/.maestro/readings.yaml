@@ -1,4 +1,4 @@
-appId: com.saecula.app
+appId: ${APP_ID || "com.saecula.app"}
 ---
 # Daily readings: the day's readings load from the calendar hub, the date
 # picker opens on the anchored month, and the day steppers move a day

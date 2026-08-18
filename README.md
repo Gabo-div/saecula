@@ -189,9 +189,10 @@ bun run start
 
 The backend URL comes from `.env` (`EXPO_PUBLIC_API_URL`, default
 `http://localhost:8080` — copy `.env.example` to `.env` and adjust).
-`localhost` works for web and the iOS simulator; the Android emulator
-needs `http://10.0.2.2:8080`; a physical device (Expo Go) needs your
-machine's LAN IP, e.g. `http://192.168.1.9:8080`. Expo inlines the
+`localhost` works for web and the iOS simulator; the Android emulator (AVD)
+needs `http://10.0.2.2:8080`; a physical device or Waydroid (Expo Go) needs
+your machine's LAN IP, e.g. `http://192.168.1.9:8080` (the `e2e.sh`
+orchestrator detects this automatically). Expo inlines the
 variable at bundle time, so **restart `expo start` after editing `.env`**.
 Every request is logged to the Metro/browser console in dev
 (`[api] → …` / `[api] ← …`).
@@ -206,15 +207,34 @@ The E2E suite drives the **full native pipeline** — docker-compose databases,
 
 - Docker, Go, Bun, and the Maestro CLI (`curl -Ls https://get.maestro.mobile.dev | bash`)
 - An Android emulator (AVD) running and booted, with `adb` on `PATH`
-- The app is installed via `expo run:android` (a debug dev build); the backend
-  URL for the emulator is inlined as `EXPO_PUBLIC_API_URL=http://10.0.2.2:8080`
 
 ### Running
 
 ```bash
 cd apps/mobile
 bun run test:e2e         # orchestrator: compose + seed + back + emulator + maestro
+bun run test:e2e:expo    # same, but run the app inside Expo Go (no native build)
 ```
+
+The default runner is a **dev build**: the app is installed via
+`expo run:android` and the backend URL for the emulator is inlined as
+`EXPO_PUBLIC_API_URL=http://10.0.2.2:8080`.
+
+Set `E2E_RUNNER=expo` to run the same Maestro flows against **Expo Go**
+instead: the orchestrator skips the native build, installs Expo Go
+(`host.exp.exponent`) on the emulator if needed, and opens the project via its
+`exp://` URL; Metro still serves the bundle and the API URL.
+
+The orchestrator auto-detects the host's LAN IP (`ip route get 8.8.8.8`, e.g.
+`192.168.1.9`) and uses it for both Expo Go (`exp://<host>:8081`) and the
+backend API URL (`http://<host>:8080`) — this works on Waydroid, physical
+devices and adb targets, not just the classic AVD (whose `10.0.2.2` alias is
+only reachable from inside that AVD). Override with `EXPO_URL` and
+`EXPO_PUBLIC_API_URL`.
+
+The orchestrator needs exactly **one** Android target. Set `E2E_DEVICE=<serial>`
+to pin a specific device/emulator when several are attached (`adb devices` for
+the serial); otherwise it fails and lists them.
 
 The orchestrator (`scripts/e2e.sh`) does, in order:
 
@@ -223,9 +243,11 @@ The orchestrator (`scripts/e2e.sh`) does, in order:
    EN/ES/LA, the USCCB readings, the daily features, and the test account
    `test@saecula.app` / `saecula123` (`--test-user`).
 3. Builds and starts the backend on `:8080` (it is stopped on exit).
-4. Pins the **emulator clock** to the seeded anchor date (default
-   `2026-08-15`) and the locale to `es-ES` (the flows assert Spanish UI text).
-5. Builds/installs the app with `expo run:android`.
+4. Verifies the Android target (single device or `E2E_DEVICE`), then pins the
+   **emulator clock** to the seeded anchor date (default `2026-08-15`) and the
+   locale to `es-ES` (the flows assert Spanish UI text).
+5. Installs the app: `expo run:android` (dev build) or Expo Go when
+   `E2E_RUNNER=expo`.
 6. Runs `maestro test apps/mobile/.maestro`.
 
 ### Anchored date
@@ -246,7 +268,9 @@ Individual flows are self-contained: each logs in with the seeded account when
 needed and forces the Spanish UI language, so they can also be run alone, e.g.:
 
 ```bash
-maestro test apps/mobile/.maestro/readings.yaml
+maestro test apps/mobile/.maestro/readings.yaml                    # dev build (default)
+maestro test -e APP_ID=host.exp.exponent -e RUNNER=expo \
+  -e EXPO_URL=exp://192.168.1.9:8081 apps/mobile/.maestro/readings.yaml  # Expo Go
 ```
 
 ### Flow coverage and visualization objectives

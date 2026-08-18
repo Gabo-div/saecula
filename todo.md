@@ -55,6 +55,14 @@ build nativa + Jest) y **Appium** (genérico/WebDriver, más setup).
 - [x] Sección E2E en el `README.md` raíz (prerequisitos: docker, go, bun, emulador Android, maestro; cómo correr)
 - [x] Correr la suite completa en local (9/9 flujos verdes) y ajustar timeouts
 
+## Pendiente / roadmap — E2E con Expo Go (`E2E_RUNNER=expo`)
+- [ ] **Arreglar los tests E2E con Expo Go.** Hay soporte base (base `E2E_RUNNER=expo`, `HOST_IP`, `appId` parametrizado, `openLink`, `test:e2e:expo`), pero los flujos aún **no pasan** en Expo Go:
+  - [ ] El **dev menu de Expo Go** aparece de forma intermitente (sobre login y sobre Home) y rompe los taps. El dismiss actual tocaba "Continue", que **abre** el menú en vez de cerrarlo — hay que cerrarlo tocando el **backdrop** (afuera, ~50%,5%). El `00_launch` debe descartarlo en login y tras el relanzamiento a Home.
+  - [ ] El **autofill de Google** ("Use your saved password") se dispara al enfocar el campo password (hay credencial guardada de corridas previas). `e2e.sh` intenta deshabilitarlo (`autofill_service null` + force-stop GMS) pero es frágil (adb over red a Waydroid se cae). Verificar que el setting aplica antes de Maestro.
+  - [ ] Tras login, los **quick actions de Home** (p.ej. "Oración") no navegan al tocar el texto (TextView `clickable=false`) en Expo Go.
+  - [ ] La conexión `adb` por red (Waydroid `192.168.240.112:5555`) es inestable; el `adb_reconnect()` en `e2e.sh` es la mitigación. Confirmar estabilidad.
+- Estado actual: `bun run test:e2e` (devbuild) es el camino verde; `bun run test:e2e:expo` queda **rojo** hasta resolver lo de arriba.
+
 ## Decisiones / riesgos
 - **Volúmenes**: conservarlos entre corridas (el seed es idempotente); `docker compose down -v` para re-aplicar migraciones o datos limpios.
 - **Endpoints "daily"**: dependen del reloj del server → assertions sobre **fechas fijas seedeadas** y aserción estructural en "hoy".

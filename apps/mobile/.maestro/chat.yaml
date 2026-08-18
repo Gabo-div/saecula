@@ -1,4 +1,4 @@
-appId: com.saecula.app
+appId: ${APP_ID || "com.saecula.app"}
 ---
 # Ask (AI chat): the Home quick action opens the chat, its header renders, and
 # the conversation history screen renders (empty after a fresh boot). Sending a

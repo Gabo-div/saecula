@@ -1,4 +1,4 @@
-appId: com.saecula.app
+appId: ${APP_ID || "com.saecula.app"}
 ---
 # Bible reader: chapter loads, book/chapter picker (Génesis → Mateo), and a
 # full-text search whose first hit is opened in the reader.

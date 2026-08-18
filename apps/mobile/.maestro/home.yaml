@@ -1,4 +1,4 @@
-appId: com.saecula.app
+appId: ${APP_ID || "com.saecula.app"}
 ---
 # Home: daily verse + catechism carousel, celebration card, quick actions,
 # tab navigation. Requires the server + device clock anchored to a seeded day

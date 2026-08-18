@@ -312,7 +312,7 @@ export function BibleScreen({ navigation }: Props) {
 
   // Multi-select state
   const [multiSelectMode, setMultiSelectMode] = useState(false);
-  const [selectedVerseIds, setSelectedVerseIds] = useState<Set<string>>(new Set());
+  const [selectedVerseIds, setSelectedVerseIds] = useState<Record<string, true>>({});
   const [multiActionsVisible, setMultiActionsVisible] = useState(false);
   const longPressFired = useRef(false);
 
@@ -433,7 +433,7 @@ export function BibleScreen({ navigation }: Props) {
             const saved = byEntity[verse.entity_id];
             const isHighlighted = !!saved?.highlight_color;
             const hasNote = !!saved?.note;
-            const isSelected = selectedVerseIds.has(verse.entity_id);
+            const isSelected = !!selectedVerseIds[verse.entity_id];
             return (
               <View
                 key={verse.entity_id}
@@ -468,13 +468,13 @@ export function BibleScreen({ navigation }: Props) {
                   }
                   if (multiSelectMode) {
                     setSelectedVerseIds((prev) => {
-                      const next = new Set(prev);
-                      if (next.has(verse.entity_id)) {
-                        next.delete(verse.entity_id);
+                      const next = { ...prev };
+                      if (next[verse.entity_id]) {
+                        delete next[verse.entity_id];
                       } else {
-                        next.add(verse.entity_id);
+                        next[verse.entity_id] = true;
                       }
-                      if (next.size === 0) {
+                      if (Object.keys(next).length === 0) {
                         setMultiSelectMode(false);
                       }
                       return next;
@@ -488,7 +488,7 @@ export function BibleScreen({ navigation }: Props) {
                   longPressFired.current = true;
                   if (!multiSelectMode) {
                     setMultiSelectMode(true);
-                    setSelectedVerseIds(new Set([verse.entity_id]));
+                    setSelectedVerseIds({ [verse.entity_id]: true });
                   }
                 }}
                 pressStyle={{ opacity: multiSelectMode ? 1 : 0.85 }}
@@ -524,7 +524,7 @@ export function BibleScreen({ navigation }: Props) {
       {compact && <ReaderMiniBar title={title} />}
 
       {/* Floating checkmark FAB for multi-select */}
-      {multiSelectMode && selectedVerseIds.size > 0 && (
+      {multiSelectMode && Object.keys(selectedVerseIds).length > 0 && (
         <View
           style={{
             position: 'absolute',
@@ -559,7 +559,7 @@ export function BibleScreen({ navigation }: Props) {
             justify="center"
           >
             <Text color={c.accent} fontSize={11} fontWeight="700">
-              {selectedVerseIds.size}
+              {Object.keys(selectedVerseIds).length}
             </Text>
           </View>
         </View>
@@ -579,7 +579,7 @@ export function BibleScreen({ navigation }: Props) {
           justify="center"
           onPress={() => {
             setMultiSelectMode(false);
-            setSelectedVerseIds(new Set());
+            setSelectedVerseIds({});
           }}
           pressStyle={{ opacity: 0.7 }}
         >
@@ -616,13 +616,13 @@ export function BibleScreen({ navigation }: Props) {
 
       <MultiSelectToolbar
         visible={multiActionsVisible}
-        selected={content?.verses.filter((v) => selectedVerseIds.has(v.entity_id)) ?? []}
+        selected={content?.verses.filter((v) => !!selectedVerseIds[v.entity_id]) ?? []}
         bookName={bookName}
         chapter={chapterNo}
         onClose={() => {
           setMultiActionsVisible(false);
           setMultiSelectMode(false);
-          setSelectedVerseIds(new Set());
+          setSelectedVerseIds({});
         }}
       />
     </View>

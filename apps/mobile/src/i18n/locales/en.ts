@@ -183,7 +183,7 @@ const en: Translations = {
     removeError: 'Could not remove the verse',
     highlightError: 'Could not apply highlight',
     noteError: 'Could not save the note',
-    multiSelect: '{count} selected',
+    multiSelect: '{{count}} selected',
     multiSelectOne: '1 selected',
     highlightSelected: 'Highlight selected',
     noteForSelected: 'Add note to selected',
@@ -191,6 +191,8 @@ const en: Translations = {
     shareMulti: 'Share as text',
     shareMultiImage: 'Share as image',
     shareMultiImageHint: 'Max 3 verses for image share',
+    imageSaved: 'Image saved to gallery',
+    imageSaveError: 'Could not save image',
   },
 };
 
@@ -367,6 +369,8 @@ export interface Translations {
     shareMulti: string;
     shareMultiImage: string;
     shareMultiImageHint: string;
+    imageSaved: string;
+    imageSaveError: string;
   };
 }
 

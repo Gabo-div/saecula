@@ -183,7 +183,7 @@ const es: typeof en = {
     removeError: 'No se pudo quitar el versículo',
     highlightError: 'No se pudo aplicar el resaltado',
     noteError: 'No se pudo guardar la nota',
-    multiSelect: '{count} seleccionados',
+    multiSelect: '{{count}} seleccionados',
     multiSelectOne: '1 seleccionado',
     highlightSelected: 'Resaltar seleccionados',
     noteForSelected: 'Añadir nota a los seleccionados',
@@ -191,6 +191,8 @@ const es: typeof en = {
     shareMulti: 'Compartir como texto',
     shareMultiImage: 'Compartir como imagen',
     shareMultiImageHint: 'Máximo 3 versículos para imagen',
+    imageSaved: 'Imagen guardada en la galería',
+    imageSaveError: 'No se pudo guardar la imagen',
   },
 };
 

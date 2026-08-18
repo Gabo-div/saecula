@@ -1,9 +1,10 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
+import * as MediaLibrary from 'expo-media-library';
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, Share, StyleSheet } from 'react-native';
+import { Alert, Platform, Share, StyleSheet } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, View, XStack, YStack } from 'tamagui';
@@ -54,24 +55,24 @@ export function ShareVerseCard({ visible, verse, verses, bookName, chapter, onCl
   };
 
   const handleShareImage = async () => {
-    if (!cardRef.current || Platform.OS === 'web') return;
-    const refLabel =
-      items.length === 1
-        ? `${bookName} ${chapter}:${items[0]!.number}`
-        : `${bookName} ${chapter}:${items[0]!.number}–${items[items.length - 1]!.number}`;
+    if (!cardRef.current) return;
     try {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(t('bookmarks.imageSaveError'));
+        return;
+      }
       const uri = await captureRef(cardRef, {
         format: 'png',
         quality: 1,
         result: 'tmpfile',
         width: 1080,
       });
-      await Share.share({
-        url: uri,
-        message: `${refLabel}\n\n${t('bookmarks.shareVia')}`,
-      });
+      await MediaLibrary.saveToLibraryAsync(uri);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Alert.alert(t('bookmarks.imageSaved'));
     } catch {
-      await Share.share({ message: `${refLabel}\n\n${t('bookmarks.shareVia')}` });
+      Alert.alert(t('bookmarks.imageSaveError'));
     }
   };
 

@@ -25,7 +25,9 @@ func (a *API) Routes() chi.Router {
 	r := chi.NewRouter()
 	r.Get("/", a.List)
 	r.Post("/", a.Upsert)
-	r.Delete("/{id}", a.DeleteByID)
+	r.Route("/by-id", func(r chi.Router) {
+		r.Delete("/{id}", a.DeleteByID)
+	})
 	r.Route("/{entityID}", func(r chi.Router) {
 		r.Get("/", a.Get)
 		r.Delete("/", a.Delete)

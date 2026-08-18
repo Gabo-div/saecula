@@ -184,7 +184,7 @@ const la: typeof en = {
     removeError: 'Versiculum tolli non potuit',
     highlightError: 'Illuminatio applicari non potuit',
     noteError: 'Nota servari non potuit',
-    multiSelect: '{count} selecti',
+    multiSelect: '{{count}} selecti',
     multiSelectOne: '1 selectus',
     highlightSelected: 'Illuminare selectos',
     noteForSelected: 'Addere notam selectis',
@@ -192,6 +192,8 @@ const la: typeof en = {
     shareMulti: 'Partiri ut textum',
     shareMultiImage: 'Partiri ut imaginem',
     shareMultiImageHint: 'Max. 3 versiculi pro imagine',
+    imageSaved: 'Imago in galeria servata',
+    imageSaveError: 'Imago servari non potuit',
   },
 };
 

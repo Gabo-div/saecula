@@ -9,6 +9,10 @@ appId: com.saecula.app
 - clearState
 - stopApp
 - launchApp
+# Dismiss the React Native dev menu overlay if it appears (debug builds).
+- tapOn:
+    text: "Continue"
+    optional: true
 - extendedWaitUntil:
     visible:
       id: "login-submit"
@@ -49,6 +53,10 @@ appId: com.saecula.app
     timeout: 20000
 - stopApp
 - launchApp
+# Dismiss the React Native dev menu overlay if it appears (debug builds).
+- tapOn:
+    text: "Continue"
+    optional: true
 - extendedWaitUntil:
     visible:
       id: "home-prayers"

@@ -1,0 +1,23 @@
+appId: ${APP_ID || "com.saecula.app"}
+---
+# Ask (AI chat): the Home quick action opens the chat, its header renders, and
+# the conversation history screen renders (empty after a fresh boot). Sending a
+# message needs a GEMINI_API_KEY on the backend, so the render + navigation are
+# what this flow asserts.
+- runFlow:
+    file: 00_launch.yaml
+- tapOn: "Preguntar"
+- assertVisible: "Preguntar"
+# History screen renders (empty state after clearState).
+- tapOn:
+    id: "chat-history"
+- extendedWaitUntil:
+    visible: "Historial"
+    timeout: 15000
+- assertVisible: "Aún no hay conversaciones."
+- tapOn:
+    id: "chat-history-back"
+- assertVisible: "Preguntar"
+- tapOn:
+    id: "chat-back"
+- assertVisible: "Inicio"

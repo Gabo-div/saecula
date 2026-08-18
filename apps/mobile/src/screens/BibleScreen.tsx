@@ -166,6 +166,7 @@ function BookPicker({
                     </Text>
                   ) : (
                     <XStack
+                      testID={`book-${item.book.code}`}
                       px="$4"
                       py="$3"
                       items="center"
@@ -192,6 +193,7 @@ function BookPicker({
                 <XStack flexWrap="wrap" gap="$2">
                   {Array.from({ length: pickedBook.chapters }, (_, i) => i + 1).map((n) => (
                     <View
+                      testID={`chapter-${n}`}
                       key={n}
                       width={52}
                       height={52}
@@ -365,6 +367,7 @@ export function BibleScreen({ navigation }: Props) {
           {/* Location chip + tools */}
           <XStack px="$4" py="$2" items="center" gap="$2">
             <XStack
+              testID="bible-location"
               flex={1}
               items="center"
               gap="$2"
@@ -383,7 +386,7 @@ export function BibleScreen({ navigation }: Props) {
               <MaterialCommunityIcons name="chevron-down" size={18} color={c.accent} />
             </XStack>
             <HeaderIconButton icon="book-open-variant" onPress={() => setPickerOpen(true)} />
-            <HeaderIconButton icon="magnify" onPress={() => setSearchOpen(true)} />
+            <HeaderIconButton icon="magnify" testID="bible-search" onPress={() => setSearchOpen(true)} />
             <HeaderIconButton icon="dots-vertical" onPress={() => setSettingsOpen(true)} />
           </XStack>
 

@@ -1,0 +1,40 @@
+appId: ${APP_ID || "com.saecula.app"}
+---
+# Home: daily verse + catechism carousel, celebration card, quick actions,
+# tab navigation. Requires the server + device clock anchored to a seeded day
+# (see e2e.sh).
+- runFlow:
+    file: 00_launch.yaml
+- assertVisible: "Versículo del día"
+- extendedWaitUntil:
+    visible: "Celebración del día"
+    timeout: 20000
+- assertVisible: "Celebración del día"
+- assertVisible: "Preguntar"
+- assertVisible: "Oración"
+# Carousel: swipe to the daily-catechism page and assert its chip + reference
+# (seeded by `daily --fill`); then swipe back to the verse page.
+- swipe:
+    direction: LEFT
+- extendedWaitUntil:
+    visible: "Catecismo del día"
+    timeout: 15000
+- assertVisible: ".*CCC .*"
+- swipe:
+    direction: RIGHT
+- assertVisible: "Versículo del día"
+# Quick action opens the prayers hub (hidden tab).
+- tapOn: "Oración"
+- assertVisible: "Oraciones guiadas"
+- assertVisible: "El Santo Rosario"
+- tapOn:
+    id: "screen-back"
+- assertVisible: "Versículo del día"
+# Tab bar navigation.
+- tapOn:
+    id: "tab-calendar"
+- assertVisible: "Lecturas del día"
+- assertVisible: "Santoral"
+- tapOn:
+    id: "tab-home"
+- assertVisible: "Versículo del día"

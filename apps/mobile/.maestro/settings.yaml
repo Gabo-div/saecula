@@ -1,0 +1,37 @@
+appId: ${APP_ID || "com.saecula.app"}
+---
+# Settings: theme mode, language switcher and translation default all work;
+# the helper already forced Spanish, and switching persists (AsyncStorage).
+- runFlow:
+    file: 00_launch.yaml
+- tapOn:
+    id: "home-profile"
+- assertVisible: "Perfil"
+- assertVisible: "test@saecula.app"
+- tapOn:
+    id: "profile-settings"
+- assertVisible: "Ajustes"
+- assertVisible: "Tema"
+- assertVisible: "Color de acento"
+- assertVisible: "Idioma"
+# Theme mode switches.
+- tapOn: "AMOLED"
+- tapOn: "Claro"
+- tapOn: "Oscuro"
+# Language switcher: Español → English → back.
+- tapOn: "English"
+- assertVisible: "Settings"
+- tapOn: "Español"
+- assertVisible: "Ajustes"
+# Translation default row.
+- scrollUntilVisible:
+    element:
+      text: "Por defecto (según idioma)"
+    direction: DOWN
+- assertVisible: "Por defecto (según idioma)"
+- tapOn:
+    id: "settings-back"
+- assertVisible: "Perfil"
+- tapOn:
+    id: "tab-home"
+- assertVisible: "Inicio"

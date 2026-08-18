@@ -183,18 +183,116 @@ Rosary that walks the day's mysteries bead by bead.
 
 ```bash
 cd apps/mobile
-npm install
-npm start
+bun install
+bun run start
 ```
 
 The backend URL comes from `.env` (`EXPO_PUBLIC_API_URL`, default
 `http://localhost:8080` — copy `.env.example` to `.env` and adjust).
-`localhost` works for web and the iOS simulator; the Android emulator
-needs `http://10.0.2.2:8080`; a physical device (Expo Go) needs your
-machine's LAN IP, e.g. `http://192.168.1.9:8080`. Expo inlines the
+`localhost` works for web and the iOS simulator; the Android emulator (AVD)
+needs `http://10.0.2.2:8080`; a physical device or Waydroid (Expo Go) needs
+your machine's LAN IP, e.g. `http://192.168.1.9:8080` (the `e2e.sh`
+orchestrator detects this automatically). Expo inlines the
 variable at bundle time, so **restart `expo start` after editing `.env`**.
 Every request is logged to the Metro/browser console in dev
 (`[api] → …` / `[api] ← …`).
+
+## End-to-end testing (E2E)
+
+The E2E suite drives the **full native pipeline** — docker-compose databases,
+`saecula-cli` seed, the Go backend, and the app on an Android emulator — with
+**Maestro** flows (`apps/mobile/.maestro/*.yaml`). No web build involved.
+
+### Prerequisites
+
+- Docker, Go, Bun, and the Maestro CLI (`curl -Ls https://get.maestro.mobile.dev | bash`)
+- An Android emulator (AVD) running and booted, with `adb` on `PATH`
+
+### Running
+
+```bash
+cd apps/mobile
+bun run test:e2e         # orchestrator: compose + seed + back + emulator + maestro
+bun run test:e2e:expo    # same, but run the app inside Expo Go (no native build)
+```
+
+The default runner is a **dev build**: the app is installed via
+`expo run:android` and the backend URL for the emulator is inlined as
+`EXPO_PUBLIC_API_URL=http://10.0.2.2:8080`.
+
+Set `E2E_RUNNER=expo` to run the same Maestro flows against **Expo Go**
+instead: the orchestrator skips the native build, installs Expo Go
+(`host.exp.exponent`) on the emulator if needed, and opens the project via its
+`exp://` URL; Metro still serves the bundle and the API URL.
+
+The orchestrator auto-detects the host's LAN IP (`ip route get 8.8.8.8`, e.g.
+`192.168.1.9`) and uses it for both Expo Go (`exp://<host>:8081`) and the
+backend API URL (`http://<host>:8080`) — this works on Waydroid, physical
+devices and adb targets, not just the classic AVD (whose `10.0.2.2` alias is
+only reachable from inside that AVD). Override with `EXPO_URL` and
+`EXPO_PUBLIC_API_URL`.
+
+The orchestrator needs exactly **one** Android target. Set `E2E_DEVICE=<serial>`
+to pin a specific device/emulator when several are attached (`adb devices` for
+the serial); otherwise it fails and lists them.
+
+The orchestrator (`scripts/e2e.sh`) does, in order:
+
+1. Starts Postgres + Neo4j (`docker compose up -d`) and waits for health.
+2. Seeds the databases idempotently: the CEE Bible, the Catechism in
+   EN/ES/LA, the USCCB readings, the daily features, and the test account
+   `test@saecula.app` / `saecula123` (`--test-user`).
+3. Builds and starts the backend on `:8080` (it is stopped on exit).
+4. Verifies the Android target (single device or `E2E_DEVICE`), then pins the
+   **emulator clock** to the seeded anchor date (default `2026-08-15`) and the
+   locale to `es-ES` (the flows assert Spanish UI text).
+5. Installs the app: `expo run:android` (dev build) or Expo Go when
+   `E2E_RUNNER=expo`.
+6. Runs `maestro test apps/mobile/.maestro`.
+
+### Anchored date
+
+The flows assert content that must be **seeded**: the 2026-08-15 Mass readings
+(Assumption), the Prologue of the Catechism, paragraph 1422, etc. The suite is
+therefore pinned to the seeded day in two places:
+
+- the **server clock** (host) — feeds `/api/bible/daily` and `/api/calendar/daily`
+  on Home;
+- the **emulator clock** — feeds the readings screen's "today" (the app resolves
+  it from the device's **local** date via `client.todayLocalISO`) and the
+  date-picker month. The orchestrator sets it via `adb shell date` (needs
+  `adb root`, standard on AVDs).
+
+Change `E2E_ANCHOR_DATE` (and re-seed) to move the suite to a different day.
+Individual flows are self-contained: each logs in with the seeded account when
+needed and forces the Spanish UI language, so they can also be run alone, e.g.:
+
+```bash
+maestro test apps/mobile/.maestro/readings.yaml                    # dev build (default)
+maestro test -e APP_ID=host.exp.exponent -e RUNNER=expo \
+  -e EXPO_URL=exp://192.168.1.9:8081 apps/mobile/.maestro/readings.yaml  # Expo Go
+```
+
+### Flow coverage and visualization objectives
+
+Each flow is self-contained (it boots the app, logs in with the seeded account
+and forces Spanish) and asserts that its page/section **renders the expected
+content** — the goal is to catch anything that stops a screen from displaying.
+The suite is anchored to the seeded day `2026-08-15` (Assumption); the
+readings flow derives its expected "next day" label from that anchor + 1 day,
+matching how the app resolves "today" from the device's local date.
+
+| Flow | Page / section | Visualization objective (what it asserts renders) |
+|---|---|---|
+| `00_launch` | Bootstrap | The app cold-starts to the login screen, the seeded account signs in, the UI language is forced to Spanish, and Home shows its header (`Inicio`). Shared by every other flow. |
+| `auth` | Login + Profile | Sign-in lands on Profile showing the account (`test@saecula.app`), sign-out returns to the login screen, wrong credentials display the backend error, and correct credentials land back on Home. |
+| `home` | Home + carousel + quick actions + tab bar | Home renders the verse-of-the-day and catechism-of-the-day carousel pages (swiping between them shows the `CCC n` reference), the celebration-of-the-day card, and the quick actions (`Preguntar`, `Oración`); the prayers hub opens from the quick action, and the tab bar navigates Home ↔ Calendar. |
+| `bible` | Bible reader | A chapter renders with its location header, the book/chapter picker opens `Génesis 2` and `Mateo 5`, and full-text search shows results and jumps to the exact verse (Juan 19,25), which renders after the chrome compacts. |
+| `catechism` | Catechism reader | The Prologue section renders, and searching `1422` jumps to its section (`La Penitencia y la Reconciliación`) with the penance text visible. |
+| `chat` | Ask (AI chat) + history | The `Preguntar` quick action opens the chat with its `Preguntar` header, the history screen renders (`Historial`, empty after a fresh boot), and back navigation returns Home. Sending a message needs a `GEMINI_API_KEY`, so the flow only asserts rendering. |
+| `prayers` | Prayers hub + prayer + guided Rosary | The hub renders (`Oraciones guiadas`), an individual prayer's body switches EN → LA (`Our Father` → `Pater Noster`), and the guided Rosary renders its start button and first step (`Señal de la Cruz`). |
+| `readings` | Calendar hub → daily readings | The hub renders (`Lecturas del día`, `Santoral`), the day's readings scroll through First/Second reading and Gospel, the date picker opens anchored to August 2026 and jumps to "today", and the next/prev day steppers update the fixed date header. |
+| `settings` | Profile + Settings | Profile renders the account, Settings renders theme/accent/language/translation rows, the theme modes (AMOLED/Claro/Oscuro) switch, the language switcher persists (Español ↔ English), and back navigation returns to Home. |
 
 ## API
 

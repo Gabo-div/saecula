@@ -1,0 +1,28 @@
+appId: ${APP_ID || "com.saecula.app"}
+---
+# Prayers: an individual prayer with its EN/ES/LA selector, plus the guided
+# Rosary walked to its first step. Persisted language makes these ES strings
+# deterministic (see 00_launch.yaml).
+- runFlow:
+    file: 00_launch.yaml
+- tapOn: "Oración"
+- assertVisible: "Oraciones guiadas"
+# Individual prayer: switch the body text EN → LA.
+- tapOn: "Padre Nuestro"
+- assertVisible: "Español"
+- tapOn: "English"
+- assertVisible: "Our Father"
+- tapOn: "Latina"
+- assertVisible: "Pater Noster"
+- tapOn:
+    id: "screen-back"
+# Guided Rosary: overview → first step.
+- tapOn: "El Santo Rosario"
+- assertVisible: "Comenzar"
+- tapOn: "Comenzar"
+- assertVisible: "Señal de la Cruz"
+- tapOn:
+    id: "screen-back"
+- tapOn:
+    id: "screen-back"
+- assertVisible: "Versículo del día"

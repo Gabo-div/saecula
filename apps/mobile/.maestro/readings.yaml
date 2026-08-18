@@ -1,0 +1,57 @@
+appId: ${APP_ID || "com.saecula.app"}
+---
+# Daily readings: the day's readings load from the calendar hub, the date
+# picker opens on the anchored month, and the day steppers move a day
+# forward and back. Anchored to the seeded 2026-08-15 (see e2e.sh).
+# The readings scroll; the date header above them stays fixed.
+- runFlow:
+    file: 00_launch.yaml
+- tapOn:
+    id: "tab-calendar"
+- assertVisible: "Lecturas del día"
+- assertVisible: "Santoral"
+- assertVisible: "Celebraciones"
+- tapOn: "Lecturas del día"
+- extendedWaitUntil:
+    visible: "PRIMERA LECTURA"
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      text: "SEGUNDA LECTURA"
+    direction: DOWN
+- assertVisible: "SEGUNDA LECTURA"
+- scrollUntilVisible:
+    element:
+      text: "EVANGELIO"
+    direction: DOWN
+- assertVisible: "EVANGELIO"
+# Fixed header: open the date picker (anchored month), then jump to today.
+- tapOn:
+    id: "readings-date"
+- assertVisible: "Agosto de 2026"
+- tapOn:
+    id: "picker-today"
+# Reload for today; scroll back to the top reading.
+- scrollUntilVisible:
+    element:
+      text: "PRIMERA LECTURA"
+    direction: UP
+- extendedWaitUntil:
+    visible: "PRIMERA LECTURA"
+    timeout: 20000
+# Day steppers: forward a day and back. Since main, the app resolves "today"
+# from the DEVICE's local date (client.todayLocalISO), and e2e.sh pins the
+# emulator clock to the anchored 2026-08-15. So the label after next-day is the
+# local date +1 — derived from the anchor, not from the host's UTC clock.
+- tapOn:
+    id: "readings-next-day"
+- assertVisible:
+    text: "${(() => { const anchor = '2026-08-15'; const next = new Date(anchor + 'T00:00:00Z'); next.setUTCDate(next.getUTCDate() + 1); const label = next.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }); return label.charAt(0).toUpperCase() + label.slice(1); })()}"
+- tapOn:
+    id: "readings-prev-day"
+- extendedWaitUntil:
+    visible: "PRIMERA LECTURA"
+    timeout: 20000
+- tapOn:
+    id: "screen-back"
+- assertVisible: "Santoral"

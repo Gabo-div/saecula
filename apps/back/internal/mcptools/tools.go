@@ -200,11 +200,12 @@ func (d Deps) getCatechism(ctx *ai.ToolContext, in getCatechismIn) ([]catechismP
 		lang = "en"
 	}
 	rows, err := d.Pool.Query(ctx.Context,
-		`SELECT CAST(split_part(entity_id, '.', 2) AS INT) AS num, raw_content
+		`SELECT DISTINCT ON (CAST(split_part(entity_id, '.', 2) AS INT))
+		        CAST(split_part(entity_id, '.', 2) AS INT) AS num, raw_content
 		 FROM text_documents
 		 WHERE entity_id LIKE 'CCC.%' AND language_code = $1
 		   AND CAST(split_part(entity_id, '.', 2) AS INT) BETWEEN $2 AND $3
-		 ORDER BY num
+		 ORDER BY num, translation_id
 		 LIMIT $4`,
 		lang, in.From, to, maxResults)
 	if err != nil {

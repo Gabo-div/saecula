@@ -113,6 +113,10 @@ func corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// Handler exposes the routed http.Handler so tests (and any embedder) can
+// serve it directly via httptest without binding a port.
+func (s *Server) Handler() http.Handler { return s.http.Handler }
+
 // Run blocks until ctx is cancelled or the listener fails, then drains
 // in-flight requests gracefully.
 func (s *Server) Run(ctx context.Context) error {

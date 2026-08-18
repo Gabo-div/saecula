@@ -55,6 +55,7 @@ export function SettingsScreen({ navigation }: Props) {
     <View flex={1} bg={c.bg} pt={insets.top + 8}>
       <XStack items="center" gap="$3" px="$4" py="$2">
         <MaterialCommunityIcons
+          testID="settings-back"
           name="chevron-left"
           size={28}
           color={c.accent}

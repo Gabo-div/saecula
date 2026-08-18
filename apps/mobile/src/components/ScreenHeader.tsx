@@ -11,13 +11,16 @@ type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
 export function HeaderIconButton({
   icon,
   onPress,
+  testID,
 }: {
   icon: IconName;
   onPress?: () => void;
+  testID?: string;
 }) {
   const c = useAppTheme();
   return (
     <View
+      testID={testID}
       width={40}
       height={40}
       rounded={20}
@@ -54,6 +57,7 @@ export function ScreenHeader({
     <XStack items="center" gap="$3" px="$4" py="$2">
       {onBack ? (
         <View
+          testID="screen-back"
           width={44}
           height={44}
           rounded={22}

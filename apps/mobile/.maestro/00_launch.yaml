@@ -1,0 +1,83 @@
+appId: ${APP_ID || "com.saecula.app"}
+env:
+  # Runtime the flows run on: "devbuild" (installed debug app, launched by
+  # package name) or "expo" (Expo Go, opened through its exp:// URL).
+  RUNNER: ${RUNNER || "devbuild"}
+  # Expo Go opens the project through this deep link (127.0.0.1 works with
+  # `adb reverse tcp:8081 tcp:8081`; e2e.sh passes the host's LAN IP instead).
+  EXPO_URL: ${EXPO_URL || "exp://127.0.0.1:8081"}
+---
+# Shared bootstrap. Safe to run from any flow:
+#  1. Clears app state and launches the app fresh (deterministic).
+#  2. Waits for the login screen to be ready (JS bundle load).
+#  3. Logs in with the seeded test account (test@saecula.app / saecula123).
+#  4. Forces the UI language to Spanish via Settings.
+# Every flow starts by including this helper.
+- clearState
+- stopApp
+# launchApp would open Expo Go's own home screen, not the project — the app
+# only runs inside the Expo container. Open the exp:// deep link instead.
+- runFlow:
+    when:
+      true: ${RUNNER === "expo"}
+    commands:
+      - openLink: ${EXPO_URL}
+- runFlow:
+    when:
+      true: ${RUNNER !== "expo"}
+    commands:
+      - launchApp
+- extendedWaitUntil:
+    visible:
+      id: "login-submit"
+    timeout: 60000
+- tapOn:
+    id: "login-email"
+- inputText: "test@saecula.app"
+- tapOn:
+    id: "login-password"
+- inputText: "saecula123"
+- tapOn:
+    id: "login-submit"
+- extendedWaitUntil:
+    visible:
+      id: "home-prayers"
+    timeout: 30000
+- tapOn:
+    id: "home-profile"
+- extendedWaitUntil:
+    visible: "Profile"
+    timeout: 20000
+- tapOn:
+    id: "profile-settings"
+- extendedWaitUntil:
+    visible:
+      id: "settings-back"
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      text: "Español"
+    direction: DOWN
+- tapOn: "Español"
+- tapOn:
+    id: "settings-back"
+- extendedWaitUntil:
+    visible:
+      id: "profile-settings"
+    timeout: 20000
+- stopApp
+- runFlow:
+    when:
+      true: ${RUNNER === "expo"}
+    commands:
+      - openLink: ${EXPO_URL}
+- runFlow:
+    when:
+      true: ${RUNNER !== "expo"}
+    commands:
+      - launchApp
+- extendedWaitUntil:
+    visible:
+      id: "home-prayers"
+    timeout: 30000
+- assertVisible: "Inicio"

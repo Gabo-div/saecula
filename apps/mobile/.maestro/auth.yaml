@@ -1,0 +1,32 @@
+appId: ${APP_ID || "com.saecula.app"}
+---
+# Auth end-to-end: sign in → profile shows the account → sign out →
+# bad credentials show the backend error → good credentials land on Home.
+- runFlow:
+    file: 00_launch.yaml
+- tapOn:
+    id: "home-profile"
+- assertVisible: "Perfil"
+- assertVisible: "test@saecula.app"
+- tapOn: "Cerrar sesión"
+- assertVisible: "SAECULA"
+- tapOn:
+    id: "login-email"
+- inputText: "test@saecula.app"
+- tapOn:
+    id: "login-password"
+- inputText: "contraseña incorrecta"
+- tapOn:
+    id: "login-submit"
+- assertVisible: "invalid credentials"
+- tapOn:
+    id: "login-password"
+- eraseText
+- inputText: "saecula123"
+- tapOn:
+    id: "login-submit"
+- extendedWaitUntil:
+    visible:
+      id: "home-prayers"
+    timeout: 20000
+- assertVisible: "Inicio"

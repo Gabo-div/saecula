@@ -26,7 +26,11 @@ export function ProfileScreen({ navigation }: Props) {
       <ScreenHeader
         title={t('profile.title')}
         right={
-          <HeaderIconButton icon="cog-outline" onPress={() => navigation.navigate('Settings')} />
+          <HeaderIconButton
+            icon="cog-outline"
+            testID="profile-settings"
+            onPress={() => navigation.navigate('Settings')}
+          />
         }
       />
 

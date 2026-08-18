@@ -1,0 +1,29 @@
+appId: ${APP_ID || "com.saecula.app"}
+---
+# Catechism: the Prologue section loads, and the search jumps straight to a
+# paragraph by number (the Catechism is cited by number).
+- runFlow:
+    file: 00_launch.yaml
+- tapOn:
+    id: "tab-catechism"
+- assertVisible: "Prólogo"
+- assertVisible: "Catecismo"
+# Number jump: 1422 (Penance & Reconciliation). The reader opens its section
+# ("La Penitencia y la Reconciliación"); the paragraph number renders as a
+# superscript and the penance snippet confirms the jump target.
+- tapOn:
+    id: "catechism-search"
+- tapOn:
+    id: "reader-search-input"
+- inputText: "1422"
+- extendedWaitUntil:
+    visible: "Catecismo 1422"
+    timeout: 15000
+- tapOn:
+    id: "search-result"
+- extendedWaitUntil:
+    visible: "La Penitencia y la Reconciliación"
+    timeout: 15000
+- extendedWaitUntil:
+    visible: ".*sacramento de la penitencia.*"
+    timeout: 15000

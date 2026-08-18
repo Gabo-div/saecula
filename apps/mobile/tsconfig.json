@@ -4,7 +4,8 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@saecula/contracts": ["../../packages/contracts/src/index.ts"]
     }
   }
 }

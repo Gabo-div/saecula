@@ -28,12 +28,54 @@ saecula/
 │   ├── back/       # Go REST API (chi) — modular APIs, DI composition root
 │   ├── cli/        # Go CLI (cobra) — scrape → generic JSON, seed as a separate step
 │   └── mobile/     # React Native app (Expo + TypeScript, Tamagui v2, Zustand, Axios)
+├── packages/
+│   ├── config/     # Shared TS/ESLint/Prettier configs (@saecula/config)
+│   └── contracts/  # Shared API contract types (@saecula/contracts) — single source of truth
 ├── libs/
 │   └── canon/      # Shared Go module: canonical catalog of the 73 books
-├── docker-compose.yml
+├── scripts/
+│   ├── e2e.sh      # Repo-wide E2E orchestrator (compose + seed + back → delegates Maestro)
+│   └── go-test.sh  # Runs the Go test suites across back + cli
+├── package.json    # bun workspaces + Turborepo root
+├── turbo.json      # Turborepo task pipeline
+├── bun.lock        # single lockfile for all JS/TS workspaces
 ├── go.work         # Go workspace tying back + cli + canon together
 └── README.md
 ```
+
+### Tooling
+
+- **bun** — the package manager and script runner. One `bun.lock` at the root
+  covers every `apps/*` and `packages/*` workspace; `bun install` at the root
+  links them.
+- **Turborepo** — task pipeline (`build`, `typecheck`, `lint`, `test`, `dev`)
+  with caching and parallelism: `bun run typecheck`, `bun run lint`,
+  `bun run test`.
+- **Go workspace** (`go.work`) — ties `apps/back`, `apps/cli` and `libs/*`
+  together for `go build`/`go test`.
+
+Common commands from the repo root:
+
+```bash
+bun install           # install + link all workspaces
+bun run typecheck     # tsc across @saecula/contracts and the mobile app
+bun run lint          # eslint across the mobile app
+bun run test          # turbo test + go test (back + cli)
+bun run e2e           # full pipeline: compose + seed + back + Maestro (dev build)
+bun run e2e:expo      # same, with the app running in Expo Go
+```
+
+The mobile app's Maestro runner is **independent** — from `apps/mobile`:
+
+```bash
+bun run maestro       # device + app + Metro + Maestro flows (dev build)
+bun run maestro:expo  # same, using Expo Go (no native build)
+```
+
+`scripts/e2e.sh` (the repo-wide orchestrator) brings up the infrastructure
+(databases, seed, backend) and then **delegates** the device/Metro/Maestro
+phase to `apps/mobile/scripts/maestro.sh`, so the mobile suite can be run on
+its own without the full pipeline.
 
 ## Dependency injection
 
@@ -210,11 +252,25 @@ The E2E suite drives the **full native pipeline** — docker-compose databases,
 
 ### Running
 
+**Full pipeline (infra + Maestro)** — from the repo root:
+
 ```bash
-cd apps/mobile
-bun run test:e2e         # orchestrator: compose + seed + back + emulator + maestro
-bun run test:e2e:expo    # same, but run the app inside Expo Go (no native build)
+bun run e2e          # compose + seed + back + emulator + maestro (dev build)
+bun run e2e:expo     # same, but run the app inside Expo Go (no native build)
 ```
+
+**Maestro only** — from `apps/mobile` (assumes the backend and databases are
+already up):
+
+```bash
+bun run maestro        # device + app + Metro + Maestro flows (dev build)
+bun run maestro:expo   # same, but run the app inside Expo Go
+```
+
+The `maestro` runner is self-contained and independent; the repo-wide
+`scripts/e2e.sh` orchestrator brings up the infrastructure (databases, seed,
+backend) and then **delegates** the device/Metro/Maestro phase to
+`apps/mobile/scripts/maestro.sh`.
 
 The default runner is a **dev build**: the app is installed via
 `expo run:android` and the backend URL for the emulator is inlined as
@@ -243,12 +299,14 @@ The orchestrator (`scripts/e2e.sh`) does, in order:
    EN/ES/LA, the USCCB readings, the daily features, and the test account
    `test@saecula.app` / `saecula123` (`--test-user`).
 3. Builds and starts the backend on `:8080` (it is stopped on exit).
-4. Verifies the Android target (single device or `E2E_DEVICE`), then pins the
-   **emulator clock** to the seeded anchor date (default `2026-08-15`) and the
-   locale to `es-ES` (the flows assert Spanish UI text).
-5. Installs the app: `expo run:android` (dev build) or Expo Go when
-   `E2E_RUNNER=expo`.
-6. Runs `maestro test apps/mobile/.maestro`.
+4. Delegates the device/app/Metro/Maestro phase to
+   `apps/mobile/scripts/maestro.sh`, which:
+   - verifies the Android target (single device or `E2E_DEVICE`) and pins the
+     **emulator clock** to the seeded anchor date (default `2026-08-15`) and
+     the locale to `es-ES`;
+   - installs the app: `expo run:android` (dev build) or Expo Go when
+     `E2E_RUNNER=expo`;
+   - starts Metro and runs `maestro test apps/mobile/.maestro`.
 
 ### Anchored date
 

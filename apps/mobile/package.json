@@ -9,10 +9,14 @@
     "ios": "bun --bun x expo start --ios",
     "web": "bun --bun x expo start --web",
     "typecheck": "tsc --noEmit",
-    "test:e2e": "bash ../../scripts/e2e.sh",
-    "test:e2e:expo": "E2E_RUNNER=expo bash ../../scripts/e2e.sh"
+    "lint": "eslint .",
+    "maestro": "bash scripts/maestro.sh",
+    "maestro:expo": "E2E_RUNNER=expo bash scripts/maestro.sh",
+    "test:e2e": "bash scripts/maestro.sh",
+    "test:e2e:expo": "E2E_RUNNER=expo bash scripts/maestro.sh"
   },
   "dependencies": {
+    "@saecula/contracts": "*",
     "@expo/vector-icons": "^15.0.0",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/bottom-tabs": "^7.4.0",
@@ -40,9 +44,11 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
+    "@saecula/config": "*",
     "@tamagui/babel-plugin": "^2.0.0",
     "@types/markdown-it": "^14.1.2",
     "@types/react": "~19.1.0",
+    "eslint": "^9.0.0",
     "typescript": "~5.9.0"
   },
   "resolutions": {

@@ -278,7 +278,7 @@ function toolLabelPast(name: string, t: TFunction): string {
 // toolInputLabel renders a tool call's parameters as a short, user-readable
 // string (e.g. the search query or the passage/paragraph range), or null when
 // the call carried no usable input.
-function toolInputLabel(tool: ToolCall, t: TFunction): string | null {
+function toolInputLabel(tool: ToolCall, _t: TFunction): string | null {
   const input = tool.input && typeof tool.input === 'object' ? (tool.input as any) : null;
   if (!input) return null;
   switch (tool.name) {

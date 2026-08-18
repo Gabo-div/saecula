@@ -27,7 +27,8 @@ saecula/
 ├── apps/
 │   ├── back/       # Go REST API (chi) — modular APIs, DI composition root
 │   ├── cli/        # Go CLI (cobra) — scrape → generic JSON, seed as a separate step
-│   └── mobile/     # React Native app (Expo + TypeScript, Tamagui v2, Zustand, Axios)
+│   ├── mobile/     # React Native app (Expo + TypeScript, Tamagui v2, Zustand, Axios)
+│   └── thesis/     # Thesis proposal sources + JS tool to render them to Word
 ├── packages/
 │   ├── config/     # Shared TS/ESLint/Prettier configs (@saecula/config)
 │   └── contracts/  # Shared API contract types (@saecula/contracts) — single source of truth

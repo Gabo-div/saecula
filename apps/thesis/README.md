@@ -8,33 +8,45 @@ Thesis proposal documentation by **Miguel Nuñez and Gabriel Hernández** (Infor
 
 ---
 
-## File guide
+## What this app is
 
-| File | Purpose | Editable? |
-|---|---|---|
-| `proposal.md` | **Master document** of the proposal (YAML title page + Ch. I, II, III + references). All content edits happen here. | Yes (source of truth) |
-| `generate_word.py` | Python script that converts the master `.md` into Word with APA 7 formatting (UNEG adaptations: 2.54 cm margins, A4, TNR 12, 1.5 line spacing, justified, indentation, page numbering). | Yes (to tweak formatting) |
-| `thesis-idea.md` | Short summary of the thesis idea (the initial "idea", not the full document). | Yes |
-| `research-log.md` | **Research log**: analysis of each source/prior work with links to read them manually, plus selection criteria. | Yes (updated as sources are read) |
+`apps/thesis` is a small, self-contained workspace in the Saecula monorepo that
+holds the thesis proposal sources and a Node/JS toolchain to render them into a
+Word document with APA 7 formatting (UNEG adaptations). It has its own
+`package.json` (bun workspace) and does not depend on the backend, CLI or
+mobile app.
 
-The `.docx` produced by `generate_word.py` is a build artifact: never edited by hand and not committed (see `.gitignore`).
+## Layout
 
----
+| Path | Purpose |
+|---|---|
+| `src/proposal.md` | **Master document** of the proposal (YAML title page + Ch. I, II, III + references). All content edits happen here. |
+| `src/thesis-idea.md` | Short summary of the thesis idea (the initial "idea", not the full document). |
+| `src/research-log.md` | **Research log**: analysis of each source/prior work with links to read them manually, plus selection criteria. |
+| `scripts/generate-word.mjs` | Node/JS script that converts the master `.md` into Word (APA 7 + UNEG: 2.54 cm margins, A4, TNR 12, 1.5 line spacing, justified, indentation, page numbering). |
+| `README.md` | This file. |
+
+The `.docx` produced by `generate-word.mjs` is a build artifact: never edited
+by hand and not committed (see the root `.gitignore`).
 
 ## Workflow
 
-1. **Edit content** always in `proposal.md`.
-2. **Regenerate the Word file** after each change (from `docs/`):
+1. **Edit content** always in `src/proposal.md`.
+2. **Regenerate the Word file** after each change (from `apps/thesis`):
+   ```bash
+   bun run generate:word
    ```
-   python generate_word.py
+   You can pass an explicit input/output:
+   ```bash
+   bun run generate:word src/proposal.md My-Output.docx
    ```
-3. The script reads the title-page metadata from the YAML block at the top of the `.md`.
+3. The script reads the title-page metadata from the YAML block at the top of
+   the `.md`.
 
 ### Prerequisites
-- Python 3 and the `python-docx` library:
-  ```
-  pip install python-docx
-  ```
+
+- Node.js and the `docx` npm dependency (installed via `bun install` at the
+  repo root; this workspace is part of the bun workspaces).
 
 ---
 

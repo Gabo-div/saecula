@@ -64,6 +64,7 @@ build nativa + Jest) y **Appium** (genérico/WebDriver, más setup).
 - [x] `scripts/e2e.sh` orquesta infra y **delega** la fase Maestro en `maestro.sh`
 - [x] Scripts raíz con bun: `bun run typecheck|lint|test|e2e`
 - [x] `scripts/go-test.sh` — tests Go de back + cli bajo `bun run test`
+- [x] Migrar la tesis a `apps/thesis` (workspace bun): `generate_word.py` → `scripts/generate-word.mjs` (paquete `docx`), fuentes en `src/`, `bun run generate:word`
 
 ## Pendiente / roadmap — E2E con Expo Go (`E2E_RUNNER=expo`)
 - [ ] **Arreglar los tests E2E con Expo Go.** Hay soporte base (base `E2E_RUNNER=expo`, `HOST_IP`, `appId` parametrizado, `openLink`), pero los flujos aún **no pasan** en Expo Go:

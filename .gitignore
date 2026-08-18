@@ -18,9 +18,9 @@ apps/mobile/ios/
 apps/back/tmp/
 apps/back/*.tar.gz
 
-# thesis Word output (regenerable with docs/generate_word.py)
-docs/*.docx
-docs/~$*.docx
+# thesis Word output (regenerable with apps/thesis generate:word)
+apps/thesis/*.docx
+apps/thesis/~$*.docx
 docs/__pycache__/
 
 # playwright-mcp session artifacts

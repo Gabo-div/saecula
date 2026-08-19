@@ -195,7 +195,7 @@ func interactiveScrape(cmd *cobra.Command) error {
 			err := runForm(newForm(huh.NewGroup(
 				huh.NewSelect[string]().
 					Title("Source").
-					Options(append([]huh.Option[string](scrapeSources[scrapeType]), backOption())...).
+					Options(append(scrapeSources[scrapeType], backOption())...).
 					Value(&source),
 			)))
 			if err != nil {

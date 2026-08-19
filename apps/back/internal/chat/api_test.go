@@ -20,7 +20,8 @@ func TestTitle(t *testing.T) {
 
 func TestRateLimiter(t *testing.T) {
 	l := &rateLimiter{perMin: 2, hits: map[string][]time.Time{}}
-	if !l.allow("u") || !l.allow("u") {
+	first, second := l.allow("u"), l.allow("u")
+	if !first || !second {
 		t.Fatal("first two requests should be allowed")
 	}
 	if l.allow("u") {

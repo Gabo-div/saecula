@@ -390,6 +390,6 @@ func (l *rateLimiter) allow(user string) bool {
 // sse writes one Server-Sent Event frame and flushes it.
 func sse(w http.ResponseWriter, f http.Flusher, event string, data any) {
 	b, _ := json.Marshal(data)
-	fmt.Fprintf(w, "event: %s\ndata: %s\n\n", event, b)
+	_, _ = fmt.Fprintf(w, "event: %s\ndata: %s\n\n", event, b)
 	f.Flush()
 }

@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "air",
     "test": "go test ./...",
-    "lint": "go vet ./...",
+    "lint": "golangci-lint run ./...",
     "format": "gofmt -w ."
   }
 }

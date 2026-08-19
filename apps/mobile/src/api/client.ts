@@ -19,7 +19,6 @@ import type {
   SavedVerse,
   StreakHistoryResponse,
   StreakResponse,
-  ActivityType,
   TimelineResponse,
   TranslationsResponse,
 } from '@/types/api';

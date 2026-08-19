@@ -47,16 +47,6 @@ export type AskStackParamList = {
   Catechism: undefined;
 };
 
-// Ask (hidden tab, opened from Home): the AI chat and its conversation history.
-// Bible/Catechism are registered here too so citations tapped in the chat push
-// them onto the stack and back returns to the conversation.
-export type AskStackParamList = {
-  Chat: { conversationId?: string } | undefined;
-  Conversations: undefined;
-  Bible: undefined;
-  Catechism: undefined;
-};
-
 // The Calendar tab hosts a stack: a hub of dated sections (daily readings,
 // saints, celebrations) that push on top of it.
 export type CalendarStackParamList = {
@@ -161,85 +151,85 @@ export function RootTabs() {
 
   return (
     <>
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarActiveTintColor: c.accent,
-        tabBarInactiveTintColor: c.muted,
-        tabBarStyle: {
-          backgroundColor: c.bg,
-          borderTopColor: c.border,
-          borderTopWidth: 1,
-        },
-        tabBarLabelStyle: { fontSize: 11 },
-        tabBarIcon: ({ color, size }) => (
-          <MaterialCommunityIcons name={TAB_ICONS[route.name]} size={size} color={color} />
-        ),
-      })}
-    >
-      <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{ tabBarLabel: t('tabs.home'), tabBarButtonTestID: 'tab-home' }}
-      />
-      <Tab.Screen
-        name="Bible"
-        component={BibleScreen}
-        options={{ tabBarLabel: t('tabs.bible'), tabBarButtonTestID: 'tab-bible' }}
-      />
-      <Tab.Screen
-        name="Catechism"
-        component={CatechismScreen}
-        options={{ tabBarLabel: t('tabs.catechism'), tabBarButtonTestID: 'tab-catechism' }}
-      />
-      <Tab.Screen
-        name="Explore"
-        component={ExploreScreen}
-        options={{ tabBarLabel: t('tabs.explore'), tabBarButtonTestID: 'tab-explore' }}
-      />
-      <Tab.Screen
-        name="Calendar"
-        component={CalendarStackNavigator}
-        options={{ tabBarLabel: t('tabs.calendar'), tabBarButtonTestID: 'tab-calendar' }}
-      />
-      <Tab.Screen
-        name="Prayers"
-        component={PrayersStackNavigator}
-        options={({ route }) => {
-          // The guided prayer takes over the full screen — no tab bar.
-          const focused = getFocusedRouteNameFromRoute(route) ?? 'PrayersHome';
-          return {
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          tabBarActiveTintColor: c.accent,
+          tabBarInactiveTintColor: c.muted,
+          tabBarStyle: {
+            backgroundColor: c.bg,
+            borderTopColor: c.border,
+            borderTopWidth: 1,
+          },
+          tabBarLabelStyle: { fontSize: 11 },
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name={TAB_ICONS[route.name]} size={size} color={color} />
+          ),
+        })}
+      >
+        <Tab.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{ tabBarLabel: t('tabs.home'), tabBarButtonTestID: 'tab-home' }}
+        />
+        <Tab.Screen
+          name="Bible"
+          component={BibleScreen}
+          options={{ tabBarLabel: t('tabs.bible'), tabBarButtonTestID: 'tab-bible' }}
+        />
+        <Tab.Screen
+          name="Catechism"
+          component={CatechismScreen}
+          options={{ tabBarLabel: t('tabs.catechism'), tabBarButtonTestID: 'tab-catechism' }}
+        />
+        <Tab.Screen
+          name="Explore"
+          component={ExploreScreen}
+          options={{ tabBarLabel: t('tabs.explore'), tabBarButtonTestID: 'tab-explore' }}
+        />
+        <Tab.Screen
+          name="Calendar"
+          component={CalendarStackNavigator}
+          options={{ tabBarLabel: t('tabs.calendar'), tabBarButtonTestID: 'tab-calendar' }}
+        />
+        <Tab.Screen
+          name="Prayers"
+          component={PrayersStackNavigator}
+          options={({ route }) => {
+            // The guided prayer takes over the full screen — no tab bar.
+            const focused = getFocusedRouteNameFromRoute(route) ?? 'PrayersHome';
+            return {
+              tabBarButton: () => null,
+              tabBarItemStyle: { display: 'none' },
+              tabBarStyle:
+                focused === 'GuidedPrayer'
+                  ? { display: 'none' }
+                  : { backgroundColor: c.bg, borderTopColor: c.border, borderTopWidth: 1 },
+            };
+          }}
+        />
+        <Tab.Screen
+          name="Ask"
+          component={AskStackNavigator}
+          options={{
             tabBarButton: () => null,
             tabBarItemStyle: { display: 'none' },
-            tabBarStyle:
-              focused === 'GuidedPrayer'
-                ? { display: 'none' }
-                : { backgroundColor: c.bg, borderTopColor: c.border, borderTopWidth: 1 },
-          };
-        }}
-      />
-      <Tab.Screen
-        name="Ask"
-        component={AskStackNavigator}
-        options={{
-          tabBarButton: () => null,
-          tabBarItemStyle: { display: 'none' },
-          // Full-screen chat: no bottom tab bar while the Ask stack is focused.
-          tabBarStyle: { display: 'none' },
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileStackNavigator}
-        options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }}
-      />
-      <Tab.Screen
-        name="Streak"
-        component={StreakScreen}
-        options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }}
-      />
-    </Tab.Navigator>
-    <StreakCelebration />
+            // Full-screen chat: no bottom tab bar while the Ask stack is focused.
+            tabBarStyle: { display: 'none' },
+          }}
+        />
+        <Tab.Screen
+          name="Profile"
+          component={ProfileStackNavigator}
+          options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }}
+        />
+        <Tab.Screen
+          name="Streak"
+          component={StreakScreen}
+          options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }}
+        />
+      </Tab.Navigator>
+      <StreakCelebration />
     </>
   );
 }

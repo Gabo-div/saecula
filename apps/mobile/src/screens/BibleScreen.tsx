@@ -20,7 +20,6 @@ import {
   type SearchItem,
 } from '@/components/ReaderChrome';
 import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
-import { VerseContextMenu } from '@/components/VerseContextMenu';
 import type { AskStackParamList, RootTabParamList } from '@/navigation/RootTabs';
 import { useBookmarksStore } from '@/store/bookmarksStore';
 import { useLanguageStore } from '@/store/languageStore';
@@ -29,7 +28,7 @@ import { useReaderStore } from '@/store/readerStore';
 import { useStreakStore } from '@/store/streakStore';
 import { useAppTheme } from '@/store/themeStore';
 import { serif } from '@/theme/colors';
-import type { Book, ChapterResponse, Translation, Verse } from '@/types/api';
+import type { Book, ChapterResponse, Translation } from '@/types/api';
 
 // ---------------------------------------------------------------------------
 // Book + chapter + translation picker (modal)
@@ -287,16 +286,13 @@ export function BibleScreen({ navigation }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  // Verse context menu state
-  const [contextMenuVerse, setContextMenuVerse] = useState<Verse | null>(null);
-  const [contextMenuVisible, setContextMenuVisible] = useState(false);
   const highlightByEntity = useBookmarksStore((s) => s.highlightByEntity);
 
-  // Multi-select state
-  const [multiSelectMode, setMultiSelectMode] = useState(false);
+  // Selection: tapping a verse toggles it in/out. Any non-empty selection shows
+  // the checkboxes + the actions toolbar; there is no long-press mode.
   const [selectedVerseIds, setSelectedVerseIds] = useState<Record<string, true>>({});
   const [multiActionsVisible, setMultiActionsVisible] = useState(false);
-  const longPressFired = useRef(false);
+  const selecting = Object.keys(selectedVerseIds).length > 0;
 
   // Catalog + editions load once per language.
   useEffect(() => {
@@ -426,56 +422,26 @@ export function BibleScreen({ navigation }: Props) {
                 rounded={6}
                 borderWidth={isSelected ? 2 : 0}
                 borderColor={isSelected ? c.accent : 'transparent'}
-                borderLeftWidth={isSelected ? 0 : isHighlighted ? 3 : highlight === verse.number ? 3 : 0}
-                borderLeftColor={
-                  isHighlighted
-                    ? hl
-                    : highlight === verse.number
-                      ? c.accent
-                      : 'transparent'
-                }
+                borderLeftWidth={isSelected ? 0 : highlight === verse.number ? 3 : 0}
+                borderLeftColor={highlight === verse.number ? c.accent : 'transparent'}
                 bg={
                   isSelected
                     ? `${c.accent}20`
-                    : isHighlighted
-                      ? `${hl}18`
-                      : highlight === verse.number
-                        ? c.bgElevated
-                        : 'transparent'
+                    : highlight === verse.number
+                      ? c.bgElevated
+                      : 'transparent'
                 }
-                onPress={() => {
-                  if (longPressFired.current) {
-                    longPressFired.current = false;
-                    return;
-                  }
-                  if (multiSelectMode) {
-                    setSelectedVerseIds((prev) => {
-                      const next = { ...prev };
-                      if (next[verse.entity_id]) {
-                        delete next[verse.entity_id];
-                      } else {
-                        next[verse.entity_id] = true;
-                      }
-                      if (Object.keys(next).length === 0) {
-                        setMultiSelectMode(false);
-                      }
-                      return next;
-                    });
-                  } else {
-                    setContextMenuVerse(verse);
-                    setContextMenuVisible(true);
-                  }
-                }}
-                onLongPress={() => {
-                  longPressFired.current = true;
-                  if (!multiSelectMode) {
-                    setMultiSelectMode(true);
-                    setSelectedVerseIds({ [verse.entity_id]: true });
-                  }
-                }}
-                pressStyle={{ opacity: multiSelectMode ? 1 : 0.85 }}
+                onPress={() =>
+                  setSelectedVerseIds((prev) => {
+                    const next = { ...prev };
+                    if (next[verse.entity_id]) delete next[verse.entity_id];
+                    else next[verse.entity_id] = true;
+                    return next;
+                  })
+                }
+                pressStyle={{ opacity: 0.85 }}
               >
-                {multiSelectMode && (
+                {selecting && (
                   <MaterialCommunityIcons
                     name={isSelected ? 'checkbox-marked-circle' : 'checkbox-blank-circle-outline'}
                     size={18}
@@ -487,7 +453,10 @@ export function BibleScreen({ navigation }: Props) {
                   <Text color={c.accent} fontWeight="700">
                     {superscript(verse.number)}{' '}
                   </Text>
-                  {verse.text}
+                  {/* Highlight tints only the verse text, like a marker. */}
+                  <Text style={isHighlighted ? { backgroundColor: hl } : undefined}>
+                    {verse.text}
+                  </Text>
                 </Text>
               </View>
             );
@@ -497,8 +466,8 @@ export function BibleScreen({ navigation }: Props) {
 
       {compact && <ReaderMiniBar title={title} />}
 
-      {/* Floating checkmark FAB for multi-select */}
-      {multiSelectMode && Object.keys(selectedVerseIds).length > 0 && (
+      {/* Floating checkmark FAB — opens the actions toolbar for the selection */}
+      {selecting && (
         <View
           style={{
             position: 'absolute',
@@ -539,8 +508,8 @@ export function BibleScreen({ navigation }: Props) {
         </View>
       )}
 
-      {/* Multi-select exit button (X) when no action sheet open */}
-      {multiSelectMode && !multiActionsVisible && (
+      {/* Selection exit button (X) when no action sheet open */}
+      {selecting && !multiActionsVisible && (
         <View
           style={{ position: 'absolute', bottom: insets.bottom + 84, right: 20, zIndex: 50 } as any}
           width={40}
@@ -551,10 +520,7 @@ export function BibleScreen({ navigation }: Props) {
           borderColor={c.border}
           items="center"
           justify="center"
-          onPress={() => {
-            setMultiSelectMode(false);
-            setSelectedVerseIds({});
-          }}
+          onPress={() => setSelectedVerseIds({})}
           pressStyle={{ opacity: 0.7 }}
         >
           <MaterialCommunityIcons name="close" size={18} color={c.muted} />
@@ -577,17 +543,6 @@ export function BibleScreen({ navigation }: Props) {
         onClose={() => setPickerOpen(false)}
       />
 
-      <VerseContextMenu
-        visible={contextMenuVisible}
-        verse={contextMenuVerse}
-        bookName={bookName}
-        chapter={chapterNo}
-        onClose={() => {
-          setContextMenuVisible(false);
-          setContextMenuVerse(null);
-        }}
-      />
-
       <MultiSelectToolbar
         visible={multiActionsVisible}
         selected={content?.verses.filter((v) => !!selectedVerseIds[v.entity_id]) ?? []}
@@ -595,7 +550,6 @@ export function BibleScreen({ navigation }: Props) {
         chapter={chapterNo}
         onClose={() => {
           setMultiActionsVisible(false);
-          setMultiSelectMode(false);
           setSelectedVerseIds({});
         }}
       />

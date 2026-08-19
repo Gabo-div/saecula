@@ -71,6 +71,8 @@ const la: typeof en = {
     daysThisYear: 'dies hoc anno',
     weeks: 'hebdomadae continuae',
     history: 'Historiam videre',
+    completedTitle: 'Dies perfectus!',
+    keepGoing: 'Persevera, ne continuationem frangas.',
   },
   prayers: {
     individual: 'Orationes',

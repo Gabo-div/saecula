@@ -70,6 +70,8 @@ const en: Translations = {
     daysThisYear: 'days this year',
     weeks: 'weeks in a row',
     history: 'View history',
+    completedTitle: 'Day complete!',
+    keepGoing: 'Keep it up — don’t break your streak.',
   },
   prayers: {
     individual: 'Prayers',
@@ -229,6 +231,8 @@ export interface Translations {
     daysThisYear: string;
     weeks: string;
     history: string;
+    completedTitle: string;
+    keepGoing: string;
   };
   prayers: {
     individual: string;

@@ -70,6 +70,8 @@ const es: typeof en = {
     daysThisYear: 'días este año',
     weeks: 'semanas seguidas',
     history: 'Ver historial',
+    completedTitle: '¡Día completado!',
+    keepGoing: 'Sigue así, no rompas tu racha.',
   },
   prayers: {
     individual: 'Oraciones',

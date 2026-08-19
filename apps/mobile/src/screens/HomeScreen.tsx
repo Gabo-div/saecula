@@ -11,6 +11,7 @@ import { Spinner, Text, View, XStack, YStack } from 'tamagui';
 
 import { fetchCalendarDay, fetchDailyVerse } from '@/api/client';
 import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
+import { StreakSheet } from '@/components/StreakSheet';
 import type { RootTabParamList } from '@/navigation/RootTabs';
 import { useCatechismStore } from '@/store/catechismStore';
 import { useLanguageStore } from '@/store/languageStore';
@@ -103,8 +104,7 @@ export function HomeScreen({ navigation }: Props) {
   const language = useLanguageStore((s) => s.language);
   const setLocation = useReaderStore((s) => s.setLocation);
   const streakCurrent = useStreakStore((s) => s.current);
-  const streakBest = useStreakStore((s) => s.best);
-  const streakTodayDone = useStreakStore((s) => s.todayDone);
+  const [streakOpen, setStreakOpen] = useState(false);
 
   useEffect(() => {
     void useStreakStore.getState().refresh();
@@ -187,6 +187,24 @@ export function HomeScreen({ navigation }: Props) {
             title={t('home.title')}
             right={
               <>
+                <XStack
+                  testID="home-streak"
+                  items="center"
+                  gap="$1.5"
+                  height={40}
+                  px="$3"
+                  rounded={20}
+                  bg={c.chip}
+                  borderWidth={1}
+                  borderColor={c.border}
+                  onPress={() => setStreakOpen(true)}
+                  pressStyle={{ opacity: 0.7 }}
+                >
+                  <MaterialCommunityIcons name="fire" size={17} color={c.accent} />
+                  <Text color={c.strong} fontSize={14} fontWeight="700">
+                    {streakCurrent}
+                  </Text>
+                </XStack>
                 <HeaderIconButton
                   icon="hands-pray"
                   testID="home-prayers"
@@ -318,30 +336,6 @@ export function HomeScreen({ navigation }: Props) {
             />
           </XStack>
 
-          {/* Streak card — taps through to the history screen */}
-          <YStack
-            mx="$4"
-            mt="$3"
-            p="$4"
-            rounded="$8"
-            bg={c.card}
-            onPress={() => navigation.navigate('Streak')}
-            pressStyle={{ opacity: 0.85 }}
-          >
-            <Text color={c.onCard} fontSize={11} letterSpacing={2} fontWeight="700">
-              {t('streak.title').toUpperCase()}
-            </Text>
-            <XStack items="center" gap="$3" mt="$1">
-              <Text color={c.onCard} fontSize={26} fontWeight="700">
-                🔥 {streakCurrent}
-              </Text>
-              <Text color={c.onCard} fontSize={12} opacity={0.75}>
-                {streakTodayDone ? t('streak.today') : t('streak.notToday')} · {t('streak.best')}:{' '}
-                {streakBest}
-              </Text>
-            </XStack>
-          </YStack>
-
           {/* Today's celebration — highlighted card */}
           {celebration && (
             <YStack mx="$4" mt="$3" p="$4" rounded="$8" bg={c.card} gap="$2">
@@ -374,6 +368,15 @@ export function HomeScreen({ navigation }: Props) {
           )}
         </ScrollView>
       </LinearGradient>
+
+      <StreakSheet
+        visible={streakOpen}
+        onClose={() => setStreakOpen(false)}
+        onOpenHistory={() => {
+          setStreakOpen(false);
+          navigation.navigate('Streak');
+        }}
+      />
     </View>
   );
 }

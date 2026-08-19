@@ -63,10 +63,14 @@ const la: typeof en = {
   },
   streak: {
     title: 'Continuatio',
+    tagline: 'Omnis dies quo oras vel legis continuationem auget.',
     current: 'continuatio praesens',
     best: 'optima continuatio',
     today: 'Hodie perfectum',
     notToday: 'Nondum hodie',
+    daysThisYear: 'dies hoc anno',
+    weeks: 'hebdomadae continuae',
+    history: 'Historiam videre',
   },
   prayers: {
     individual: 'Orationes',

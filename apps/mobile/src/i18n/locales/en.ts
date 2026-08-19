@@ -62,10 +62,14 @@ const en: Translations = {
   },
   streak: {
     title: 'Streak',
+    tagline: 'Every day you pray or read adds to your streak.',
     current: 'current streak',
     best: 'best streak',
     today: 'Done today',
     notToday: 'Not yet today',
+    daysThisYear: 'days this year',
+    weeks: 'weeks in a row',
+    history: 'View history',
   },
   prayers: {
     individual: 'Prayers',
@@ -217,10 +221,14 @@ export interface Translations {
   };
   streak: {
     title: string;
+    tagline: string;
     current: string;
     best: string;
     today: string;
     notToday: string;
+    daysThisYear: string;
+    weeks: string;
+    history: string;
   };
   prayers: {
     individual: string;

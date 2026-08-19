@@ -62,10 +62,14 @@ const es: typeof en = {
   },
   streak: {
     title: 'Racha',
+    tagline: 'Cada día que rezas o lees suma a tu racha.',
     current: 'racha actual',
     best: 'mejor racha',
     today: 'Hoy completado',
     notToday: 'Aún no hoy',
+    daysThisYear: 'días este año',
+    weeks: 'semanas seguidas',
+    history: 'Ver historial',
   },
   prayers: {
     individual: 'Oraciones',

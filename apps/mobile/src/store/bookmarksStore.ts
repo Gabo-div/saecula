@@ -128,7 +128,10 @@ export const useBookmarksStore = create<BookmarksState>()((set, get) => ({
     set((s) => {
       const updated = { ...s.byEntity };
       delete updated[entityId];
-      return { byEntity: updated };
+      return {
+        byEntity: updated,
+        verses: s.verses.filter((v) => v.entity_id !== entityId),
+      };
     });
   },
 

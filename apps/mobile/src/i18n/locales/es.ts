@@ -177,7 +177,7 @@ const es: typeof en = {
     suggestExplainBaptism: 'Explícame el significado del Bautismo.',
   },
   bookmarks: {
-    title: 'Versículos guardados',
+    title: 'Guardado',
     all: 'Todos',
     highlighted: 'Resaltados',
     withNotes: 'Con notas',

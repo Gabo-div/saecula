@@ -178,7 +178,7 @@ const la: typeof en = {
     suggestExplainBaptism: 'Explica mihi significationem Baptismi.',
   },
   bookmarks: {
-    title: 'Versiculi servati',
+    title: 'Servata',
     all: 'Omnes',
     highlighted: 'Illuminati',
     withNotes: 'Cum notis',

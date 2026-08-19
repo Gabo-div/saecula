@@ -177,7 +177,7 @@ const en: Translations = {
     suggestExplainBaptism: 'Explain the meaning of Baptism.',
   },
   bookmarks: {
-    title: 'Saved Verses',
+    title: 'Saved',
     all: 'All',
     highlighted: 'Highlighted',
     withNotes: 'With notes',

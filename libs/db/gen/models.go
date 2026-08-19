@@ -14,15 +14,15 @@ type ActivityDay struct {
 	UserID       string
 	Day          time.Time
 	ActivityType string
-	CreatedAt    pgtype.Timestamptz
+	CreatedAt    time.Time
 }
 
 type ChatConversation struct {
 	ID        string
 	UserID    string
-	Title     pgtype.Text
-	CreatedAt pgtype.Timestamptz
-	UpdatedAt pgtype.Timestamptz
+	Title     *string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type ChatMessage struct {
@@ -31,13 +31,13 @@ type ChatMessage struct {
 	Role           string
 	Content        string
 	Metadata       []byte
-	CreatedAt      pgtype.Timestamptz
+	CreatedAt      time.Time
 }
 
 type DailyFeature struct {
 	FeatureDate      time.Time
 	VerseIds         []string
-	ImageUrl         pgtype.Text
+	ImageUrl         *string
 	CatechismNumbers []int32
 }
 
@@ -62,8 +62,8 @@ type UserSavedVerse struct {
 	EntityID       string
 	Reference      string
 	VerseText      string
-	HighlightColor pgtype.Text
-	Note           pgtype.Text
-	CreatedAt      pgtype.Timestamptz
-	UpdatedAt      pgtype.Timestamptz
+	HighlightColor *string
+	Note           *string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }

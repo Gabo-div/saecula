@@ -2,22 +2,25 @@ package bookmarks
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"saecula/db/gen"
 )
 
 // SavedVerse is one user-saved verse with optional highlight and note.
 type SavedVerse struct {
-	ID             string  `json:"id"`
-	EntityID       string  `json:"entity_id"`
-	Reference      string  `json:"reference"`
-	VerseText      string  `json:"verse_text"`
-	HighlightColor *string `json:"highlight_color,omitempty"`
-	Note           *string `json:"note,omitempty"`
-	CreatedAt      time.Time  `json:"created_at"`
-	UpdatedAt      time.Time  `json:"updated_at"`
+	ID             string    `json:"id"`
+	EntityID       string    `json:"entity_id"`
+	Reference      string    `json:"reference"`
+	VerseText      string    `json:"verse_text"`
+	HighlightColor *string   `json:"highlight_color,omitempty"`
+	Note           *string   `json:"note,omitempty"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
 }
 
 // Repository defines the data-access contract for user saved verses.
@@ -34,123 +37,104 @@ type Repository interface {
 
 // PostgresRepository is the PostgreSQL implementation of Repository.
 type PostgresRepository struct {
-	pool *pgxpool.Pool
+	q *gen.Queries
 }
 
 var _ Repository = (*PostgresRepository)(nil)
 
 func NewPostgresRepository(pool *pgxpool.Pool) *PostgresRepository {
-	return &PostgresRepository{pool: pool}
+	return &PostgresRepository{q: gen.New(pool)}
+}
+
+func toSavedVerse(v gen.UserSavedVerse) SavedVerse {
+	return SavedVerse{
+		ID:             v.ID,
+		EntityID:       v.EntityID,
+		Reference:      v.Reference,
+		VerseText:      v.VerseText,
+		HighlightColor: v.HighlightColor,
+		Note:           v.Note,
+		CreatedAt:      v.CreatedAt,
+		UpdatedAt:      v.UpdatedAt,
+	}
 }
 
 func (repo *PostgresRepository) List(ctx context.Context, userID string, filter string) ([]SavedVerse, error) {
-	sql := `
-		SELECT id, entity_id, reference, verse_text, highlight_color, note,
-		       created_at, updated_at
-		FROM user_saved_verses
-		WHERE user_id = $1`
-	args := []any{userID}
-
+	var (
+		rows []gen.UserSavedVerse
+		err  error
+	)
 	switch filter {
 	case "highlighted":
-		sql += ` AND highlight_color IS NOT NULL`
+		rows, err = repo.q.ListSavedVersesHighlighted(ctx, userID)
 	case "notes":
-		sql += ` AND note IS NOT NULL AND note != ''`
+		rows, err = repo.q.ListSavedVersesWithNotes(ctx, userID)
+	default:
+		rows, err = repo.q.ListSavedVerses(ctx, userID)
 	}
-
-	sql += ` ORDER BY created_at DESC`
-
-	rows, err := repo.pool.Query(ctx, sql, args...)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	var verses []SavedVerse
-	for rows.Next() {
-		var v SavedVerse
-		if err := rows.Scan(&v.ID, &v.EntityID, &v.Reference, &v.VerseText,
-			&v.HighlightColor, &v.Note, &v.CreatedAt, &v.UpdatedAt); err != nil {
-			return nil, err
-		}
-		verses = append(verses, v)
+	out := make([]SavedVerse, len(rows))
+	for i, r := range rows {
+		out[i] = toSavedVerse(r)
 	}
-	return verses, rows.Err()
+	return out, nil
 }
 
 func (repo *PostgresRepository) Get(ctx context.Context, userID, entityID string) (*SavedVerse, error) {
-	var v SavedVerse
-	err := repo.pool.QueryRow(ctx,
-		`SELECT id, entity_id, reference, verse_text, highlight_color, note,
-		        created_at, updated_at
-		 FROM user_saved_verses
-		 WHERE user_id = $1 AND entity_id = $2`, userID, entityID).
-		Scan(&v.ID, &v.EntityID, &v.Reference, &v.VerseText,
-			&v.HighlightColor, &v.Note, &v.CreatedAt, &v.UpdatedAt)
-	if err == pgx.ErrNoRows {
+	v, err := repo.q.GetSavedVerse(ctx, gen.GetSavedVerseParams{UserID: userID, EntityID: entityID})
+	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	return &v, nil
+	sv := toSavedVerse(v)
+	return &sv, nil
 }
 
 func (repo *PostgresRepository) Upsert(ctx context.Context, userID, entityID, reference, verseText string, highlightColor *string, note *string) (*SavedVerse, error) {
-	var v SavedVerse
-	err := repo.pool.QueryRow(ctx,
-		`INSERT INTO user_saved_verses (user_id, entity_id, reference, verse_text, highlight_color, note)
-		 VALUES ($1, $2, $3, $4, $5, $6)
-		 ON CONFLICT (user_id, entity_id) DO UPDATE SET
-		     highlight_color = COALESCE(EXCLUDED.highlight_color, user_saved_verses.highlight_color),
-		     note            = COALESCE(EXCLUDED.note, user_saved_verses.note),
-		     verse_text      = EXCLUDED.verse_text,
-		     reference       = EXCLUDED.reference,
-		     updated_at      = now()
-		 RETURNING id, entity_id, reference, verse_text, highlight_color, note,
-		           created_at, updated_at`,
-		userID, entityID, reference, verseText, highlightColor, note).
-		Scan(&v.ID, &v.EntityID, &v.Reference, &v.VerseText,
-			&v.HighlightColor, &v.Note, &v.CreatedAt, &v.UpdatedAt)
+	v, err := repo.q.UpsertSavedVerse(ctx, gen.UpsertSavedVerseParams{
+		UserID:         userID,
+		EntityID:       entityID,
+		Reference:      reference,
+		VerseText:      verseText,
+		HighlightColor: highlightColor,
+		Note:           note,
+	})
 	if err != nil {
 		return nil, err
 	}
-	return &v, nil
+	sv := toSavedVerse(v)
+	return &sv, nil
 }
 
 func (repo *PostgresRepository) UpdateHighlight(ctx context.Context, userID, entityID string, color *string) error {
-	_, err := repo.pool.Exec(ctx,
-		`UPDATE user_saved_verses
-		 SET highlight_color = $3, updated_at = now()
-		 WHERE user_id = $1 AND entity_id = $2`, userID, entityID, color)
-	return err
+	return repo.q.UpdateSavedVerseHighlight(ctx, gen.UpdateSavedVerseHighlightParams{
+		UserID:         userID,
+		EntityID:       entityID,
+		HighlightColor: color,
+	})
 }
 
 func (repo *PostgresRepository) UpdateNote(ctx context.Context, userID, entityID string, note *string) error {
-	_, err := repo.pool.Exec(ctx,
-		`UPDATE user_saved_verses
-		 SET note = $3, updated_at = now()
-		 WHERE user_id = $1 AND entity_id = $2`, userID, entityID, note)
-	return err
+	return repo.q.UpdateSavedVerseNote(ctx, gen.UpdateSavedVerseNoteParams{
+		UserID:   userID,
+		EntityID: entityID,
+		Note:     note,
+	})
 }
 
 func (repo *PostgresRepository) Delete(ctx context.Context, userID, entityID string) error {
-	_, err := repo.pool.Exec(ctx,
-		`DELETE FROM user_saved_verses WHERE user_id = $1 AND entity_id = $2`,
-		userID, entityID)
-	return err
+	return repo.q.DeleteSavedVerse(ctx, gen.DeleteSavedVerseParams{UserID: userID, EntityID: entityID})
 }
 
 func (repo *PostgresRepository) DeleteByID(ctx context.Context, userID, id string) error {
-	_, err := repo.pool.Exec(ctx,
-		`DELETE FROM user_saved_verses WHERE user_id = $1 AND id = $2`,
-		userID, id)
-	return err
+	return repo.q.DeleteSavedVerseByID(ctx, gen.DeleteSavedVerseByIDParams{UserID: userID, ID: id})
 }
 
 func (repo *PostgresRepository) Count(ctx context.Context, userID string) (int, error) {
-	var count int
-	err := repo.pool.QueryRow(ctx,
-		`SELECT count(*) FROM user_saved_verses WHERE user_id = $1`, userID).Scan(&count)
-	return count, err
+	n, err := repo.q.CountSavedVerses(ctx, userID)
+	return int(n), err
 }

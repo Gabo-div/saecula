@@ -8,6 +8,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"saecula/db/gen"
 )
 
 // Domain errors the handler maps to HTTP statuses. Repository
@@ -38,22 +40,18 @@ const uniqueViolationCode = "23505"
 
 // PostgresUserRepository is the pgx-backed UserRepository.
 type PostgresUserRepository struct {
-	pool *pgxpool.Pool
+	q *gen.Queries
 }
 
 // Compile-time check that the implementation satisfies the interface.
 var _ UserRepository = (*PostgresUserRepository)(nil)
 
 func NewPostgresUserRepository(pool *pgxpool.Pool) *PostgresUserRepository {
-	return &PostgresUserRepository{pool: pool}
+	return &PostgresUserRepository{q: gen.New(pool)}
 }
 
 func (r *PostgresUserRepository) Create(ctx context.Context, email, passwordHash string) (*User, error) {
-	user := &User{Email: email, PasswordHash: passwordHash}
-	err := r.pool.QueryRow(ctx,
-		`INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id`,
-		email, passwordHash,
-	).Scan(&user.ID)
+	id, err := r.q.CreateUser(ctx, gen.CreateUserParams{Email: email, PasswordHash: passwordHash})
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == uniqueViolationCode {
@@ -61,20 +59,16 @@ func (r *PostgresUserRepository) Create(ctx context.Context, email, passwordHash
 		}
 		return nil, fmt.Errorf("insert user: %w", err)
 	}
-	return user, nil
+	return &User{ID: id, Email: email, PasswordHash: passwordHash}, nil
 }
 
 func (r *PostgresUserRepository) ByEmail(ctx context.Context, email string) (*User, error) {
-	user := &User{Email: email}
-	err := r.pool.QueryRow(ctx,
-		`SELECT id, password_hash FROM users WHERE email = $1`,
-		email,
-	).Scan(&user.ID, &user.PasswordHash)
+	row, err := r.q.GetUserByEmail(ctx, email)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, ErrUserNotFound
 	}
 	if err != nil {
 		return nil, fmt.Errorf("select user: %w", err)
 	}
-	return user, nil
+	return &User{ID: row.ID, Email: email, PasswordHash: row.PasswordHash}, nil
 }

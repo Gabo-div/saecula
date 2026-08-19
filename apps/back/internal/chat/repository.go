@@ -11,6 +11,8 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"saecula/db/gen"
 )
 
 // ErrNotFound is returned when a conversation does not exist or is not owned by
@@ -49,90 +51,60 @@ type Repository interface {
 }
 
 type PostgresRepository struct {
-	pool *pgxpool.Pool
+	q *gen.Queries
 }
 
 var _ Repository = (*PostgresRepository)(nil)
 
 func NewPostgresRepository(pool *pgxpool.Pool) *PostgresRepository {
-	return &PostgresRepository{pool: pool}
+	return &PostgresRepository{q: gen.New(pool)}
 }
 
 func (r *PostgresRepository) CreateConversation(ctx context.Context, userID, title string) (Conversation, error) {
-	var c Conversation
-	err := r.pool.QueryRow(ctx,
-		`INSERT INTO chat_conversations (user_id, title)
-		 VALUES ($1, $2)
-		 RETURNING id, coalesce(title, ''), created_at, updated_at`,
-		userID, title).Scan(&c.ID, &c.Title, &c.CreatedAt, &c.UpdatedAt)
-	return c, err
+	c, err := r.q.CreateConversation(ctx, gen.CreateConversationParams{UserID: userID, Title: ptrIfNotEmpty(title)})
+	if err != nil {
+		return Conversation{}, err
+	}
+	return Conversation{ID: c.ID, Title: c.Title, CreatedAt: c.CreatedAt, UpdatedAt: c.UpdatedAt}, nil
 }
 
 func (r *PostgresRepository) ListConversations(ctx context.Context, userID string) ([]Conversation, error) {
-	rows, err := r.pool.Query(ctx,
-		`SELECT id, coalesce(title, ''), created_at, updated_at
-		 FROM chat_conversations
-		 WHERE user_id = $1
-		 ORDER BY updated_at DESC`,
-		userID)
+	rows, err := r.q.ListConversations(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	out := []Conversation{}
-	for rows.Next() {
-		var c Conversation
-		if err := rows.Scan(&c.ID, &c.Title, &c.CreatedAt, &c.UpdatedAt); err != nil {
-			return nil, err
-		}
-		out = append(out, c)
+	out := make([]Conversation, len(rows))
+	for i, c := range rows {
+		out[i] = Conversation{ID: c.ID, Title: c.Title, CreatedAt: c.CreatedAt, UpdatedAt: c.UpdatedAt}
 	}
-	return out, rows.Err()
+	return out, nil
 }
 
 func (r *PostgresRepository) GetConversation(ctx context.Context, userID, convID string) (Conversation, error) {
-	var c Conversation
-	err := r.pool.QueryRow(ctx,
-		`SELECT id, coalesce(title, ''), created_at, updated_at
-		 FROM chat_conversations
-		 WHERE id = $1 AND user_id = $2`,
-		convID, userID).Scan(&c.ID, &c.Title, &c.CreatedAt, &c.UpdatedAt)
+	c, err := r.q.GetConversation(ctx, gen.GetConversationParams{ID: convID, UserID: userID})
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Conversation{}, ErrNotFound
 	}
-	return c, err
+	if err != nil {
+		return Conversation{}, err
+	}
+	return Conversation{ID: c.ID, Title: c.Title, CreatedAt: c.CreatedAt, UpdatedAt: c.UpdatedAt}, nil
 }
 
 func (r *PostgresRepository) Messages(ctx context.Context, userID, convID string) ([]Message, error) {
-	// Ownership is enforced by the join to the owning conversation.
-	rows, err := r.pool.Query(ctx,
-		`SELECT m.id, m.role, m.content, m.metadata, m.created_at
-		 FROM chat_messages m
-		 JOIN chat_conversations c ON c.id = m.conversation_id
-		 WHERE m.conversation_id = $1 AND c.user_id = $2
-		 ORDER BY m.created_at`,
-		convID, userID)
+	rows, err := r.q.ConversationMessages(ctx, gen.ConversationMessagesParams{ConversationID: convID, UserID: userID})
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	out := []Message{}
-	for rows.Next() {
-		var (
-			m   Message
-			raw []byte
-		)
-		if err := rows.Scan(&m.ID, &m.Role, &m.Content, &raw, &m.CreatedAt); err != nil {
-			return nil, err
+	out := make([]Message, len(rows))
+	for i, m := range rows {
+		msg := Message{ID: m.ID, Role: m.Role, Content: m.Content, CreatedAt: m.CreatedAt}
+		if len(m.Metadata) > 0 {
+			_ = json.Unmarshal(m.Metadata, &msg.Metadata)
 		}
-		if len(raw) > 0 {
-			_ = json.Unmarshal(raw, &m.Metadata)
-		}
-		out = append(out, m)
+		out[i] = msg
 	}
-	return out, rows.Err()
+	return out, nil
 }
 
 func (r *PostgresRepository) AddMessage(ctx context.Context, convID, role, content string, metadata map[string]any) (Message, error) {
@@ -145,32 +117,39 @@ func (r *PostgresRepository) AddMessage(ctx context.Context, convID, role, conte
 		raw = b
 	}
 
-	var m Message
-	err := r.pool.QueryRow(ctx,
-		`INSERT INTO chat_messages (conversation_id, role, content, metadata)
-		 VALUES ($1, $2, $3, $4)
-		 RETURNING id, role, content, created_at`,
-		convID, role, content, raw).Scan(&m.ID, &m.Role, &m.Content, &m.CreatedAt)
+	m, err := r.q.AddMessage(ctx, gen.AddMessageParams{
+		ConversationID: convID,
+		Role:           role,
+		Content:        content,
+		Metadata:       raw,
+	})
 	if err != nil {
 		return Message{}, err
 	}
-	m.Metadata = metadata
 
 	// Keep the conversation's recency in step with its latest message.
-	_, err = r.pool.Exec(ctx,
-		`UPDATE chat_conversations SET updated_at = now() WHERE id = $1`, convID)
-	return m, err
+	if err := r.q.TouchConversation(ctx, convID); err != nil {
+		return Message{}, err
+	}
+	return Message{ID: m.ID, Role: m.Role, Content: m.Content, Metadata: metadata, CreatedAt: m.CreatedAt}, nil
 }
 
 func (r *PostgresRepository) DeleteConversation(ctx context.Context, userID, convID string) error {
-	tag, err := r.pool.Exec(ctx,
-		`DELETE FROM chat_conversations WHERE id = $1 AND user_id = $2`,
-		convID, userID)
+	n, err := r.q.DeleteConversation(ctx, gen.DeleteConversationParams{ID: convID, UserID: userID})
 	if err != nil {
 		return err
 	}
-	if tag.RowsAffected() == 0 {
+	if n == 0 {
 		return ErrNotFound
 	}
 	return nil
+}
+
+// ptrIfNotEmpty maps an empty title to NULL so the column keeps its nullable
+// semantics (the read path coalesces NULL back to "").
+func ptrIfNotEmpty(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
 }

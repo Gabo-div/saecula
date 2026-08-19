@@ -66,4 +66,5 @@ type UserSavedVerse struct {
 	Note           *string
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
+	GroupID        *string
 }

@@ -31,7 +31,7 @@ export function VerseContextMenu({ visible, verse, bookName, chapter, onClose }:
   const insets = useSafeAreaInsets();
   const c = useAppTheme();
   const { t } = useTranslation();
-  const { save, remove, toggleHighlight, updateNote, byEntity } = useBookmarksStore();
+  const { save, remove, toggleHighlight, updateNote, singleByEntity } = useBookmarksStore();
 
   const [noteInput, setNoteInput] = useState(false);
   const [noteText, setNoteText] = useState('');
@@ -39,7 +39,7 @@ export function VerseContextMenu({ visible, verse, bookName, chapter, onClose }:
 
   if (!verse) return null;
 
-  const saved = byEntity[verse.entity_id];
+  const saved = singleByEntity[verse.entity_id];
   const reference = `${bookName} ${chapter}:${verse.number}`;
   const isSaved = !!saved;
 

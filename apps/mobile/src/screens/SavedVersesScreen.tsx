@@ -21,7 +21,7 @@ export function SavedVersesScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const c = useAppTheme();
   const { t } = useTranslation();
-  const { verses, loading, load, remove } = useBookmarksStore();
+  const { verses, loading, load, remove, deleteGroup } = useBookmarksStore();
 
   const [filter, setFilter] = useState<Filter>('all');
 
@@ -31,11 +31,9 @@ export function SavedVersesScreen({ navigation }: Props) {
     void reload();
   }, [reload]);
 
-  const filtered = verses.filter((v) => {
-    if (filter === 'highlighted') return !!v.highlight_color;
-    if (filter === 'notes') return !!v.note;
-    return true;
-  });
+  // Collapse group rows (same group_id) into one entry; standalone rows
+  // (group_id null) stay individual. Order follows the server's created_at DESC.
+  const items = groupItems(verses);
 
   const filters: { key: Filter; label: string; icon: React.ComponentProps<typeof MaterialCommunityIcons>['name'] }[] = [
     { key: 'all', label: t('bookmarks.all'), icon: 'bookmark-outline' },
@@ -86,7 +84,7 @@ export function SavedVersesScreen({ navigation }: Props) {
         <YStack flex={1} items="center" justify="center">
           <Spinner size="large" color={c.accent} />
         </YStack>
-      ) : filtered.length === 0 ? (
+      ) : items.length === 0 ? (
         <YStack flex={1} items="center" justify="center" px="$6" gap="$3">
           <MaterialCommunityIcons name="bookmark-off-outline" size={48} color={c.muted} />
           <Text color={c.muted} text="center" fontSize={15}>
@@ -100,13 +98,13 @@ export function SavedVersesScreen({ navigation }: Props) {
             <RefreshControl refreshing={loading} onRefresh={reload} tintColor={c.accent} />
           }
         >
-          {filtered.map((verse) => (
-            <SavedVerseRow
-              key={verse.id}
-              verse={verse}
-              onDelete={remove}
-            />
-          ))}
+          {items.map((item) =>
+            item.kind === 'single' ? (
+              <SavedVerseRow key={item.verse.id} verse={item.verse} onDelete={remove} />
+            ) : (
+              <SavedGroupRow key={item.groupId} rows={item.rows} onDelete={() => deleteGroup(item.groupId)} />
+            ),
+          )}
         </ScrollView>
       )}
     </View>
@@ -155,6 +153,64 @@ function SavedVerseRow({
           <MaterialCommunityIcons name="note-text-outline" size={12} color={c.accentDim} />
           <Text color={c.accentDim} fontSize={12} fontStyle="italic" flex={1} numberOfLines={2}>
             {verse.note}
+          </Text>
+        </XStack>
+      )}
+    </YStack>
+  );
+}
+
+type SavedItem =
+  | { kind: 'single'; verse: SavedVerse }
+  | { kind: 'group'; groupId: string; rows: SavedVerse[] };
+
+// groupItems collapses rows sharing a group_id into one entry, preserving the
+// server's created_at DESC order (first time a group_id appears fixes its slot).
+function groupItems(verses: SavedVerse[]): SavedItem[] {
+  const items: SavedItem[] = [];
+  const at: Record<string, number> = {};
+  for (const v of verses) {
+    if (v.group_id == null) {
+      items.push({ kind: 'single', verse: v });
+      continue;
+    }
+    const i = at[v.group_id];
+    if (i === undefined) {
+      at[v.group_id] = items.length;
+      items.push({ kind: 'group', groupId: v.group_id, rows: [v] });
+    } else {
+      (items[i] as { rows: SavedVerse[] }).rows.push(v);
+    }
+  }
+  return items;
+}
+
+function SavedGroupRow({ rows, onDelete }: { rows: SavedVerse[]; onDelete: () => void }) {
+  const c = useAppTheme();
+  const color = rows.find((r) => r.highlight_color)?.highlight_color ?? null;
+  const note = rows.find((r) => r.note)?.note ?? null;
+  const label = rows.map((r) => r.reference || r.entity_id).join(', ');
+
+  return (
+    <YStack py="$3" px="$2" borderBottomWidth={1} borderBottomColor={c.border} gap="$2">
+      <XStack items="center" gap="$2">
+        {color && <View width={10} height={10} rounded={5} style={{ backgroundColor: color }} />}
+        <MaterialCommunityIcons name="bookmark-multiple-outline" size={13} color={c.accent} />
+        <Text color={c.accent} fontSize={12} fontWeight="600" flex={1} numberOfLines={1}>
+          {label}
+        </Text>
+        <HeaderIconButton icon="delete-outline" onPress={onDelete} />
+      </XStack>
+      {rows.map((r) => (
+        <Text key={r.id} color={c.text} fontFamily={serif} fontSize={15} lineHeight={22} numberOfLines={3}>
+          {r.verse_text}
+        </Text>
+      ))}
+      {note && (
+        <XStack gap="$1" items="center" mt="$1">
+          <MaterialCommunityIcons name="note-text-outline" size={12} color={c.accentDim} />
+          <Text color={c.accentDim} fontSize={12} fontStyle="italic" flex={1} numberOfLines={2}>
+            {note}
           </Text>
         </XStack>
       )}

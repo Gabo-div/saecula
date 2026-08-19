@@ -22,6 +22,7 @@ import (
 
 	"saecula/back/internal/auth"
 	"saecula/back/internal/bible"
+	"saecula/back/internal/bookmarks"
 	"saecula/back/internal/calendar"
 	"saecula/back/internal/catechism"
 	"saecula/back/internal/config"
@@ -79,12 +80,13 @@ func TestMain(m *testing.M) {
 	}
 	catechismAPI := catechism.NewAPI(pool)
 	streakAPI := streak.NewAPI(streak.NewPostgresRepository(pool))
+	bookmarksAPI := bookmarks.NewAPI(bookmarks.NewPostgresRepository(pool))
 
 	srv := server.New(server.Config{
 		Addr:           "127.0.0.1:0",
 		AuthMiddleware: auth.Middleware(tokens),
 		PublicAPIs:     []server.API{authAPI},
-		ProtectedAPIs:  []server.API{timelineAPI, bibleAPI, readingsAPI, calendarAPI, catechismAPI, streakAPI},
+		ProtectedAPIs:  []server.API{timelineAPI, bibleAPI, readingsAPI, calendarAPI, catechismAPI, streakAPI, bookmarksAPI},
 	})
 	testServer = httptest.NewServer(srv.Handler())
 	defer testServer.Close()
@@ -565,5 +567,80 @@ func TestStreakCheckinAndGet(t *testing.T) {
 		map[string]string{"date": "2026-08-18", "activityType": "walk"}, token)
 	if resp.StatusCode != http.StatusBadRequest {
 		t.Fatalf("bad activityType = %d, want 400", resp.StatusCode)
+	}
+}
+
+func TestBookmarkGroups(t *testing.T) {
+	token := authToken(t)
+
+	type sv struct {
+		EntityID       string  `json:"entity_id"`
+		GroupID        *string `json:"group_id"`
+		HighlightColor *string `json:"highlight_color"`
+		Note           *string `json:"note"`
+	}
+
+	// A standalone bookmark with a note on JHN.3.16.
+	resp, raw := do(t, http.MethodPost, "/api/bookmarks", map[string]any{
+		"entity_id": "JHN.3.16", "reference": "John 3:16", "verse_text": "For God so loved",
+		"note": "single note",
+	}, token)
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("save single = %d (%s)", resp.StatusCode, raw)
+	}
+
+	// A group over JHN.3.16 + JHN.3.17 with a highlight — must NOT touch the single.
+	resp, raw = do(t, http.MethodPost, "/api/bookmarks/group", map[string]any{
+		"verses": []map[string]string{
+			{"entity_id": "JHN.3.16", "reference": "John 3:16", "verse_text": "For God so loved"},
+			{"entity_id": "JHN.3.17", "reference": "John 3:17", "verse_text": "For God sent not"},
+		},
+		"highlight_color": "#F5D063",
+	}, token)
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("create group = %d (%s)", resp.StatusCode, raw)
+	}
+	grp := decode[struct {
+		Verses []sv `json:"verses"`
+	}](t, raw)
+	if len(grp.Verses) != 2 || grp.Verses[0].GroupID == nil {
+		t.Fatalf("group payload malformed: %+v", grp)
+	}
+	groupID := *grp.Verses[0].GroupID
+
+	// List: the single (note, group_id null) survives alongside the 2 group rows.
+	resp, raw = do(t, http.MethodGet, "/api/bookmarks", nil, token)
+	list := decode[struct {
+		Verses []sv `json:"verses"`
+	}](t, raw)
+	var singles, grouped int
+	for _, v := range list.Verses {
+		if v.GroupID == nil && v.EntityID == "JHN.3.16" && v.Note != nil && *v.Note == "single note" {
+			singles++
+		}
+		if v.GroupID != nil && *v.GroupID == groupID {
+			grouped++
+		}
+	}
+	if singles != 1 {
+		t.Fatalf("standalone JHN.3.16 note was clobbered; singles=%d list=%+v", singles, list.Verses)
+	}
+	if grouped != 2 {
+		t.Fatalf("expected 2 group rows, got %d", grouped)
+	}
+
+	// Delete the group: standalone bookmark stays.
+	resp, _ = do(t, http.MethodDelete, "/api/bookmarks/group/"+groupID, nil, token)
+	if resp.StatusCode != http.StatusNoContent {
+		t.Fatalf("delete group = %d", resp.StatusCode)
+	}
+	resp, raw = do(t, http.MethodGet, "/api/bookmarks", nil, token)
+	after := decode[struct {
+		Verses []sv `json:"verses"`
+	}](t, raw)
+	for _, v := range after.Verses {
+		if v.GroupID != nil && *v.GroupID == groupID {
+			t.Fatalf("group rows still present after delete")
+		}
 	}
 }

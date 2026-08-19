@@ -12,6 +12,8 @@ import (
 )
 
 // SavedVerse is one user-saved verse with optional highlight and note.
+// A standalone bookmark has GroupID nil; a multi-verse group is several rows
+// sharing one GroupID.
 type SavedVerse struct {
 	ID             string    `json:"id"`
 	EntityID       string    `json:"entity_id"`
@@ -19,8 +21,16 @@ type SavedVerse struct {
 	VerseText      string    `json:"verse_text"`
 	HighlightColor *string   `json:"highlight_color,omitempty"`
 	Note           *string   `json:"note,omitempty"`
+	GroupID        *string   `json:"group_id,omitempty"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
+}
+
+// GroupVerse is one member of a multi-verse group to create.
+type GroupVerse struct {
+	EntityID  string `json:"entity_id"`
+	Reference string `json:"reference"`
+	VerseText string `json:"verse_text"`
 }
 
 // Repository defines the data-access contract for user saved verses.
@@ -33,17 +43,23 @@ type Repository interface {
 	Delete(ctx context.Context, userID, entityID string) error
 	DeleteByID(ctx context.Context, userID, id string) error
 	Count(ctx context.Context, userID string) (int, error)
+	// CreateGroup saves several verses as one group (shared highlight/note),
+	// without touching any standalone bookmarks of those verses.
+	CreateGroup(ctx context.Context, userID string, verses []GroupVerse, highlightColor, note *string) ([]SavedVerse, error)
+	// DeleteGroup removes every row of a group at once.
+	DeleteGroup(ctx context.Context, userID, groupID string) error
 }
 
 // PostgresRepository is the PostgreSQL implementation of Repository.
 type PostgresRepository struct {
-	q *gen.Queries
+	pool *pgxpool.Pool
+	q    *gen.Queries
 }
 
 var _ Repository = (*PostgresRepository)(nil)
 
 func NewPostgresRepository(pool *pgxpool.Pool) *PostgresRepository {
-	return &PostgresRepository{q: gen.New(pool)}
+	return &PostgresRepository{pool: pool, q: gen.New(pool)}
 }
 
 func toSavedVerse(v gen.UserSavedVerse) SavedVerse {
@@ -54,6 +70,7 @@ func toSavedVerse(v gen.UserSavedVerse) SavedVerse {
 		VerseText:      v.VerseText,
 		HighlightColor: v.HighlightColor,
 		Note:           v.Note,
+		GroupID:        v.GroupID,
 		CreatedAt:      v.CreatedAt,
 		UpdatedAt:      v.UpdatedAt,
 	}
@@ -137,4 +154,43 @@ func (repo *PostgresRepository) DeleteByID(ctx context.Context, userID, id strin
 func (repo *PostgresRepository) Count(ctx context.Context, userID string) (int, error) {
 	n, err := repo.q.CountSavedVerses(ctx, userID)
 	return int(n), err
+}
+
+func (repo *PostgresRepository) CreateGroup(ctx context.Context, userID string, verses []GroupVerse, highlightColor, note *string) ([]SavedVerse, error) {
+	tx, err := repo.pool.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	q := repo.q.WithTx(tx)
+	gid, err := q.NewGroupID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]SavedVerse, 0, len(verses))
+	for _, v := range verses {
+		row, err := q.InsertGroupedVerse(ctx, gen.InsertGroupedVerseParams{
+			UserID:         userID,
+			EntityID:       v.EntityID,
+			Reference:      v.Reference,
+			VerseText:      v.VerseText,
+			HighlightColor: highlightColor,
+			Note:           note,
+			GroupID:        &gid,
+		})
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, toSavedVerse(row))
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (repo *PostgresRepository) DeleteGroup(ctx context.Context, userID, groupID string) error {
+	_, err := repo.q.DeleteBookmarkGroup(ctx, gen.DeleteBookmarkGroupParams{UserID: userID, GroupID: &groupID})
+	return err
 }

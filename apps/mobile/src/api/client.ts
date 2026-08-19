@@ -17,6 +17,7 @@ import type {
   DailyVerseResponse,
   SavedVersesResponse,
   SavedVerse,
+  CreateBookmarkGroupRequest,
   StreakHistoryResponse,
   StreakResponse,
   TimelineResponse,
@@ -328,4 +329,15 @@ export async function setNote(
 
 export async function deleteSavedVerse(entityId: string): Promise<void> {
   await api.delete(`/api/bookmarks/${encodeURIComponent(entityId)}`);
+}
+
+export async function createBookmarkGroup(
+  req: CreateBookmarkGroupRequest,
+): Promise<SavedVerse[]> {
+  const { data } = await api.post<{ verses: SavedVerse[] }>('/api/bookmarks/group', req);
+  return data.verses;
+}
+
+export async function deleteBookmarkGroup(groupId: string): Promise<void> {
+  await api.delete(`/api/bookmarks/group/${encodeURIComponent(groupId)}`);
 }

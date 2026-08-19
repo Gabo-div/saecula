@@ -3,7 +3,7 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, FlatList, Modal, ScrollView } from 'react-native';
+import { FlatList, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Separator, Spinner, Text, View, XStack, YStack } from 'tamagui';
 
@@ -290,7 +290,7 @@ export function BibleScreen({ navigation }: Props) {
   // Verse context menu state
   const [contextMenuVerse, setContextMenuVerse] = useState<Verse | null>(null);
   const [contextMenuVisible, setContextMenuVisible] = useState(false);
-  const byEntity = useBookmarksStore((s) => s.byEntity);
+  const highlightByEntity = useBookmarksStore((s) => s.highlightByEntity);
 
   // Multi-select state
   const [multiSelectMode, setMultiSelectMode] = useState(false);
@@ -413,9 +413,8 @@ export function BibleScreen({ navigation }: Props) {
         >
           <ReaderTitle overline={bookName} main={String(chapterNo)} giant />
           {content?.verses.map((verse) => {
-            const saved = byEntity[verse.entity_id];
-            const isHighlighted = !!saved?.highlight_color;
-            const hasNote = !!saved?.note;
+            const hl = highlightByEntity[verse.entity_id];
+            const isHighlighted = !!hl;
             const isSelected = !!selectedVerseIds[verse.entity_id];
             return (
               <View
@@ -430,7 +429,7 @@ export function BibleScreen({ navigation }: Props) {
                 borderLeftWidth={isSelected ? 0 : isHighlighted ? 3 : highlight === verse.number ? 3 : 0}
                 borderLeftColor={
                   isHighlighted
-                    ? saved.highlight_color!
+                    ? hl
                     : highlight === verse.number
                       ? c.accent
                       : 'transparent'
@@ -439,7 +438,7 @@ export function BibleScreen({ navigation }: Props) {
                   isSelected
                     ? `${c.accent}20`
                     : isHighlighted
-                      ? `${saved.highlight_color!}18`
+                      ? `${hl}18`
                       : highlight === verse.number
                         ? c.bgElevated
                         : 'transparent'
@@ -490,14 +489,6 @@ export function BibleScreen({ navigation }: Props) {
                   </Text>
                   {verse.text}
                 </Text>
-                {hasNote && (
-                  <XStack mt="$1" items="center" gap="$1">
-                    <MaterialCommunityIcons name="note-text-outline" size={12} color={c.accentDim} />
-                    <Text color={c.accentDim} fontSize={11} numberOfLines={1} flex={1}>
-                      {saved.note}
-                    </Text>
-                  </XStack>
-                )}
               </View>
             );
           })}

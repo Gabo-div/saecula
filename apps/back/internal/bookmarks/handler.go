@@ -25,6 +25,8 @@ func (a *API) Routes() chi.Router {
 	r := chi.NewRouter()
 	r.Get("/", a.List)
 	r.Post("/", a.Upsert)
+	r.Post("/group", a.CreateGroup)
+	r.Delete("/group/{groupID}", a.DeleteGroup)
 	r.Route("/by-id", func(r chi.Router) {
 		r.Delete("/{id}", a.DeleteByID)
 	})
@@ -134,6 +136,60 @@ func (a *API) Upsert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	httpx.WriteJSON(w, http.StatusOK, v)
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/bookmarks/group  { verses:[{entity_id,reference,verse_text}], highlight_color?, note? }
+// ---------------------------------------------------------------------------
+
+type createGroupRequest struct {
+	Verses         []GroupVerse `json:"verses"`
+	HighlightColor *string      `json:"highlight_color,omitempty"`
+	Note           *string      `json:"note,omitempty"`
+}
+
+func (a *API) CreateGroup(w http.ResponseWriter, r *http.Request) {
+	uid, ok := userID(r)
+	if !ok {
+		httpx.WriteError(w, http.StatusUnauthorized, "unauthenticated")
+		return
+	}
+	var req createGroupRequest
+	if err := httpx.DecodeJSON(r, &req); err != nil {
+		httpx.WriteError(w, http.StatusBadRequest, "invalid JSON body")
+		return
+	}
+	if len(req.Verses) == 0 {
+		httpx.WriteError(w, http.StatusBadRequest, "verses is required")
+		return
+	}
+
+	verses, err := a.repo.CreateGroup(r.Context(), uid, req.Verses, req.HighlightColor, req.Note)
+	if err != nil {
+		slog.Error("bookmarks: create group", "error", err)
+		httpx.WriteError(w, http.StatusInternalServerError, "save failed")
+		return
+	}
+	httpx.WriteJSON(w, http.StatusOK, map[string]any{"verses": verses})
+}
+
+// ---------------------------------------------------------------------------
+// DELETE /api/bookmarks/group/{groupID}
+// ---------------------------------------------------------------------------
+
+func (a *API) DeleteGroup(w http.ResponseWriter, r *http.Request) {
+	uid, ok := userID(r)
+	if !ok {
+		httpx.WriteError(w, http.StatusUnauthorized, "unauthenticated")
+		return
+	}
+	groupID := chi.URLParam(r, "groupID")
+	if err := a.repo.DeleteGroup(r.Context(), uid, groupID); err != nil {
+		slog.Error("bookmarks: delete group", "error", err)
+		httpx.WriteError(w, http.StatusInternalServerError, "delete failed")
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // ---------------------------------------------------------------------------

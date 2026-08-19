@@ -20,8 +20,25 @@ func (q *Queries) CountSavedVerses(ctx context.Context, userID string) (int64, e
 	return count, err
 }
 
+const deleteBookmarkGroup = `-- name: DeleteBookmarkGroup :execrows
+DELETE FROM user_saved_verses WHERE user_id = $1 AND group_id = $2
+`
+
+type DeleteBookmarkGroupParams struct {
+	UserID  string
+	GroupID *string
+}
+
+func (q *Queries) DeleteBookmarkGroup(ctx context.Context, arg DeleteBookmarkGroupParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteBookmarkGroup, arg.UserID, arg.GroupID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const deleteSavedVerse = `-- name: DeleteSavedVerse :exec
-DELETE FROM user_saved_verses WHERE user_id = $1 AND entity_id = $2
+DELETE FROM user_saved_verses WHERE user_id = $1 AND entity_id = $2 AND group_id IS NULL
 `
 
 type DeleteSavedVerseParams struct {
@@ -49,8 +66,8 @@ func (q *Queries) DeleteSavedVerseByID(ctx context.Context, arg DeleteSavedVerse
 }
 
 const getSavedVerse = `-- name: GetSavedVerse :one
-SELECT id, user_id, entity_id, reference, verse_text, highlight_color, note, created_at, updated_at FROM user_saved_verses
-WHERE user_id = $1 AND entity_id = $2
+SELECT id, user_id, entity_id, reference, verse_text, highlight_color, note, created_at, updated_at, group_id FROM user_saved_verses
+WHERE user_id = $1 AND entity_id = $2 AND group_id IS NULL
 `
 
 type GetSavedVerseParams struct {
@@ -71,12 +88,55 @@ func (q *Queries) GetSavedVerse(ctx context.Context, arg GetSavedVerseParams) (U
 		&i.Note,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.GroupID,
+	)
+	return i, err
+}
+
+const insertGroupedVerse = `-- name: InsertGroupedVerse :one
+INSERT INTO user_saved_verses (user_id, entity_id, reference, verse_text, highlight_color, note, group_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, user_id, entity_id, reference, verse_text, highlight_color, note, created_at, updated_at, group_id
+`
+
+type InsertGroupedVerseParams struct {
+	UserID         string
+	EntityID       string
+	Reference      string
+	VerseText      string
+	HighlightColor *string
+	Note           *string
+	GroupID        *string
+}
+
+func (q *Queries) InsertGroupedVerse(ctx context.Context, arg InsertGroupedVerseParams) (UserSavedVerse, error) {
+	row := q.db.QueryRow(ctx, insertGroupedVerse,
+		arg.UserID,
+		arg.EntityID,
+		arg.Reference,
+		arg.VerseText,
+		arg.HighlightColor,
+		arg.Note,
+		arg.GroupID,
+	)
+	var i UserSavedVerse
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.EntityID,
+		&i.Reference,
+		&i.VerseText,
+		&i.HighlightColor,
+		&i.Note,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GroupID,
 	)
 	return i, err
 }
 
 const listSavedVerses = `-- name: ListSavedVerses :many
-SELECT id, user_id, entity_id, reference, verse_text, highlight_color, note, created_at, updated_at FROM user_saved_verses
+SELECT id, user_id, entity_id, reference, verse_text, highlight_color, note, created_at, updated_at, group_id FROM user_saved_verses
 WHERE user_id = $1
 ORDER BY created_at DESC
 `
@@ -100,6 +160,7 @@ func (q *Queries) ListSavedVerses(ctx context.Context, userID string) ([]UserSav
 			&i.Note,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.GroupID,
 		); err != nil {
 			return nil, err
 		}
@@ -112,7 +173,7 @@ func (q *Queries) ListSavedVerses(ctx context.Context, userID string) ([]UserSav
 }
 
 const listSavedVersesHighlighted = `-- name: ListSavedVersesHighlighted :many
-SELECT id, user_id, entity_id, reference, verse_text, highlight_color, note, created_at, updated_at FROM user_saved_verses
+SELECT id, user_id, entity_id, reference, verse_text, highlight_color, note, created_at, updated_at, group_id FROM user_saved_verses
 WHERE user_id = $1 AND highlight_color IS NOT NULL
 ORDER BY created_at DESC
 `
@@ -136,6 +197,7 @@ func (q *Queries) ListSavedVersesHighlighted(ctx context.Context, userID string)
 			&i.Note,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.GroupID,
 		); err != nil {
 			return nil, err
 		}
@@ -148,7 +210,7 @@ func (q *Queries) ListSavedVersesHighlighted(ctx context.Context, userID string)
 }
 
 const listSavedVersesWithNotes = `-- name: ListSavedVersesWithNotes :many
-SELECT id, user_id, entity_id, reference, verse_text, highlight_color, note, created_at, updated_at FROM user_saved_verses
+SELECT id, user_id, entity_id, reference, verse_text, highlight_color, note, created_at, updated_at, group_id FROM user_saved_verses
 WHERE user_id = $1 AND note IS NOT NULL AND note != ''
 ORDER BY created_at DESC
 `
@@ -172,6 +234,7 @@ func (q *Queries) ListSavedVersesWithNotes(ctx context.Context, userID string) (
 			&i.Note,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.GroupID,
 		); err != nil {
 			return nil, err
 		}
@@ -183,10 +246,21 @@ func (q *Queries) ListSavedVersesWithNotes(ctx context.Context, userID string) (
 	return items, nil
 }
 
+const newGroupID = `-- name: NewGroupID :one
+SELECT gen_random_uuid()
+`
+
+func (q *Queries) NewGroupID(ctx context.Context) (string, error) {
+	row := q.db.QueryRow(ctx, newGroupID)
+	var gen_random_uuid string
+	err := row.Scan(&gen_random_uuid)
+	return gen_random_uuid, err
+}
+
 const updateSavedVerseHighlight = `-- name: UpdateSavedVerseHighlight :exec
 UPDATE user_saved_verses
 SET highlight_color = $3, updated_at = now()
-WHERE user_id = $1 AND entity_id = $2
+WHERE user_id = $1 AND entity_id = $2 AND group_id IS NULL
 `
 
 type UpdateSavedVerseHighlightParams struct {
@@ -203,7 +277,7 @@ func (q *Queries) UpdateSavedVerseHighlight(ctx context.Context, arg UpdateSaved
 const updateSavedVerseNote = `-- name: UpdateSavedVerseNote :exec
 UPDATE user_saved_verses
 SET note = $3, updated_at = now()
-WHERE user_id = $1 AND entity_id = $2
+WHERE user_id = $1 AND entity_id = $2 AND group_id IS NULL
 `
 
 type UpdateSavedVerseNoteParams struct {
@@ -220,13 +294,13 @@ func (q *Queries) UpdateSavedVerseNote(ctx context.Context, arg UpdateSavedVerse
 const upsertSavedVerse = `-- name: UpsertSavedVerse :one
 INSERT INTO user_saved_verses (user_id, entity_id, reference, verse_text, highlight_color, note)
 VALUES ($1, $2, $3, $4, $5, $6)
-ON CONFLICT (user_id, entity_id) DO UPDATE SET
+ON CONFLICT (user_id, entity_id) WHERE group_id IS NULL DO UPDATE SET
     highlight_color = COALESCE(EXCLUDED.highlight_color, user_saved_verses.highlight_color),
     note            = COALESCE(EXCLUDED.note, user_saved_verses.note),
     verse_text      = EXCLUDED.verse_text,
     reference       = EXCLUDED.reference,
     updated_at      = now()
-RETURNING id, user_id, entity_id, reference, verse_text, highlight_color, note, created_at, updated_at
+RETURNING id, user_id, entity_id, reference, verse_text, highlight_color, note, created_at, updated_at, group_id
 `
 
 type UpsertSavedVerseParams struct {
@@ -258,6 +332,7 @@ func (q *Queries) UpsertSavedVerse(ctx context.Context, arg UpsertSavedVersePara
 		&i.Note,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.GroupID,
 	)
 	return i, err
 }

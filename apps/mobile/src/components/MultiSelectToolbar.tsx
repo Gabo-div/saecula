@@ -30,7 +30,7 @@ export function MultiSelectToolbar({ visible, selected, bookName, chapter, onClo
   const insets = useSafeAreaInsets();
   const c = useAppTheme();
   const { t } = useTranslation();
-  const { toggleHighlight, updateNote } = useBookmarksStore();
+  const { toggleHighlight, updateNote, createGroup } = useBookmarksStore();
 
   const [noteInput, setNoteInput] = useState(false);
   const [noteText, setNoteText] = useState('');
@@ -40,11 +40,22 @@ export function MultiSelectToolbar({ visible, selected, bookName, chapter, onClo
 
   const count = selected.length;
 
+  const groupVerses = () =>
+    selected.map((v) => ({
+      entity_id: v.entity_id,
+      reference: `${bookName} ${chapter}:${v.number}`,
+      verse_text: v.text,
+    }));
+
+  // One verse → a standalone bookmark (single-verse path). Several verses →
+  // one group entry, which never touches those verses' standalone bookmarks.
   const handleHighlight = async (color: string) => {
     try {
-      for (const v of selected) {
-        const ref = `${bookName} ${chapter}:${v.number}`;
-        await toggleHighlight(v.entity_id, ref, v.text, color);
+      if (selected.length === 1) {
+        const v = selected[0];
+        await toggleHighlight(v.entity_id, `${bookName} ${chapter}:${v.number}`, v.text, color);
+      } else {
+        await createGroup(groupVerses(), { highlight_color: color });
       }
       onClose();
     } catch {
@@ -54,9 +65,11 @@ export function MultiSelectToolbar({ visible, selected, bookName, chapter, onClo
 
   const handleSaveNote = async () => {
     try {
-      for (const v of selected) {
-        const ref = `${bookName} ${chapter}:${v.number}`;
-        await updateNote(v.entity_id, ref, v.text, noteText);
+      if (selected.length === 1) {
+        const v = selected[0];
+        await updateNote(v.entity_id, `${bookName} ${chapter}:${v.number}`, v.text, noteText);
+      } else {
+        await createGroup(groupVerses(), { note: noteText });
       }
       setNoteInput(false);
       onClose();

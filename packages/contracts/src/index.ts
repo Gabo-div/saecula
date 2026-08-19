@@ -224,3 +224,27 @@ export interface ConversationResponse {
 export interface ConversationsResponse {
   conversations: ChatConversation[];
 }
+
+// --- Streaks ---------------------------------------------------------------
+export type ActivityType = 'bible' | 'readings' | 'prayer' | 'catechism';
+
+export interface StreakResponse {
+  current: number;
+  best: number;
+  lastActiveDay: string | null; // YYYY-MM-DD
+  todayDone: boolean;
+}
+
+export interface CheckinRequest {
+  date: string; // YYYY-MM-DD, client local day
+  activityType: ActivityType;
+}
+
+export interface StreakHistoryEntry {
+  day: string; // YYYY-MM-DD
+  activityType: ActivityType;
+}
+
+export interface StreakHistoryResponse {
+  entries: StreakHistoryEntry[];
+}

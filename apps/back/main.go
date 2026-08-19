@@ -20,6 +20,7 @@ import (
 	"saecula/back/internal/mcptools"
 	"saecula/back/internal/readings"
 	"saecula/back/internal/server"
+	"saecula/back/internal/streak"
 	"saecula/back/internal/timeline"
 	"saecula/env"
 )
@@ -90,6 +91,7 @@ func run() error {
 		return err
 	}
 	catechismAPI := catechism.NewAPI(pool)
+	streakAPI := streak.NewAPI(streak.NewPostgresRepository(pool))
 
 	// AI assistant ("Ask"): Genkit runs the agent; the tools read the app's
 	// own content and graph. Disabled (503) when no Gemini key is set.
@@ -110,7 +112,7 @@ func run() error {
 		Addr:           cfg.HTTPAddr,
 		AuthMiddleware: auth.Middleware(tokens),
 		PublicAPIs:     []server.API{authAPI},
-		ProtectedAPIs:  []server.API{timelineAPI, bibleAPI, readingsAPI, calendarAPI, catechismAPI, chatAPI},
+		ProtectedAPIs:  []server.API{timelineAPI, bibleAPI, readingsAPI, calendarAPI, catechismAPI, chatAPI, streakAPI},
 	})
 
 	return srv.Run(ctx)

@@ -28,6 +28,7 @@ import (
 	"saecula/back/internal/db"
 	"saecula/back/internal/readings"
 	"saecula/back/internal/server"
+	"saecula/back/internal/streak"
 	"saecula/back/internal/timeline"
 )
 
@@ -77,12 +78,13 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 	catechismAPI := catechism.NewAPI(pool)
+	streakAPI := streak.NewAPI(streak.NewPostgresRepository(pool))
 
 	srv := server.New(server.Config{
 		Addr:           "127.0.0.1:0",
 		AuthMiddleware: auth.Middleware(tokens),
 		PublicAPIs:     []server.API{authAPI},
-		ProtectedAPIs:  []server.API{timelineAPI, bibleAPI, readingsAPI, calendarAPI, catechismAPI},
+		ProtectedAPIs:  []server.API{timelineAPI, bibleAPI, readingsAPI, calendarAPI, catechismAPI, streakAPI},
 	})
 	testServer = httptest.NewServer(srv.Handler())
 	defer testServer.Close()
@@ -524,5 +526,44 @@ func TestTimeline(t *testing.T) {
 	resp, _ = do(t, http.MethodGet, "/api/timeline?start_year=100&end_year=0", nil, token)
 	if resp.StatusCode != http.StatusBadRequest {
 		t.Fatalf("inverted range = %d, want 400", resp.StatusCode)
+	}
+}
+
+func TestStreakCheckinAndGet(t *testing.T) {
+	token := authToken(t)
+
+	// First check-in credits today.
+	resp, raw := do(t, http.MethodPost, "/api/streak/checkin",
+		map[string]string{"date": "2026-08-18", "activityType": "bible"}, token)
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("checkin = %d, want 200 (%s)", resp.StatusCode, raw)
+	}
+
+	// A second check-in the same day is idempotent (still one day).
+	resp, raw = do(t, http.MethodPost, "/api/streak/checkin",
+		map[string]string{"date": "2026-08-18", "activityType": "prayer"}, token)
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("second checkin = %d, want 200 (%s)", resp.StatusCode, raw)
+	}
+
+	resp, raw = do(t, http.MethodGet, "/api/streak?date=2026-08-18", nil, token)
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("get streak = %d, want 200 (%s)", resp.StatusCode, raw)
+	}
+	s := decode[struct {
+		Current       int    `json:"current"`
+		Best          int    `json:"best"`
+		LastActiveDay string `json:"lastActiveDay"`
+		TodayDone     bool   `json:"todayDone"`
+	}](t, raw)
+	if s.Current != 1 || s.Best != 1 || !s.TodayDone || s.LastActiveDay != "2026-08-18" {
+		t.Fatalf("streak summary mismatch: %+v", s)
+	}
+
+	// Unknown activity type is rejected.
+	resp, _ = do(t, http.MethodPost, "/api/streak/checkin",
+		map[string]string{"date": "2026-08-18", "activityType": "walk"}, token)
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Fatalf("bad activityType = %d, want 400", resp.StatusCode)
 	}
 }

@@ -206,11 +206,6 @@ export function HomeScreen({ navigation }: Props) {
                   </Text>
                 </XStack>
                 <HeaderIconButton
-                  icon="hands-pray"
-                  testID="home-prayers"
-                  onPress={() => navigation.navigate('Prayers')}
-                />
-                <HeaderIconButton
                   icon="account-circle-outline"
                   testID="home-profile"
                   onPress={() => navigation.navigate('Profile')}

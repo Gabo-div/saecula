@@ -3,7 +3,7 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, LayoutAnimation, Modal, ScrollView } from 'react-native';
+import { FlatList, LayoutAnimation, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Separator, Spinner, Text, View, XStack, YStack } from 'tamagui';
 
@@ -17,7 +17,8 @@ import {
   useReaderChrome,
   type SearchItem,
 } from '@/components/ReaderChrome';
-import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
+import { ScreenHeader, HeaderIconButton } from '@/components/ScreenHeader';
+import { Sheet } from '@/components/Sheet';
 import { CATECHISM_PARTS, CATECHISM_PROLOGUE, type CatechismEntry } from '@/data/catechism';
 import type { AskStackParamList, RootTabParamList } from '@/navigation/RootTabs';
 import { useCatechismStore } from '@/store/catechismStore';
@@ -111,7 +112,6 @@ function SectionPicker({
   onPickSection: (s: Section) => void;
   onClose: () => void;
 }) {
-  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const c = useAppTheme();
   const [openPart, setOpenPart] = useState<string | null>(null);
@@ -156,25 +156,8 @@ function SectionPicker({
   );
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View
-        flex={1}
-        bg="rgba(0,0,0,0.6)"
-        justify="flex-end"
-        onPress={onClose}
-        pressStyle={{ opacity: 1 }}
-      >
-        <YStack
-          bg={c.bgElevated}
-          borderTopLeftRadius={24}
-          borderTopRightRadius={24}
-          borderWidth={1}
-          borderColor={c.border}
-          maxH="85%"
-          pb={insets.bottom + 8}
-          onPress={(e) => e.stopPropagation()}
-        >
-          <XStack items="center" px="$4" py="$3" gap="$3">
+    <Sheet visible={visible} onClose={onClose} grabber={false} maxHeight="85%" padBottom={8}>
+      <XStack items="center" px="$4" py="$3" gap="$3">
             <Text color={c.strong} fontFamily={serif} fontSize={18} fontWeight="600">
               {t('catechism.title')}
             </Text>
@@ -309,9 +292,7 @@ function SectionPicker({
               );
             })}
           </ScrollView>
-        </YStack>
-      </View>
-    </Modal>
+    </Sheet>
   );
 }
 

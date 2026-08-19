@@ -1,11 +1,10 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Separator, Text, View, XStack, YStack } from 'tamagui';
 
 import { fetchStreakHistory } from '@/api/client';
+import { Sheet } from '@/components/Sheet';
 import { WeekStrip, localISO, mondayOf } from '@/components/WeekStrip';
 import { useStreakStore } from '@/store/streakStore';
 import { useAppTheme } from '@/store/themeStore';
@@ -42,7 +41,6 @@ export function StreakSheet({
   onClose: () => void;
   onOpenHistory: () => void;
 }) {
-  const insets = useSafeAreaInsets();
   const c = useAppTheme();
   const { t } = useTranslation();
   const current = useStreakStore((s) => s.current);
@@ -63,23 +61,8 @@ export function StreakSheet({
   const weeks = weeksInARow(done, new Date());
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View flex={1} bg="rgba(0,0,0,0.6)" justify="flex-end" onPress={onClose}>
-        <YStack
-          bg={c.bgElevated}
-          borderTopLeftRadius={28}
-          borderTopRightRadius={28}
-          borderWidth={1}
-          borderColor={c.border}
-          pb={insets.bottom + 20}
-          onPress={(e) => e.stopPropagation()}
-        >
-          {/* Grabber */}
-          <View items="center" pt="$3" pb="$1">
-            <View width={40} height={5} rounded={3} bg={c.border} />
-          </View>
-
-          <YStack px="$5" pt="$3" gap="$5">
+    <Sheet visible={visible} onClose={onClose} radius={28} padBottom={20}>
+      <YStack px="$5" pt="$3" gap="$5">
             <Text color={c.strong} fontFamily={serif} fontSize={24} lineHeight={31} fontWeight="600">
               {t('streak.tagline')}
             </Text>
@@ -135,9 +118,7 @@ export function StreakSheet({
                 {t('streak.history')}
               </Text>
             </View>
-          </YStack>
-        </YStack>
-      </View>
-    </Modal>
+      </YStack>
+    </Sheet>
   );
 }

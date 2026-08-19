@@ -3,9 +3,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  KeyboardAvoidingView,
   LayoutAnimation,
-  Modal,
   ScrollView,
   TextInput,
   type NativeScrollEvent,
@@ -14,6 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Separator, Spinner, Text, View, XStack, YStack } from 'tamagui';
 
+import { Sheet } from '@/components/Sheet';
 import { FONT_STEPS, useReaderPrefs } from '@/store/readerPrefsStore';
 import { useAppTheme } from '@/store/themeStore';
 import { serif } from '@/theme/colors';
@@ -158,30 +157,13 @@ export function ReaderSettingsSheet({
   visible: boolean;
   onClose: () => void;
 }) {
-  const insets = useSafeAreaInsets();
   const c = useAppTheme();
   const { t } = useTranslation();
   const { fontScale, setFontScale } = useReaderPrefs();
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View
-        flex={1}
-        bg="rgba(0,0,0,0.6)"
-        justify="flex-end"
-        onPress={onClose}
-        pressStyle={{ opacity: 1 }}
-      >
-        <YStack
-          bg={c.bgElevated}
-          borderTopLeftRadius={24}
-          borderTopRightRadius={24}
-          borderWidth={1}
-          borderColor={c.border}
-          pb={insets.bottom + 16}
-          onPress={(e) => e.stopPropagation()}
-        >
-          <XStack items="center" px="$4" py="$3" gap="$3">
+    <Sheet visible={visible} onClose={onClose} grabber={false} padBottom={16}>
+      <XStack items="center" px="$4" py="$3" gap="$3">
             <Text color={c.strong} fontFamily={serif} fontSize={18} fontWeight="600">
               {t('reader.accessibility')}
             </Text>
@@ -225,9 +207,7 @@ export function ReaderSettingsSheet({
               })}
             </XStack>
           </YStack>
-        </YStack>
-      </View>
-    </Modal>
+    </Sheet>
   );
 }
 
@@ -251,7 +231,6 @@ export function ReaderSearchSheet({
   onSearch: (q: string) => Promise<SearchItem[]>;
   onPick: (item: SearchItem) => void;
 }) {
-  const insets = useSafeAreaInsets();
   const c = useAppTheme();
   const { t } = useTranslation();
   const [q, setQ] = useState('');
@@ -299,26 +278,8 @@ export function ReaderSearchSheet({
   }, [visible]);
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View
-        flex={1}
-        bg="rgba(0,0,0,0.6)"
-        justify="flex-end"
-        onPress={onClose}
-        pressStyle={{ opacity: 1 }}
-      >
-        <KeyboardAvoidingView behavior="padding">
-          <YStack
-            bg={c.bgElevated}
-            borderTopLeftRadius={24}
-            borderTopRightRadius={24}
-            borderWidth={1}
-            borderColor={c.border}
-            maxH="85%"
-            pb={insets.bottom + 8}
-            onPress={(e) => e.stopPropagation()}
-          >
-            <XStack items="center" gap="$2" px="$4" py="$3">
+    <Sheet visible={visible} onClose={onClose} grabber={false} maxHeight="85%" padBottom={8} avoidKeyboard>
+      <XStack items="center" gap="$2" px="$4" py="$3">
               <MaterialCommunityIcons name="magnify" size={22} color={c.muted} />
               <TextInput
                 testID="reader-search-input"
@@ -368,10 +329,7 @@ export function ReaderSearchSheet({
                 ))}
               </ScrollView>
             )}
-          </YStack>
-        </KeyboardAvoidingView>
-      </View>
-    </Modal>
+    </Sheet>
   );
 }
 

@@ -1,10 +1,9 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, View, XStack, YStack } from 'tamagui';
 
+import { Sheet } from '@/components/Sheet';
 import { useLanguageStore } from '@/store/languageStore';
 import { useAppTheme } from '@/store/themeStore';
 import { serif } from '@/theme/colors';
@@ -56,7 +55,6 @@ export function DatePickerSheet({
   onSelect: (iso: string) => void;
   onClose: () => void;
 }) {
-  const insets = useSafeAreaInsets();
   const c = useAppTheme();
   const { t } = useTranslation();
   const language = useLanguageStore((s) => s.language);
@@ -105,18 +103,8 @@ export function DatePickerSheet({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View flex={1} bg="rgba(0,0,0,0.6)" justify="flex-end" onPress={onClose}>
-        {/* Stop taps inside the sheet from closing it. */}
-        <YStack
-          bg={c.bgElevated}
-          borderTopLeftRadius={24}
-          borderTopRightRadius={24}
-          borderWidth={1}
-          borderColor={c.border}
-          pb={insets.bottom + 12}
-          onPress={(e) => e.stopPropagation()}
-        >
+    <Sheet visible={visible} onClose={onClose} grabber={false}>
+      <YStack>
           {/* Month stepper */}
           <XStack items="center" justify="space-between" px="$4" py="$3">
             <View
@@ -223,8 +211,7 @@ export function DatePickerSheet({
               </Text>
             </View>
           </XStack>
-        </YStack>
-      </View>
-    </Modal>
+      </YStack>
+    </Sheet>
   );
 }

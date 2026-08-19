@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test": "go test ./..."
+    "test": "go test ./...",
+    "lint": "golangci-lint run ./...",
+    "format": "gofmt -w ."
   }
 }

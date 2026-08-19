@@ -138,7 +138,7 @@ func (s *VaticanCatechismScraper) ScrapeCatechism(ctx context.Context, progress 
 			return nil, fmt.Errorf("fetch %s: %w", stem, err)
 		}
 		raw, err := io.ReadAll(body)
-		body.Close()
+		_ = body.Close()
 		if err != nil {
 			return nil, fmt.Errorf("read %s: %w", stem, err)
 		}
@@ -192,7 +192,7 @@ func (s *VaticanCatechismScraper) stems(ctx context.Context) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("fetch index: %w", err)
 	}
-	defer body.Close()
+	defer func() { _ = body.Close() }()
 	raw, err := io.ReadAll(body)
 	if err != nil {
 		return nil, fmt.Errorf("read index: %w", err)

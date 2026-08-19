@@ -2,12 +2,13 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Spinner, Text, View, XStack, YStack } from 'tamagui';
 
 import { fetchCalendarYear } from '@/api/client';
 import { ScreenHeader } from '@/components/ScreenHeader';
+import { Sheet } from '@/components/Sheet';
 import type { CalendarStackParamList } from '@/navigation/RootTabs';
 import { useLanguageStore } from '@/store/languageStore';
 import { useAppTheme } from '@/store/themeStore';
@@ -279,24 +280,13 @@ export function CelebrationsScreen({ navigation }: Props) {
         </ScrollView>
       )}
 
-      <Modal
+      <Sheet
         visible={selected !== null}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setSelected(null)}
+        onClose={() => setSelected(null)}
+        grabber={false}
+        padBottom={16}
       >
-        <View flex={1} bg="rgba(0,0,0,0.6)" justify="flex-end">
-          <YStack
-            bg={c.bgElevated}
-            borderTopLeftRadius={24}
-            borderTopRightRadius={24}
-            borderWidth={1}
-            borderColor={c.border}
-            px="$4"
-            pt="$4"
-            pb={insets.bottom + 16}
-            gap="$3"
-          >
+        <YStack px="$4" pt="$4" gap="$3">
             {selected && (
               <>
                 <XStack items="center" justify="space-between">
@@ -367,9 +357,8 @@ export function CelebrationsScreen({ navigation }: Props) {
                 </XStack>
               </>
             )}
-          </YStack>
-        </View>
-      </Modal>
+        </YStack>
+      </Sheet>
     </View>
   );
 }

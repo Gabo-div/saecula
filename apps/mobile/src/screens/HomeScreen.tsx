@@ -11,10 +11,12 @@ import { Spinner, Text, View, XStack, YStack } from 'tamagui';
 
 import { fetchCalendarDay, fetchDailyVerse } from '@/api/client';
 import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
+import { StreakSheet } from '@/components/StreakSheet';
 import type { RootTabParamList } from '@/navigation/RootTabs';
 import { useCatechismStore } from '@/store/catechismStore';
 import { useLanguageStore } from '@/store/languageStore';
 import { useReaderStore } from '@/store/readerStore';
+import { useStreakStore } from '@/store/streakStore';
 import { useAppTheme } from '@/store/themeStore';
 import { serif } from '@/theme/colors';
 import { liturgicalColor } from '@/theme/liturgical';
@@ -101,6 +103,12 @@ export function HomeScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const language = useLanguageStore((s) => s.language);
   const setLocation = useReaderStore((s) => s.setLocation);
+  const streakCurrent = useStreakStore((s) => s.current);
+  const [streakOpen, setStreakOpen] = useState(false);
+
+  useEffect(() => {
+    void useStreakStore.getState().refresh();
+  }, []);
 
   const [daily, setDaily] = useState<DailyVerseResponse | null>(null);
   const [calDay, setCalDay] = useState<CalendarDayResponse | null>(null);
@@ -179,11 +187,24 @@ export function HomeScreen({ navigation }: Props) {
             title={t('home.title')}
             right={
               <>
-                <HeaderIconButton
-                  icon="hands-pray"
-                  testID="home-prayers"
-                  onPress={() => navigation.navigate('Prayers')}
-                />
+                <XStack
+                  testID="home-streak"
+                  items="center"
+                  gap="$1.5"
+                  height={40}
+                  px="$3"
+                  rounded={20}
+                  bg={c.chip}
+                  borderWidth={1}
+                  borderColor={c.border}
+                  onPress={() => setStreakOpen(true)}
+                  pressStyle={{ opacity: 0.7 }}
+                >
+                  <MaterialCommunityIcons name="fire" size={17} color={c.accent} />
+                  <Text color={c.strong} fontSize={14} fontWeight="700">
+                    {streakCurrent}
+                  </Text>
+                </XStack>
                 <HeaderIconButton
                   icon="account-circle-outline"
                   testID="home-profile"
@@ -342,6 +363,15 @@ export function HomeScreen({ navigation }: Props) {
           )}
         </ScrollView>
       </LinearGradient>
+
+      <StreakSheet
+        visible={streakOpen}
+        onClose={() => setStreakOpen(false)}
+        onOpenHistory={() => {
+          setStreakOpen(false);
+          navigation.navigate('Streak');
+        }}
+      />
     </View>
   );
 }

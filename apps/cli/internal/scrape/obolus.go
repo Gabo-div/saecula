@@ -63,7 +63,7 @@ func (f *ObolusFetcher) Fetch(ctx context.Context, url string) (io.ReadCloser, e
 
 	// A 403 carries the challenge; anything else is a real error.
 	challenge, _ := io.ReadAll(body)
-	body.Close()
+	_ = body.Close()
 	if status != http.StatusForbidden {
 		return nil, fmt.Errorf("unexpected status %d", status)
 	}
@@ -79,7 +79,7 @@ func (f *ObolusFetcher) Fetch(ctx context.Context, url string) (io.ReadCloser, e
 		return nil, err
 	}
 	if status != http.StatusOK {
-		body.Close()
+		_ = body.Close()
 		return nil, fmt.Errorf("unexpected status %d after solving challenge", status)
 	}
 	return body, nil

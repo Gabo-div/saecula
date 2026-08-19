@@ -1,0 +1,17 @@
+version: "2"
+
+run:
+  timeout: 3m
+
+issues:
+  # Report every occurrence, not just the first few (default caps at 3).
+  max-same-issues: 0
+  max-issues-per-linter: 0
+
+# The standard set (errcheck, govet, ineffassign, staticcheck, unused) plus a
+# couple of cheap, high-signal extras. misspell is intentionally omitted: the
+# codebase carries Spanish and Latin text it flags as English typos.
+linters:
+  default: standard
+  enable:
+    - unconvert

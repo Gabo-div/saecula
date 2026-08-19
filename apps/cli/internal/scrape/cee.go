@@ -211,7 +211,7 @@ func (s *CEEScraper) fetchBookPage(ctx context.Context, ceeSlug string) (parsedP
 	if err != nil {
 		return parsedPage{}, fmt.Errorf("fetch %s: %w", url, err)
 	}
-	defer body.Close()
+	defer func() { _ = body.Close() }()
 
 	page, err := goquery.NewDocumentFromReader(body)
 	if err != nil {

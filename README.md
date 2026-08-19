@@ -49,18 +49,24 @@ saecula/
 - **bun** — the package manager and script runner. One `bun.lock` at the root
   covers every `apps/*` and `packages/*` workspace; `bun install` at the root
   links them.
-- **Turborepo** — task pipeline (`build`, `typecheck`, `lint`, `test`, `dev`)
-  with caching and parallelism: `bun run typecheck`, `bun run lint`,
-  `bun run test`.
+- **Turborepo** — task pipeline (`build`, `typecheck`, `lint`, `format`,
+  `test`, `dev`) with caching and parallelism: `bun run typecheck`,
+  `bun run lint`, `bun run test`.
 - **Go workspace** (`go.work`) — ties `apps/back`, `apps/cli` and `libs/*`
   together for `go build`/`go test`.
+- **Extra Go tools** — `bun run dev` needs [`air`](https://github.com/air-verse/air)
+  (backend hot reload) and `bun run lint` needs
+  [`golangci-lint`](https://golangci-lint.run) v2 (config in `.golangci.yml`).
+  Install both with `go install` (they land in `$(go env GOPATH)/bin`, which
+  must be on `PATH`).
 
 Common commands from the repo root:
 
 ```bash
 bun install           # install + link all workspaces
 bun run typecheck     # tsc across @saecula/contracts and the mobile app
-bun run lint          # eslint across the mobile app
+bun run lint          # golangci-lint (back + cli) + eslint (mobile)
+bun run format        # gofmt (back + cli) + eslint --fix (mobile)
 bun run test          # turbo test + go test (back + cli)
 bun run e2e           # full pipeline: compose + seed + back + Maestro (dev build)
 bun run e2e --expo    # same, with the app running in Expo Go

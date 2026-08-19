@@ -46,7 +46,6 @@ export const ACCENT_KEYS = Object.keys(ACCENTS) as AccentKey[];
 
 // Tamagui color props are typed against theme tokens; raw hex/rgba values
 // need a loose type to pass through (same trick as `serif` below).
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ThemeColor = any;
 
 export interface AppTheme {
@@ -157,5 +156,4 @@ export function buildTheme(mode: ThemeMode, accentKey: AccentKey): AppTheme {
 // System serif keeps the sacral look without bundling fonts. Tamagui's
 // fontFamily prop is typed against configured font tokens, so the raw
 // platform font name needs a loose type to pass through.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const serif: any = Platform.select({ ios: 'Georgia', default: 'serif' });

@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "air",
-    "test": "go test ./..."
+    "test": "go test ./...",
+    "lint": "go vet ./...",
+    "format": "gofmt -w ."
   }
 }

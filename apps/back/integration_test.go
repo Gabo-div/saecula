@@ -381,8 +381,8 @@ func TestReadingsSeededDay(t *testing.T) {
 		Date     string `json:"date"`
 		Lang     string `json:"lang"`
 		Readings []struct {
-			Type     string `json:"type"`
-			Verses   []struct {
+			Type   string `json:"type"`
+			Verses []struct {
 				EntityID string `json:"entity_id"`
 				Text     string `json:"text"`
 			} `json:"verses"`

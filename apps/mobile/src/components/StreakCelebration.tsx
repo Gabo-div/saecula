@@ -1,9 +1,12 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, View, YStack } from 'tamagui';
 
+import { fetchStreakHistory } from '@/api/client';
+import { WeekStrip, localISO, mondayOf } from '@/components/WeekStrip';
 import { useStreakStore } from '@/store/streakStore';
 import { useAppTheme } from '@/store/themeStore';
 import { serif } from '@/theme/colors';
@@ -18,6 +21,18 @@ export function StreakCelebration() {
   const { t } = useTranslation();
   const count = useStreakStore((s) => s.celebrate);
   const clear = useStreakStore((s) => s.clearCelebrate);
+
+  const [done, setDone] = useState<Set<string>>(new Set());
+
+  // Load this week's completed days when the sheet opens (today's row already
+  // exists — the check-in that triggered this created it).
+  useEffect(() => {
+    if (count == null) return;
+    const today = new Date();
+    fetchStreakHistory(localISO(mondayOf(today)), localISO(today))
+      .then((r) => setDone(new Set(r.entries.map((e) => e.day))))
+      .catch(() => {});
+  }, [count]);
 
   return (
     <Modal visible={count != null} animationType="slide" transparent onRequestClose={clear}>
@@ -50,6 +65,10 @@ export function StreakCelebration() {
             <Text color={c.muted} fontSize={14} text="center">
               {t('streak.keepGoing')}
             </Text>
+
+            <View width="100%" mt="$2">
+              <WeekStrip done={done} />
+            </View>
 
             <View
               testID="streak-celebrate-continue"

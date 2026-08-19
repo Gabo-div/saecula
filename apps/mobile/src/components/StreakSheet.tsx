@@ -6,27 +6,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Separator, Text, View, XStack, YStack } from 'tamagui';
 
 import { fetchStreakHistory } from '@/api/client';
-import { useLanguageStore } from '@/store/languageStore';
+import { WeekStrip, localISO, mondayOf } from '@/components/WeekStrip';
 import { useStreakStore } from '@/store/streakStore';
 import { useAppTheme } from '@/store/themeStore';
 import { serif } from '@/theme/colors';
-
-const LOCALES: Record<string, string> = { en: 'en-US', es: 'es-ES', la: 'es-ES' };
-
-function localISO(d: Date): string {
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${d.getFullYear()}-${m}-${day}`;
-}
-
-// Monday of the given local date's week (weeks start Monday, matching the app's
-// liturgical week and the reference layout).
-function mondayOf(d: Date): Date {
-  const copy = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const offset = (copy.getDay() + 6) % 7; // 0 = Monday
-  copy.setDate(copy.getDate() - offset);
-  return copy;
-}
 
 // weeksInARow counts consecutive Mon–Sun weeks (ending this week) that hold at
 // least one active day. The current week counts once it has any activity.
@@ -62,8 +45,6 @@ export function StreakSheet({
   const insets = useSafeAreaInsets();
   const c = useAppTheme();
   const { t } = useTranslation();
-  const language = useLanguageStore((s) => s.language);
-  const locale = LOCALES[language] ?? 'en-US';
   const current = useStreakStore((s) => s.current);
   const best = useStreakStore((s) => s.best);
 
@@ -78,25 +59,8 @@ export function StreakSheet({
       .catch(() => {});
   }, [visible]);
 
-  const today = new Date();
-  const todayISO = localISO(today);
   const daysThisYear = done.size;
-  const weeks = weeksInARow(done, today);
-
-  // Current week, Monday → Sunday.
-  const monday = mondayOf(today);
-  const week = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    const dISO = localISO(d);
-    let label = ['L', 'M', 'X', 'J', 'V', 'S', 'D'][i];
-    try {
-      label = d.toLocaleDateString(locale, { weekday: 'narrow' }).toUpperCase();
-    } catch {
-      // keep fallback
-    }
-    return { iso: dISO, label, dayNum: d.getDate(), done: done.has(dISO), isToday: dISO === todayISO, future: dISO > todayISO };
-  });
+  const weeks = weeksInARow(done, new Date());
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -155,48 +119,19 @@ export function StreakSheet({
               {weeks > 0 ? `  ·  ${weeks} ${t('streak.weeks')}` : ''}
             </Text>
 
-            {/* Current week strip */}
-            <XStack justify="space-between">
-              {week.map((d) => (
-                <YStack key={d.iso} items="center" gap="$2" flex={1}>
-                  <Text color={c.muted} fontSize={11} fontWeight="700">
-                    {d.label}
-                  </Text>
-                  <View
-                    width={34}
-                    height={34}
-                    rounded={17}
-                    items="center"
-                    justify="center"
-                    bg={d.done ? c.accent : 'transparent'}
-                    borderWidth={d.isToday && !d.done ? 2 : 0}
-                    borderColor={c.accent}
-                  >
-                    <Text
-                      color={d.done ? c.bg : d.future ? c.muted : c.text}
-                      fontSize={14}
-                      fontWeight={d.done || d.isToday ? '700' : '400'}
-                    >
-                      {d.dayNum}
-                    </Text>
-                  </View>
-                </YStack>
-              ))}
-            </XStack>
+            <WeekStrip done={done} />
 
-            {/* View history */}
+            {/* View history — primary action */}
             <View
               testID="streak-history"
               items="center"
-              py="$3"
+              py="$3.5"
               rounded="$8"
-              bg={c.chip}
-              borderWidth={1}
-              borderColor={c.border}
+              bg={c.accent}
               onPress={onOpenHistory}
-              pressStyle={{ opacity: 0.7 }}
+              pressStyle={{ opacity: 0.85 }}
             >
-              <Text color={c.accent} fontSize={14} fontWeight="700">
+              <Text color={c.bg} fontSize={15} fontWeight="700">
                 {t('streak.history')}
               </Text>
             </View>

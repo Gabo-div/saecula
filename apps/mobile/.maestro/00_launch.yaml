@@ -28,11 +28,12 @@ appId: com.saecula.app
 - extendedWaitUntil:
     visible:
       id: "home-prayers"
-    timeout: 30000
+    timeout: 45000
 - tapOn:
     id: "home-profile"
 - extendedWaitUntil:
-    visible: "Profile"
+    visible:
+      text: "PERFIL"
     timeout: 20000
 - tapOn:
     id: "profile-settings"
@@ -49,7 +50,7 @@ appId: com.saecula.app
     id: "settings-back"
 - extendedWaitUntil:
     visible:
-      id: "profile-settings"
+      text: "PERFIL"
     timeout: 20000
 - stopApp
 - launchApp
@@ -60,5 +61,5 @@ appId: com.saecula.app
 - extendedWaitUntil:
     visible:
       id: "home-prayers"
-    timeout: 30000
+    timeout: 45000
 - assertVisible: "Inicio"

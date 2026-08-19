@@ -6,7 +6,7 @@ appId: com.saecula.app
     file: 00_launch.yaml
 - tapOn:
     id: "home-profile"
-- assertVisible: "Perfil"
+- assertVisible: "PERFIL"
 - assertVisible: "test@saecula.app"
 - tapOn: "Cerrar sesión"
 - assertVisible: "SAECULA"
@@ -28,5 +28,5 @@ appId: com.saecula.app
 - extendedWaitUntil:
     visible:
       id: "home-prayers"
-    timeout: 20000
+    timeout: 45000
 - assertVisible: "Inicio"

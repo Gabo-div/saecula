@@ -25,7 +25,7 @@ appId: com.saecula.app
 - assertVisible: "Versículo del día"
 # Quick action opens the prayers hub (hidden tab).
 - tapOn: "Oración"
-- assertVisible: "Oraciones guiadas"
+- assertVisible: "ORACIONES GUIADAS"
 - assertVisible: "El Santo Rosario"
 - tapOn:
     id: "screen-back"

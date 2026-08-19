@@ -6,7 +6,7 @@ appId: com.saecula.app
 - runFlow:
     file: 00_launch.yaml
 - tapOn: "Oración"
-- assertVisible: "Oraciones guiadas"
+- assertVisible: "ORACIONES GUIADAS"
 # Individual prayer: switch the body text EN → LA.
 - tapOn: "Padre Nuestro"
 - assertVisible: "Español"

@@ -6,23 +6,23 @@ appId: com.saecula.app
     file: 00_launch.yaml
 - tapOn:
     id: "home-profile"
-- assertVisible: "Perfil"
+- assertVisible: "PERFIL"
 - assertVisible: "test@saecula.app"
 - tapOn:
     id: "profile-settings"
-- assertVisible: "Ajustes"
-- assertVisible: "Tema"
-- assertVisible: "Color de acento"
-- assertVisible: "Idioma"
+- assertVisible: "AJUSTES"
+- assertVisible: "TEMA"
+- assertVisible: "COLOR DE ACENTO"
+- assertVisible: "IDIOMA"
 # Theme mode switches.
 - tapOn: "AMOLED"
 - tapOn: "Claro"
 - tapOn: "Oscuro"
 # Language switcher: Español → English → back.
 - tapOn: "English"
-- assertVisible: "Settings"
+- assertVisible: "SETTINGS"
 - tapOn: "Español"
-- assertVisible: "Ajustes"
+- assertVisible: "AJUSTES"
 # Translation default row.
 - scrollUntilVisible:
     element:
@@ -31,7 +31,7 @@ appId: com.saecula.app
 - assertVisible: "Por defecto (según idioma)"
 - tapOn:
     id: "settings-back"
-- assertVisible: "Perfil"
+- assertVisible: "PERFIL"
 - tapOn:
     id: "tab-home"
 - assertVisible: "Inicio"

@@ -98,8 +98,8 @@ export function StreakSheet({
 
             {/* Meta line */}
             <Text color={c.muted} fontSize={13} text="center">
-              {daysThisYear} {t('streak.daysThisYear')}
-              {weeks > 0 ? `  ·  ${weeks} ${t('streak.weeks')}` : ''}
+              {t('streak.daysThisYear', { count: daysThisYear })}
+              {weeks > 0 ? `  ·  ${t('streak.weeks', { count: weeks })}` : ''}
             </Text>
 
             <WeekStrip done={done} />

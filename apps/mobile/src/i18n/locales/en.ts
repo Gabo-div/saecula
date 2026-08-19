@@ -67,8 +67,10 @@ const en: Translations = {
     best: 'best streak',
     today: 'Done today',
     notToday: 'Not yet today',
-    daysThisYear: 'days this year',
-    weeks: 'weeks in a row',
+    daysThisYear_one: '{{count}} day this year',
+    daysThisYear_other: '{{count}} days this year',
+    weeks_one: '{{count}} week in a row',
+    weeks_other: '{{count}} weeks in a row',
     history: 'View history',
     completedTitle: 'Day complete!',
     keepGoing: 'Keep it up — don’t break your streak.',
@@ -229,8 +231,10 @@ export interface Translations {
     best: string;
     today: string;
     notToday: string;
-    daysThisYear: string;
-    weeks: string;
+    daysThisYear_one: string;
+    daysThisYear_other: string;
+    weeks_one: string;
+    weeks_other: string;
     history: string;
     completedTitle: string;
     keepGoing: string;

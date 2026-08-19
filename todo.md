@@ -47,27 +47,39 @@ build nativa + Jest) y **Appium** (genérico/WebDriver, más setup).
   - [x] `catechism.yaml` — párrafos cargan, salto por número (1422 → sección "La Penitencia y la Reconciliación"), búsqueda
   - [x] `readings.yaml` — calendario → lecturas del día, cambiar fecha (anclado a 2026-08-15, "hoy" = fecha local del dispositivo)
   - [x] `prayers.yaml` — oración individual con cambio EN/ES/LA + flujo del Rosario
-- [x] `chat.yaml` — Ask (chat AI): render + historial vacío + navegación de vuelta
-- [x] `settings.yaml` — tema/idioma/traducción; sign out cubierto en `auth.yaml`
-- [x] `saved_verses.yaml` — guardar versículo, toggle highlight (5 colores), nota personal, share (imagen/link/texto), listado filtrado (All/Highlighted/With Notes), eliminar
-
-### 3b. E2E móvil — modo Expo Go (sin build nativa)
-- [x] Reemplazar `expo-image` → `Image` de RN, `expo-linear-gradient` → `View` con estilo, `expo-clipboard` → dynamic import con fallback
-- [x] Script `scripts/e2e-expo-go.sh`: lanza Metro, espera Expo Go, deep-link con `adb shell am start`, patch Maestro flows con sed para usar `host.exp.exponent` como appId
-- [x] npm script `test:e2e:expo-go` en `apps/mobile/package.json`
-- [x] Verificación: `tsc --noEmit` en verde (mobile + web)
+  - [x] `chat.yaml` — Ask (chat AI): render + historial vacío + navegación de vuelta
+  - [x] `settings.yaml` — tema/idioma/traducción; sign out cubierto en `auth.yaml`
 
 ### 4. Orquestación y docs
-- [x] Script orquestador `scripts/e2e.sh` (compose + seed + back + fecha/locale emulador + build + maestro) y `bun run test:e2e` en el móvil
+- [x] Script orquestador `scripts/e2e.sh` (compose + seed + back + fecha/locale emulador + build + maestro)
 - [x] Sección E2E en el `README.md` raíz (prerequisitos: docker, go, bun, emulador Android, maestro; cómo correr)
 - [x] Correr la suite completa en local (9/9 flujos verdes) y ajustar timeouts
+
+## Monorepo (Turborepo + bun workspaces)
+- [x] Workspaces bun en raíz (`package.json` + `bun.lock` + `turbo.json`) — un solo lockfile
+- [x] `packages/contracts` — tipos del contrato de la API (single source of truth; mobile re-exporta `@/types/api`)
+- [x] `packages/config` — configs compartidas de TS, ESLint, Prettier
+- [x] Mobile adaptado: metro `watchFolders`, tsconfig paths, symlinks de workspace
+- [x] Script **independiente** de Maestro: `apps/mobile/scripts/maestro.sh` (`bun run maestro [--expo]` / `bun run maestro:expo`)
+- [x] `scripts/e2e.sh` orquesta infra y **delega** la fase Maestro en `maestro.sh`
+- [x] Scripts raíz con bun: `bun run typecheck|lint|test|e2e`
+- [x] `scripts/go-test.sh` — tests Go de back + cli bajo `bun run test`
+- [x] Migrar la tesis a `apps/thesis` (workspace bun): `generate_word.py` → `scripts/generate-word.mjs` (paquete `docx`), fuentes en `src/`, `bun run generate:word`
+
+## Pendiente / roadmap — E2E con Expo Go (`E2E_RUNNER=expo`)
+- [ ] **Arreglar los tests E2E con Expo Go.** Hay soporte base (base `E2E_RUNNER=expo`, `HOST_IP`, `appId` parametrizado, `openLink`), pero los flujos aún **no pasan** en Expo Go:
+  - [ ] El **dev menu de Expo Go** aparece de forma intermitente (sobre login y sobre Home) y rompe los taps. El dismiss actual tocaba "Continue", que **abre** el menú en vez de cerrarlo — hay que cerrarlo tocando el **backdrop** (afuera, ~50%,5%). El `00_launch` debe descartarlo en login y tras el relanzamiento a Home.
+  - [ ] El **autofill de Google** ("Use your saved password") se dispara al enfocar el campo password (hay credencial guardada de corridas previas). `maestro.sh` intenta deshabilitarlo (`autofill_service null` + force-stop GMS) pero es frágil (adb over red a Waydroid se cae). Verificar que el setting aplica antes de Maestro.
+  - [ ] Tras login, los **quick actions de Home** (p.ej. "Oración") no navegan al tocar el texto (TextView `clickable=false`) en Expo Go.
+  - [ ] La conexión `adb` por red (Waydroid `192.168.240.112:5555`) es inestable; el `adb_reconnect()` es la mitigación. Confirmar estabilidad.
+- Estado actual: `bun run e2e` (devbuild, desde raíz) o `bun run maestro` (desde apps/mobile) es el camino verde; el runner Expo Go (`E2E_RUNNER=expo`) queda **rojo** hasta resolver lo de arriba.
 
 ## Decisiones / riesgos
 - **Volúmenes**: conservarlos entre corridas (el seed es idempotente); `docker compose down -v` para re-aplicar migraciones o datos limpios.
 - **Endpoints "daily"**: dependen del reloj del server → assertions sobre **fechas fijas seedeadas** y aserción estructural en "hoy".
 - **"Hoy" en el móvil = fecha local del dispositivo** (`client.todayLocalISO`), no UTC: `e2e.sh` ancla el reloj del emulador a `2026-08-15` y `readings.yaml` deriva el label esperado de ese ancla +1.
 - **Build con `npx`, no `bun x`**: `bunx` inyecta un shim `node`→bun en PATH y gradle falla con "Cannot convert '' to File"; Metro sí corre con bun (`bun --bun x expo start`, node 18 es muy viejo para `metro.config.js`). `e2e.sh` exporta `ANDROID_HOME`/PATH.
-- **Peer mismatch `react@19.1.0` / `react-dom@19.2.7`**: resuelto — `react-dom@19.1.pinned` en `apps/web` para alinear con `react@19.1.0`.
+- **Peer mismatch `react@19.1.0` / `react-dom@19.2.7`**: solo afecta a web; irrelevante para este plan (no usamos web).
 - **Determinismo**: el seed con `--test-user` garantiza credenciales fijas (`test@saecula.app` / `saecula123`) para login por UI y por API.
 
 ---

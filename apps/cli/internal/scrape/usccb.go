@@ -135,7 +135,7 @@ func (s *USCCBScraper) scrapeDay(ctx context.Context, date time.Time) (*model.Da
 	if err != nil {
 		return nil, nil, fmt.Errorf("fetch %s: %w", url, err)
 	}
-	defer body.Close()
+	defer func() { _ = body.Close() }()
 
 	page, err := goquery.NewDocumentFromReader(body)
 	if err != nil {

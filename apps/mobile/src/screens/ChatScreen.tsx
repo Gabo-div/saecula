@@ -1,13 +1,16 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Clipboard from 'expo-clipboard';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { Keyboard, KeyboardAvoidingView, Modal, NativeScrollEvent, NativeSyntheticEvent, Platform, ScrollView, TextInput } from 'react-native';
+import { Keyboard, KeyboardAvoidingView, NativeScrollEvent, NativeSyntheticEvent, Platform, ScrollView, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Separator, Spinner, Text, View, XStack, YStack } from 'tamagui';
 
 import { ChatError, getConversation, streamChat, type ToolCall } from '@/api/chat';
+import { Sheet } from '@/components/Sheet';
 import type { AskStackParamList } from '@/navigation/RootTabs';
 import { useCatechismStore } from '@/store/catechismStore';
 import { useLanguageStore } from '@/store/languageStore';
@@ -276,7 +279,7 @@ function toolLabelPast(name: string, t: TFunction): string {
 // toolInputLabel renders a tool call's parameters as a short, user-readable
 // string (e.g. the search query or the passage/paragraph range), or null when
 // the call carried no usable input.
-function toolInputLabel(tool: ToolCall, t: TFunction): string | null {
+function toolInputLabel(tool: ToolCall, _t: TFunction): string | null {
   const input = tool.input && typeof tool.input === 'object' ? (tool.input as any) : null;
   if (!input) return null;
   switch (tool.name) {
@@ -549,12 +552,7 @@ export function ChatScreen({ navigation, route }: Props) {
   );
 
   const copyTurn = useCallback(async (turn: Turn, key: string) => {
-    try {
-      const Clipboard = await import('expo-clipboard');
-      await Clipboard.setStringAsync(turn.content);
-    } catch {
-      // expo-clipboard not available (Expo Go) — silently ignore
-    }
+    await Clipboard.setStringAsync(turn.content);
     setCopiedId(key);
     setTimeout(() => setCopiedId((cur) => (cur === key ? null : cur)), 1500);
   }, []);
@@ -764,8 +762,9 @@ export function ChatScreen({ navigation, route }: Props) {
         {/* Bottom fade: the chat content softly fades into the background at the
             very bottom of the screen, behind the floating input pill. */}
         {!disabled && (
-          <View
-            style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 120, backgroundColor: c.bg }}
+          <LinearGradient
+            colors={['transparent', c.bg]}
+            style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 120 }}
             pointerEvents="none"
           />
         )}
@@ -827,14 +826,14 @@ export function ChatScreen({ navigation, route }: Props) {
         style={{ position: 'absolute', top: 0, left: 0, right: 0 }}
         pointerEvents="box-none"
       >
-        <View
+        <LinearGradient
+          colors={[c.bg, 'transparent']}
           style={{
             position: 'absolute',
             left: 0,
             right: 0,
             top: 0,
             height: insets.top + 6 + 70,
-            backgroundColor: c.bg,
           }}
           pointerEvents="none"
         />
@@ -874,24 +873,14 @@ export function ChatScreen({ navigation, route }: Props) {
       </View>
 
       {/* Tool-call details */}
-      <Modal
+      <Sheet
         visible={detailsFor !== null}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setDetailsFor(null)}
+        onClose={() => setDetailsFor(null)}
+        grabber={false}
+        maxHeight="85%"
+        padBottom={20}
       >
-        <View flex={1} bg="rgba(0,0,0,0.6)" justify="flex-end" onPress={() => setDetailsFor(null)}>
-          <YStack
-            bg={c.bgElevated}
-            borderTopLeftRadius={24}
-            borderTopRightRadius={24}
-            borderWidth={1}
-            borderColor={c.border}
-            maxH="85%"
-            pb={insets.bottom + 20}
-            onPress={(e) => e.stopPropagation()}
-          >
-            <XStack items="center" justify="space-between" px="$4" py="$3">
+        <XStack items="center" justify="space-between" px="$4" py="$3">
               <Text fontFamily={serif} fontSize={18} fontWeight="700" color={c.strong}>
                 {t('chat.details')}
               </Text>
@@ -965,48 +954,29 @@ export function ChatScreen({ navigation, route }: Props) {
                 </YStack>
               </YStack>
             )}
-          </YStack>
-        </View>
-      </Modal>
+      </Sheet>
 
       {/* Per-message "more" menu */}
-      <Modal
-        visible={moreFor !== null}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setMoreFor(null)}
-      >
-        <View flex={1} bg="rgba(0,0,0,0.6)" justify="flex-end" onPress={() => setMoreFor(null)}>
-          <YStack
-            bg={c.bgElevated}
-            borderTopLeftRadius={24}
-            borderTopRightRadius={24}
-            borderWidth={1}
-            borderColor={c.border}
-            pb={insets.bottom + 16}
-            onPress={(e) => e.stopPropagation()}
-          >
-            <View
-              m="$2"
-              rounded={10}
-              onPress={() => {
-                if (moreFor) {
-                  setDetailsFor(moreFor.turn);
-                  setMoreFor(null);
-                }
-              }}
-              pressStyle={{ bg: c.chip }}
-            >
-              <XStack items="center" gap="$2" p="$3">
-                <MaterialCommunityIcons name="text-box-search-outline" size={20} color={c.accent} />
-                <Text color={c.strong} fontSize={15}>
-                  {t('chat.details')}
-                </Text>
-              </XStack>
-            </View>
-          </YStack>
+      <Sheet visible={moreFor !== null} onClose={() => setMoreFor(null)} grabber={false} padBottom={16}>
+        <View
+          m="$2"
+          rounded={10}
+          onPress={() => {
+            if (moreFor) {
+              setDetailsFor(moreFor.turn);
+              setMoreFor(null);
+            }
+          }}
+          pressStyle={{ bg: c.chip }}
+        >
+          <XStack items="center" gap="$2" p="$3">
+            <MaterialCommunityIcons name="text-box-search-outline" size={20} color={c.accent} />
+            <Text color={c.strong} fontSize={15}>
+              {t('chat.details')}
+            </Text>
+          </XStack>
         </View>
-      </Modal>
+      </Sheet>
     </View>
   );
 }

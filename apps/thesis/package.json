@@ -1,0 +1,13 @@
+{
+  "name": "saecula-thesis",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate:word": "node scripts/generate-word.mjs",
+    "typecheck": "echo \"no TS sources in this package\""
+  },
+  "dependencies": {
+    "docx": "^9.0.0"
+  }
+}

@@ -1,4 +1,4 @@
-appId: com.saecula.app
+appId: ${APP_ID || "com.saecula.app"}
 ---
 # Auth end-to-end: sign in → profile shows the account → sign out →
 # bad credentials show the backend error → good credentials land on Home.

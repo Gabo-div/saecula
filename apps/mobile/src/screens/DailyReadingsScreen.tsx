@@ -11,6 +11,7 @@ import { DatePickerSheet } from '@/components/DatePickerSheet';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import type { CalendarStackParamList } from '@/navigation/RootTabs';
 import { useLanguageStore } from '@/store/languageStore';
+import { useStreakStore } from '@/store/streakStore';
 import { useAppTheme } from '@/store/themeStore';
 import { serif } from '@/theme/colors';
 import type { DailyReadingsResponse } from '@/types/api';
@@ -46,6 +47,7 @@ export function DailyReadingsScreen({ navigation, route }: Props) {
     setError(null);
     try {
       setData(await fetchDailyReadings(date));
+      useStreakStore.getState().checkin('readings');
     } catch {
       setData(null);
       setError(t('calendar.noReadings'));

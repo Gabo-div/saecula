@@ -9,6 +9,7 @@ import { Separator, Spinner, Text, View, XStack, YStack } from 'tamagui';
 
 import { fetchBooks, fetchChapter, fetchTranslations, searchBible } from '@/api/client';
 import { MultiSelectToolbar } from '@/components/MultiSelectToolbar';
+import { Sheet } from '@/components/Sheet';
 import {
   ReaderMiniBar,
   ReaderSearchSheet,
@@ -25,6 +26,7 @@ import { useBookmarksStore } from '@/store/bookmarksStore';
 import { useLanguageStore } from '@/store/languageStore';
 import { useReaderPrefs } from '@/store/readerPrefsStore';
 import { useReaderStore } from '@/store/readerStore';
+import { useStreakStore } from '@/store/streakStore';
 import { useAppTheme } from '@/store/themeStore';
 import { serif } from '@/theme/colors';
 import type { Book, ChapterResponse, Translation, Verse } from '@/types/api';
@@ -46,7 +48,6 @@ function BookPicker({
   translations: Translation[];
   onClose: () => void;
 }) {
-  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const { translationId, setLocation, setTranslation } = useReaderStore();
   const c = useAppTheme();
@@ -78,25 +79,8 @@ function BookPicker({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={close}>
-      <View
-        flex={1}
-        bg="rgba(0,0,0,0.6)"
-        justify="flex-end"
-        onPress={close}
-        pressStyle={{ opacity: 1 }}
-      >
-        <YStack
-          bg={c.bgElevated}
-          borderTopLeftRadius={24}
-          borderTopRightRadius={24}
-          borderWidth={1}
-          borderColor={c.border}
-          maxH="85%"
-          pb={insets.bottom + 8}
-          onPress={(e) => e.stopPropagation()}
-        >
-          <XStack items="center" px="$4" py="$3" gap="$3">
+    <Sheet visible={visible} onClose={close} grabber={false} maxHeight="85%" padBottom={8}>
+      <XStack items="center" px="$4" py="$3" gap="$3">
             {step === 'chapter' && (
               <MaterialCommunityIcons
                 name="chevron-left"
@@ -221,9 +205,7 @@ function BookPicker({
               </ScrollView>
             )
           )}
-        </YStack>
-      </View>
-    </Modal>
+    </Sheet>
   );
 }
 
@@ -334,6 +316,7 @@ export function BibleScreen({ navigation }: Props) {
     setError(null);
     try {
       setContent(await fetchChapter(bookCode, chapter));
+      useStreakStore.getState().checkin('bible');
     } catch {
       setError(t('bible.loadError'));
     } finally {

@@ -1,41 +1,56 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Saecula E2E orchestrator — full pipeline: docker-compose (Postgres + Neo4j),
-# saecula-cli seed, the Go backend, and the Maestro flows against an Android
-# emulator. See README "End-to-end testing (E2E)".
+# Saecula E2E orchestrator (repo-wide) — full pipeline: docker-compose
+# (Postgres + Neo4j), saecula-cli seed, the Go backend, and then the mobile
+# Maestro flows (delegated to apps/mobile/scripts/maestro.sh).
+#
+# The mobile/Maestro portion lives in apps/mobile and can be run on its own
+# (from apps/mobile: `bun run maestro`) — this script composes the infra
+# around it. See README "End-to-end testing (E2E)".
+#
+# Usage (from repo root):
+#   bun run e2e          # dev build (default)
+#   bun run e2e:expo     # Expo Go
+#   bun run e2e --expo   # same as e2e:expo
+#   bun run e2e --dev    # force dev build
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 export ANDROID_HOME="${ANDROID_HOME:-$HOME/Android/Sdk}"
 export PATH="$ANDROID_HOME/platform-tools:$HOME/.maestro/bin:$HOME/.bun/bin:$PATH"
-
-# The seeded day the suite is anchored to. Keep in sync with the flows.
-ANCHOR_DATE="${E2E_ANCHOR_DATE:-2026-08-15}"
-ANCHOR_YEAR="${ANCHOR_DATE%%-*}"
-ANCHOR_MMDD="$(printf '%s%s' "${ANCHOR_DATE:5:2}" "${ANCHOR_DATE:8:2}")"   # 0815
-ANCHOR_CCYY="${ANCHOR_DATE:0:4}"                                            # 2026
-APP_ID="com.saecula.app"
 API_URL="${EXPO_PUBLIC_API_URL:-http://10.0.2.2:8080}"
+
 
 log() { printf '\n\033[1;34m[saecula-e2e]\033[0m %s\n' "$*"; }
 fail() { printf '\033[1;31m[saecula-e2e] FAIL:\033[0m %s\n' "$*"; exit 1; }
 
-BACK_PID=""
-METRO_PID=""
+# Parse --dev / --expo flags, which override E2E_RUNNER.
+RUNNER_FLAG=""
+for arg in "$@"; do
+  case "$arg" in
+    --dev) RUNNER_FLAG="devbuild" ;;
+    --expo) RUNNER_FLAG="expo" ;;
+    *) fail "unknown argument: $arg (expected --dev or --expo)" ;;
+  esac
+done
+ANCHOR_DATE="${E2E_ANCHOR_DATE:-2026-08-15}"
+ANCHOR_YEAR="${ANCHOR_DATE%%-*}"
+RUNNER="${RUNNER_FLAG:-${E2E_RUNNER:-devbuild}}"
+case "$RUNNER" in
+  devbuild|expo) ;;
+  *) fail "E2E_RUNNER must be 'devbuild' or 'expo' (got '$RUNNER')" ;;
+esac
 
+BACK_PID=""
 cleanup() {
   if [ -n "$BACK_PID" ] && kill -0 "$BACK_PID" 2>/dev/null; then
     log "Stopping the backend (pid $BACK_PID)"
     kill "$BACK_PID" 2>/dev/null || true
   fi
-  if [ -n "$METRO_PID" ] && kill -0 "$METRO_PID" 2>/dev/null; then
-    log "Stopping Metro (pid $METRO_PID)"
-    kill "$METRO_PID" 2>/dev/null || true
-  fi
   rm -f /tmp/saecula-back
 }
-trap cleanup EXIT
+trap cleanup EXIT INT TERM HUP
 
 # --- 1. Infrastructure ---------------------------------------------------------
 log "Starting Postgres + Neo4j (docker compose)"
@@ -78,48 +93,14 @@ for _ in $(seq 1 30); do
 done
 curl -sf http://127.0.0.1:8080/health >/dev/null || fail "backend not up (see /tmp/saecula-back.log)"
 
-# --- 4. Emulator -----------------------------------------------------------------
-adb devices | grep -q "device$" || fail "no emulator/device attached (start an AVD first)"
-log "Pinning emulator clock to $ANCHOR_DATE and locale to es-ES"
-adb root >/dev/null 2>&1 || true
-adb shell "settings put global auto_time 0" >/dev/null 2>&1 || true
-adb shell "date ${ANCHOR_MMDD}1200${ANCHOR_CCYY}.00" >/dev/null 2>&1 \
-  || adb shell "date -s $(date -d "$ANCHOR_DATE" +%Y%m%d.1200)" >/dev/null 2>&1 \
-  || log "WARNING: could not set the emulator clock — flows need the device on $ANCHOR_DATE"
-adb shell "settings put system system_locales es-ES" >/dev/null 2>&1 || true
-adb shell "am force-stop $APP_ID" >/dev/null 2>&1 || true
-
-# --- 5. App install ---------------------------------------------------------------
-# Build with the real Node, not `bun x`: bunx injects a `node`→bun shim early in
-# PATH, and gradle's `node -e` calls then print nothing, breaking the build
-# ("Cannot convert '' to File" in app/build.gradle).
-log "Building + installing the app (expo run:android, API=$API_URL)"
-(
-  cd "$ROOT/apps/mobile"
-  EXPO_PUBLIC_API_URL="$API_URL" npx --no-install expo run:android --variant debug --no-bundler
-)
-
-# --- 5b. Metro bundler ---------------------------------------------------------------
-log "Starting Metro dev server (port 8081)"
-(
-  cd "$ROOT/apps/mobile"
-  EXPO_PUBLIC_API_URL="$API_URL" nohup bun --bun x expo start --port 8081 \
-    >/tmp/saecula-metro.log 2>&1 &
-  echo $! >/tmp/saecula-metro.pid
-)
-METRO_PID="$(cat /tmp/saecula-metro.pid)"
-for _ in $(seq 1 90); do
-  curl -sf http://127.0.0.1:8081/status >/dev/null 2>&1 && break
-  sleep 1
-done
-curl -sf http://127.0.0.1:8081/status >/dev/null 2>&1 \
-  || fail "Metro not up (see /tmp/saecula-metro.log)"
-log "Metro ready; launching app"
-adb shell "am start -n $APP_ID/.MainActivity" >/dev/null 2>&1 || true
-sleep 5
-
-# --- 6. Maestro flows ----------------------------------------------------------------
-log "Running Maestro flows (apps/mobile/.maestro)"
-maestro test "$ROOT/apps/mobile/.maestro"
+# --- 4. Mobile + Maestro (delegated) ---------------------------------------------
+# The mobile app's Maestro runner is self-contained and independent; it handles
+# device, app install, Metro and the Maestro flows. Run it, passing through the
+# relevant env so the pipeline stays coherent.
+log "Running mobile Maestro flows (apps/mobile/scripts/maestro.sh, $RUNNER)"
+E2E_RUNNER="$RUNNER" \
+E2E_ANCHOR_DATE="$ANCHOR_DATE" \
+EXPO_PUBLIC_API_URL="$API_URL" \
+  bash "$ROOT/apps/mobile/scripts/maestro.sh"
 
 log "E2E suite finished OK"

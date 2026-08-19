@@ -1,4 +1,4 @@
-appId: com.saecula.app
+appId: ${APP_ID || "com.saecula.app"}
 ---
 # Catechism: the Prologue section loads, and the search jumps straight to a
 # paragraph by number (the Catechism is cited by number).

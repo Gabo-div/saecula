@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useLanguageStore } from '@/store/languageStore';
 import { useReaderStore } from '@/store/readerStore';
 import type {
+  ActivityType,
   AuthResponse,
   BooksResponse,
   CalendarDayResponse,
@@ -16,6 +17,9 @@ import type {
   DailyVerseResponse,
   SavedVersesResponse,
   SavedVerse,
+  StreakHistoryResponse,
+  StreakResponse,
+  ActivityType,
   TimelineResponse,
   TranslationsResponse,
 } from '@/types/api';
@@ -134,7 +138,7 @@ function bibleParams(): Record<string, string> {
 
 // todayLocalISO formats the device's local date as YYYY-MM-DD, so "today"
 // rolls over at the user's own midnight rather than the server's UTC one.
-function todayLocalISO(): string {
+export function todayLocalISO(): string {
   const d = new Date();
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
@@ -241,6 +245,33 @@ export async function searchBible(
 export async function searchCatechism(q: string, lang: string): Promise<CatechismSearchResponse> {
   const { data } = await api.get<CatechismSearchResponse>('/api/catechism/search', {
     params: { q, lang },
+  });
+  return data;
+}
+
+// --- Streaks ----------------------------------------------------------------
+
+export async function checkinStreak(activityType: ActivityType): Promise<StreakResponse> {
+  const { data } = await api.post<StreakResponse>('/api/streak/checkin', {
+    date: todayLocalISO(),
+    activityType,
+  });
+  return data;
+}
+
+export async function fetchStreak(): Promise<StreakResponse> {
+  const { data } = await api.get<StreakResponse>('/api/streak', {
+    params: { date: todayLocalISO() },
+  });
+  return data;
+}
+
+export async function fetchStreakHistory(
+  from: string,
+  to: string,
+): Promise<StreakHistoryResponse> {
+  const { data } = await api.get<StreakHistoryResponse>('/api/streak/history', {
+    params: { from, to },
   });
   return data;
 }

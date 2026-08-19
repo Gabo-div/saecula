@@ -1,4 +1,4 @@
-appId: com.saecula.app
+appId: ${APP_ID || "com.saecula.app"}
 ---
 # Settings: theme mode, language switcher and translation default all work;
 # the helper already forced Spanish, and switching persists (AsyncStorage).

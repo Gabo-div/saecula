@@ -21,6 +21,8 @@ import { ProfileScreen } from '@/screens/ProfileScreen';
 import { SaintsScreen } from '@/screens/SaintsScreen';
 import { SavedVersesScreen } from '@/screens/SavedVersesScreen';
 import { SettingsScreen } from '@/screens/SettingsScreen';
+import { StreakScreen } from '@/screens/StreakScreen';
+import { StreakCelebration } from '@/components/StreakCelebration';
 import { useAppTheme } from '@/store/themeStore';
 
 export type RootTabParamList = {
@@ -32,6 +34,17 @@ export type RootTabParamList = {
   Prayers: NavigatorScreenParams<PrayersStackParamList> | undefined; // from Home; hidden tab
   Ask: NavigatorScreenParams<AskStackParamList> | undefined; // from Home; hidden tab
   Profile: undefined; // reachable from Home; hidden from the tab bar
+  Streak: undefined; // reachable from Home; hidden from the tab bar
+};
+
+// Ask (hidden tab, opened from Home): the AI chat and its conversation history.
+// Bible/Catechism are registered here too so citations tapped in the chat push
+// them onto the stack and back returns to the conversation.
+export type AskStackParamList = {
+  Chat: { conversationId?: string } | undefined;
+  Conversations: undefined;
+  Bible: undefined;
+  Catechism: undefined;
 };
 
 // Ask (hidden tab, opened from Home): the AI chat and its conversation history.
@@ -79,6 +92,7 @@ const TAB_ICONS: Record<keyof RootTabParamList, IconName> = {
   Prayers: 'hands-pray',
   Ask: 'star-four-points-outline',
   Profile: 'account-circle-outline',
+  Streak: 'fire',
 };
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -146,6 +160,7 @@ export function RootTabs() {
   const c = useAppTheme();
 
   return (
+    <>
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
@@ -218,6 +233,13 @@ export function RootTabs() {
         component={ProfileStackNavigator}
         options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }}
       />
+      <Tab.Screen
+        name="Streak"
+        component={StreakScreen}
+        options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }}
+      />
     </Tab.Navigator>
+    <StreakCelebration />
+    </>
   );
 }

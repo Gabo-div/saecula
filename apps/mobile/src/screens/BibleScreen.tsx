@@ -22,6 +22,7 @@ import type { AskStackParamList, RootTabParamList } from '@/navigation/RootTabs'
 import { useLanguageStore } from '@/store/languageStore';
 import { useReaderPrefs } from '@/store/readerPrefsStore';
 import { useReaderStore } from '@/store/readerStore';
+import { useStreakStore } from '@/store/streakStore';
 import { useAppTheme } from '@/store/themeStore';
 import { serif } from '@/theme/colors';
 import type { Book, ChapterResponse, Translation } from '@/types/api';
@@ -320,6 +321,7 @@ export function BibleScreen({ navigation }: Props) {
     setError(null);
     try {
       setContent(await fetchChapter(bookCode, chapter));
+      useStreakStore.getState().checkin('bible');
     } catch {
       setError(t('bible.loadError'));
     } finally {

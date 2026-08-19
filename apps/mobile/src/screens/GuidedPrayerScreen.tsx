@@ -18,6 +18,7 @@ import {
 import { PRAYERS, type PrayerLang } from '@/data/prayers';
 import type { PrayersStackParamList } from '@/navigation/RootTabs';
 import { useLanguageStore } from '@/store/languageStore';
+import { useStreakStore } from '@/store/streakStore';
 import { useAppTheme } from '@/store/themeStore';
 import { serif } from '@/theme/colors';
 
@@ -137,8 +138,10 @@ export function GuidedPrayerScreen({ navigation, route }: Props) {
     const step = seq[pos];
     if (step && step.beads > 1 && bead < step.beads) setBead(bead + 1);
     else {
-      setPos(pos + 1);
+      const next = pos + 1;
+      setPos(next);
       setBead(1);
+      if (next >= seq.length) useStreakStore.getState().checkin('prayer');
     }
   };
 

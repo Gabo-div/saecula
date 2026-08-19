@@ -23,6 +23,7 @@ import type { AskStackParamList, RootTabParamList } from '@/navigation/RootTabs'
 import { useCatechismStore } from '@/store/catechismStore';
 import { useLanguageStore } from '@/store/languageStore';
 import { useReaderPrefs } from '@/store/readerPrefsStore';
+import { useStreakStore } from '@/store/streakStore';
 import { useAppTheme } from '@/store/themeStore';
 import { serif } from '@/theme/colors';
 import type { CatechismParagraph } from '@/types/api';
@@ -376,6 +377,7 @@ export function CatechismScreen({ navigation }: Props) {
         const start = fresh ? section.from : nextFrom.current;
         const res = await fetchCatechism(start, section.to, PAGE, lang);
         if (myGen !== gen.current) return; // superseded by a newer fresh load
+        useStreakStore.getState().checkin('catechism');
         setItems((prev) => {
           const base = fresh ? [] : prev;
           const seen = new Set(base.map((p) => p.number));

@@ -7,7 +7,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { TamaguiProvider } from 'tamagui';
 
-import { StreakCelebration } from '@/components/StreakCelebration';
 import i18n from '@/i18n';
 import { RootTabs } from '@/navigation/RootTabs';
 import { LoginScreen } from '@/screens/LoginScreen';
@@ -57,7 +56,6 @@ export default function App() {
           {token && isAuthenticated() ? (
             <NavigationContainer theme={navigationTheme}>
               <RootTabs />
-              <StreakCelebration />
             </NavigationContainer>
           ) : (
             <LoginScreen />

@@ -72,6 +72,7 @@ const es: typeof en = {
     history: 'Ver historial',
     completedTitle: '¡Día completado!',
     keepGoing: 'Sigue así, no rompas tu racha.',
+    continue: 'Continuar',
   },
   prayers: {
     individual: 'Oraciones',

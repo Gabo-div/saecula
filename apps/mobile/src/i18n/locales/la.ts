@@ -73,6 +73,7 @@ const la: typeof en = {
     history: 'Historiam videre',
     completedTitle: 'Dies perfectus!',
     keepGoing: 'Persevera, ne continuationem frangas.',
+    continue: 'Perge',
   },
   prayers: {
     individual: 'Orationes',

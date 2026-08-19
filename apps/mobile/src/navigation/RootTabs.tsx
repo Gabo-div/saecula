@@ -21,6 +21,7 @@ import { ProfileScreen } from '@/screens/ProfileScreen';
 import { SaintsScreen } from '@/screens/SaintsScreen';
 import { SettingsScreen } from '@/screens/SettingsScreen';
 import { StreakScreen } from '@/screens/StreakScreen';
+import { StreakCelebration } from '@/components/StreakCelebration';
 import { useAppTheme } from '@/store/themeStore';
 
 export type RootTabParamList = {
@@ -146,6 +147,7 @@ export function RootTabs() {
   const c = useAppTheme();
 
   return (
+    <>
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
@@ -224,5 +226,7 @@ export function RootTabs() {
         options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }}
       />
     </Tab.Navigator>
+    <StreakCelebration />
+    </>
   );
 }

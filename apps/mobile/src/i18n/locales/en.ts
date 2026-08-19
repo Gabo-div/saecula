@@ -72,6 +72,7 @@ const en: Translations = {
     history: 'View history',
     completedTitle: 'Day complete!',
     keepGoing: 'Keep it up — don’t break your streak.',
+    continue: 'Continue',
   },
   prayers: {
     individual: 'Prayers',
@@ -233,6 +234,7 @@ export interface Translations {
     history: string;
     completedTitle: string;
     keepGoing: string;
+    continue: string;
   };
   prayers: {
     individual: string;

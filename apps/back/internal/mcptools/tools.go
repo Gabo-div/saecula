@@ -18,6 +18,7 @@ import (
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 
 	"saecula/back/internal/bible"
+	"saecula/db/gen"
 )
 
 // ScriptureRepo is the slice of the Bible text store the tools need.
@@ -148,30 +149,19 @@ func (d Deps) searchCatechism(ctx *ai.ToolContext, in searchCatechismIn) ([]cate
 	if lang == "" {
 		lang = "en"
 	}
-	rows, err := d.Pool.Query(ctx.Context,
-		`SELECT CAST(split_part(entity_id, '.', 2) AS INT) AS num,
-		        ts_headline('simple_unaccent', raw_content, plainto_tsquery('simple_unaccent', $1),
-		                    'MaxWords=30,MinWords=12,StartSel=«,StopSel=»') AS snippet
-		 FROM text_documents
-		 WHERE entity_id LIKE 'CCC.%' AND language_code = $2
-		   AND to_tsvector('simple_unaccent', raw_content) @@ plainto_tsquery('simple_unaccent', $1)
-		 ORDER BY ts_rank(to_tsvector('simple_unaccent', raw_content), plainto_tsquery('simple_unaccent', $1)) DESC, num
-		 LIMIT $3`,
-		q, lang, maxResults)
+	rows, err := gen.New(d.Pool).CatechismSearch(ctx.Context, gen.CatechismSearchParams{
+		Query: q,
+		Lang:  lang,
+		Lim:   int32(maxResults),
+	})
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	out := []catechismHit{}
-	for rows.Next() {
-		var h catechismHit
-		if err := rows.Scan(&h.Number, &h.Snippet); err != nil {
-			return nil, err
-		}
-		out = append(out, h)
+	out := make([]catechismHit, len(rows))
+	for i, r := range rows {
+		out[i] = catechismHit{Number: int(r.Num), Snippet: r.Snippet}
 	}
-	return out, rows.Err()
+	return out, nil
 }
 
 // ---- get_catechism ----
@@ -199,29 +189,20 @@ func (d Deps) getCatechism(ctx *ai.ToolContext, in getCatechismIn) ([]catechismP
 	if lang == "" {
 		lang = "en"
 	}
-	rows, err := d.Pool.Query(ctx.Context,
-		`SELECT DISTINCT ON (CAST(split_part(entity_id, '.', 2) AS INT))
-		        CAST(split_part(entity_id, '.', 2) AS INT) AS num, raw_content
-		 FROM text_documents
-		 WHERE entity_id LIKE 'CCC.%' AND language_code = $1
-		   AND CAST(split_part(entity_id, '.', 2) AS INT) BETWEEN $2 AND $3
-		 ORDER BY num, translation_id
-		 LIMIT $4`,
-		lang, in.From, to, maxResults)
+	rows, err := gen.New(d.Pool).CatechismRangeDistinct(ctx.Context, gen.CatechismRangeDistinctParams{
+		Lang:    lang,
+		FromNum: int32(in.From),
+		ToNum:   int32(to),
+		Lim:     int32(maxResults),
+	})
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	out := []catechismParagraph{}
-	for rows.Next() {
-		var p catechismParagraph
-		if err := rows.Scan(&p.Number, &p.Text); err != nil {
-			return nil, err
-		}
-		out = append(out, p)
+	out := make([]catechismParagraph, len(rows))
+	for i, r := range rows {
+		out[i] = catechismParagraph{Number: int(r.Num), Text: r.RawContent}
 	}
-	return out, rows.Err()
+	return out, nil
 }
 
 // ---- graph_related ----

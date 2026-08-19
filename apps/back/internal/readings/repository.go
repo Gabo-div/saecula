@@ -12,6 +12,8 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+
+	"saecula/db/gen"
 )
 
 // Reading is one Mass reading: its type slug (reading_1, responsorial_psalm,
@@ -166,13 +168,13 @@ func chapterVerse(entityID string) (chapter, verse int) {
 // ---------------------------------------------------------------------------
 
 type PostgresTextRepository struct {
-	pool *pgxpool.Pool
+	q *gen.Queries
 }
 
 var _ TextRepository = (*PostgresTextRepository)(nil)
 
 func NewPostgresTextRepository(pool *pgxpool.Pool) *PostgresTextRepository {
-	return &PostgresTextRepository{pool: pool}
+	return &PostgresTextRepository{q: gen.New(pool)}
 }
 
 func (repo *PostgresTextRepository) VerseTexts(ctx context.Context, entityIDs []string, lang, translationID string) (map[string]VerseText, error) {
@@ -180,37 +182,21 @@ func (repo *PostgresTextRepository) VerseTexts(ctx context.Context, entityIDs []
 	if len(entityIDs) == 0 {
 		return texts, nil
 	}
-
-	// One row per entity ID: DISTINCT ON keeps a single edition. A pinned
-	// translation wins over lang (an edition fixes its own language), mirror-
-	// ing the bible module's rule.
-	sql := `
-		SELECT DISTINCT ON (entity_id)
-		       entity_id, language_code, translation_id, raw_content
-		FROM text_documents
-		WHERE entity_id = ANY($1)`
-	args := []any{entityIDs}
-	if translationID != "" {
-		sql += ` AND translation_id = $2`
-		args = append(args, translationID)
-	} else {
-		sql += ` AND language_code = $2`
-		args = append(args, lang)
-	}
-	sql += ` ORDER BY entity_id, translation_id`
-
-	rows, err := repo.pool.Query(ctx, sql, args...)
+	rows, err := repo.q.ReadingsVerseTexts(ctx, gen.ReadingsVerseTextsParams{
+		EntityIds:     entityIDs,
+		TranslationID: translationID,
+		Lang:          lang,
+	})
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var v VerseText
-		if err := rows.Scan(&v.EntityID, &v.LanguageCode, &v.TranslationID, &v.Text); err != nil {
-			return nil, err
+	for _, r := range rows {
+		texts[r.EntityID] = VerseText{
+			EntityID:      r.EntityID,
+			LanguageCode:  r.LanguageCode,
+			TranslationID: r.TranslationID,
+			Text:          r.RawContent,
 		}
-		texts[v.EntityID] = v
 	}
-	return texts, rows.Err()
+	return texts, nil
 }

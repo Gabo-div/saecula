@@ -6,6 +6,8 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+
+	"saecula/db/gen"
 )
 
 // Node is one timeline entry: language-agnostic structure from the graph,
@@ -126,53 +128,37 @@ func (repo *Neo4jGraphRepository) NodesInRange(ctx context.Context, startYear, e
 // ---------------------------------------------------------------------------
 
 type PostgresTextRepository struct {
-	pool *pgxpool.Pool
+	q *gen.Queries
 }
 
 var _ TextRepository = (*PostgresTextRepository)(nil)
 
 func NewPostgresTextRepository(pool *pgxpool.Pool) *PostgresTextRepository {
-	return &PostgresTextRepository{pool: pool}
+	return &PostgresTextRepository{q: gen.New(pool)}
 }
 
 func (repo *PostgresTextRepository) TextsFor(ctx context.Context, entityIDs []string, lang, translationID string) (map[string]*LocalizedText, error) {
 	if len(entityIDs) == 0 {
 		return map[string]*LocalizedText{}, nil
 	}
-
-	// When translationID is empty the first edition per entity
-	// (alphabetical) in the requested language wins via DISTINCT ON. A
-	// pinned translation overrides lang — the edition determines its own
-	// language.
-	sql := `
-		SELECT DISTINCT ON (entity_id)
-		       entity_id, language_code, translation_id, raw_content, metadata
-		FROM text_documents
-		WHERE entity_id = ANY($1)`
-	args := []any{entityIDs}
-	if translationID != "" {
-		sql += ` AND translation_id = $2`
-		args = append(args, translationID)
-	} else {
-		sql += ` AND language_code = $2`
-		args = append(args, lang)
-	}
-	sql += ` ORDER BY entity_id, translation_id`
-
-	rows, err := repo.pool.Query(ctx, sql, args...)
+	// A pinned translation overrides lang (an edition fixes its own language);
+	// otherwise DISTINCT ON keeps one edition per entity in the requested lang.
+	rows, err := repo.q.TimelineTexts(ctx, gen.TimelineTextsParams{
+		EntityIds:     entityIDs,
+		TranslationID: translationID,
+		Lang:          lang,
+	})
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	texts := make(map[string]*LocalizedText, len(entityIDs))
-	for rows.Next() {
-		var entityID string
-		text := &LocalizedText{}
-		if err := rows.Scan(&entityID, &text.LanguageCode, &text.TranslationID, &text.RawContent, &text.Metadata); err != nil {
-			return nil, err
+	texts := make(map[string]*LocalizedText, len(rows))
+	for _, r := range rows {
+		texts[r.EntityID] = &LocalizedText{
+			LanguageCode:  r.LanguageCode,
+			TranslationID: r.TranslationID,
+			RawContent:    r.RawContent,
+			Metadata:      r.Metadata,
 		}
-		texts[entityID] = text
 	}
-	return texts, rows.Err()
+	return texts, nil
 }

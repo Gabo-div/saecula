@@ -161,6 +161,10 @@ export function StreakScreen({ navigation }: { navigation: { goBack: () => void 
                 const cellISO = iso(view.year, view.month, day);
                 const isDone = done.has(cellISO);
                 const isToday = cellISO === tISO;
+                // Constant border on every cell keeps the box size identical;
+                // only today's border is visible (a light ring when the day is
+                // done, a gold ring when it isn't) so today stands apart from
+                // the other days in either state.
                 return (
                   <View
                     key={col}
@@ -170,8 +174,8 @@ export function StreakScreen({ navigation }: { navigation: { goBack: () => void 
                     items="center"
                     justify="center"
                     bg={isDone ? c.accent : c.bgElevated}
-                    borderWidth={isToday && !isDone ? 2 : 0}
-                    borderColor={c.accent}
+                    borderWidth={2}
+                    borderColor={isToday ? (isDone ? c.strong : c.accent) : 'transparent'}
                   >
                     <Text
                       color={isDone ? c.bg : c.muted}

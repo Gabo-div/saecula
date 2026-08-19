@@ -60,6 +60,13 @@ const es: typeof en = {
     bible: 'Biblia',
     celebrationOfDay: 'Celebración del día',
   },
+  streak: {
+    title: 'Racha',
+    current: 'racha actual',
+    best: 'mejor racha',
+    today: 'Hoy completado',
+    notToday: 'Aún no hoy',
+  },
   prayers: {
     individual: 'Oraciones',
     guided: 'Oraciones guiadas',

@@ -15,6 +15,7 @@ import type { RootTabParamList } from '@/navigation/RootTabs';
 import { useCatechismStore } from '@/store/catechismStore';
 import { useLanguageStore } from '@/store/languageStore';
 import { useReaderStore } from '@/store/readerStore';
+import { useStreakStore } from '@/store/streakStore';
 import { useAppTheme } from '@/store/themeStore';
 import { serif } from '@/theme/colors';
 import { liturgicalColor } from '@/theme/liturgical';
@@ -101,6 +102,13 @@ export function HomeScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const language = useLanguageStore((s) => s.language);
   const setLocation = useReaderStore((s) => s.setLocation);
+  const streakCurrent = useStreakStore((s) => s.current);
+  const streakBest = useStreakStore((s) => s.best);
+  const streakTodayDone = useStreakStore((s) => s.todayDone);
+
+  useEffect(() => {
+    void useStreakStore.getState().refresh();
+  }, []);
 
   const [daily, setDaily] = useState<DailyVerseResponse | null>(null);
   const [calDay, setCalDay] = useState<CalendarDayResponse | null>(null);
@@ -309,6 +317,30 @@ export function HomeScreen({ navigation }: Props) {
               onPress={() => navigation.navigate('Bible')}
             />
           </XStack>
+
+          {/* Streak card — taps through to the history screen */}
+          <YStack
+            mx="$4"
+            mt="$3"
+            p="$4"
+            rounded="$8"
+            bg={c.card}
+            onPress={() => navigation.navigate('Streak')}
+            pressStyle={{ opacity: 0.85 }}
+          >
+            <Text color={c.onCard} fontSize={11} letterSpacing={2} fontWeight="700">
+              {t('streak.title').toUpperCase()}
+            </Text>
+            <XStack items="center" gap="$3" mt="$1">
+              <Text color={c.onCard} fontSize={26} fontWeight="700">
+                🔥 {streakCurrent}
+              </Text>
+              <Text color={c.onCard} fontSize={12} opacity={0.75}>
+                {streakTodayDone ? t('streak.today') : t('streak.notToday')} · {t('streak.best')}:{' '}
+                {streakBest}
+              </Text>
+            </XStack>
+          </YStack>
 
           {/* Today's celebration — highlighted card */}
           {celebration && (

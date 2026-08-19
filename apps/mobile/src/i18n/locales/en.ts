@@ -60,6 +60,13 @@ const en: Translations = {
     bible: 'Bible',
     celebrationOfDay: 'Celebration of the day',
   },
+  streak: {
+    title: 'Streak',
+    current: 'current streak',
+    best: 'best streak',
+    today: 'Done today',
+    notToday: 'Not yet today',
+  },
   prayers: {
     individual: 'Prayers',
     guided: 'Guided prayers',
@@ -207,6 +214,13 @@ export interface Translations {
     ask: string;
     bible: string;
     celebrationOfDay: string;
+  };
+  streak: {
+    title: string;
+    current: string;
+    best: string;
+    today: string;
+    notToday: string;
   };
   prayers: {
     individual: string;

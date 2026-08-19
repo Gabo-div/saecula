@@ -61,6 +61,13 @@ const la: typeof en = {
     bible: 'Biblia',
     celebrationOfDay: 'Celebratio diei',
   },
+  streak: {
+    title: 'Continuatio',
+    current: 'continuatio praesens',
+    best: 'optima continuatio',
+    today: 'Hodie perfectum',
+    notToday: 'Nondum hodie',
+  },
   prayers: {
     individual: 'Orationes',
     guided: 'Orationes ductae',

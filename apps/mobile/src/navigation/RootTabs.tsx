@@ -20,6 +20,7 @@ import { PrayersHubScreen } from '@/screens/PrayersHubScreen';
 import { ProfileScreen } from '@/screens/ProfileScreen';
 import { SaintsScreen } from '@/screens/SaintsScreen';
 import { SettingsScreen } from '@/screens/SettingsScreen';
+import { StreakScreen } from '@/screens/StreakScreen';
 import { useAppTheme } from '@/store/themeStore';
 
 export type RootTabParamList = {
@@ -31,6 +32,7 @@ export type RootTabParamList = {
   Prayers: NavigatorScreenParams<PrayersStackParamList> | undefined; // from Home; hidden tab
   Ask: NavigatorScreenParams<AskStackParamList> | undefined; // from Home; hidden tab
   Profile: undefined; // reachable from Home; hidden from the tab bar
+  Streak: undefined; // reachable from Home; hidden from the tab bar
 };
 
 // Ask (hidden tab, opened from Home): the AI chat and its conversation history.
@@ -77,6 +79,7 @@ const TAB_ICONS: Record<keyof RootTabParamList, IconName> = {
   Prayers: 'hands-pray',
   Ask: 'star-four-points-outline',
   Profile: 'account-circle-outline',
+  Streak: 'fire',
 };
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -213,6 +216,11 @@ export function RootTabs() {
       <Tab.Screen
         name="Profile"
         component={ProfileStackNavigator}
+        options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }}
+      />
+      <Tab.Screen
+        name="Streak"
+        component={StreakScreen}
         options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }}
       />
     </Tab.Navigator>

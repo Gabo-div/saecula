@@ -13,6 +13,7 @@
     "format": "turbo run format",
     "test": "turbo run test",
     "dev": "turbo run dev",
+    "migrate": "bun --filter @saecula/back run migrate",
     "e2e": "bash scripts/e2e.sh",
     "e2e:expo": "E2E_RUNNER=expo bash scripts/e2e.sh"
   },

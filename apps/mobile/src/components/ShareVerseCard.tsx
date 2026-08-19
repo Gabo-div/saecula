@@ -5,7 +5,6 @@ import * as MediaLibrary from 'expo-media-library';
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Platform, Share, StyleSheet } from 'react-native';
-import { captureRef } from 'react-native-view-shot';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, View, XStack, YStack } from 'tamagui';
 
@@ -62,6 +61,9 @@ export function ShareVerseCard({ visible, verse, verses, bookName, chapter, onCl
         Alert.alert(t('bookmarks.imageSaveError'));
         return;
       }
+      // react-native-view-shot is a native TurboModule: absent in Expo Go, so
+      // importing it at module scope crashes the whole app. Load it on demand.
+      const { captureRef } = await import('react-native-view-shot');
       const uri = await captureRef(cardRef, {
         format: 'png',
         quality: 1,

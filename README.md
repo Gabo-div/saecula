@@ -55,11 +55,18 @@ saecula/
   `bun run lint`, `bun run test`.
 - **Go workspace** (`go.work`) — ties `apps/back`, `apps/cli` and `libs/*`
   together for `go build`/`go test`.
+- **Database** — schema is [goose](https://github.com/pressly/goose) migrations
+  in `libs/db/migrations/`, applied with `bun run migrate`; query code is
+  [sqlc](https://sqlc.dev)-generated from `libs/db/queries/` into `libs/db/gen`
+  (regenerate with `sqlc generate` in `libs/db`). Both live in the `libs/db`
+  module so back (and future services) share one schema + query layer.
 - **Extra Go tools** — `bun run dev` needs [`air`](https://github.com/air-verse/air)
-  (backend hot reload) and `bun run lint` needs
-  [`golangci-lint`](https://golangci-lint.run) v2 (config in `.golangci.yml`).
-  Install both with `go install` (they land in `$(go env GOPATH)/bin`, which
-  must be on `PATH`).
+  (backend hot reload), `bun run lint` needs
+  [`golangci-lint`](https://golangci-lint.run) v2 (config in `.golangci.yml`),
+  and regenerating queries needs the [`sqlc`](https://sqlc.dev) CLI. Install
+  them with `go install` (they land in `$(go env GOPATH)/bin`, which must be on
+  `PATH`). goose runs as a library via `bun run migrate`, so no goose CLI is
+  needed.
 
 Common commands from the repo root:
 
@@ -112,10 +119,14 @@ Both Go apps follow constructor injection everywhere:
 
 ```bash
 docker compose up -d
+bun run migrate          # apply the schema (goose)
 ```
 
 - PostgreSQL on `localhost:5432` (user `saecula`, password `saecula_dev_password`, db `saecula`).
-  The schema in `apps/back/migrations/` runs automatically on first boot.
+  The schema lives in `libs/db/migrations/` (goose) and is applied by
+  `bun run migrate` — one owner, run it after the database is up and whenever
+  new migrations land. Query code is generated from `libs/db/queries/` with
+  sqlc (`sqlc generate` in `libs/db`).
 - Neo4j on `bolt://localhost:7687`, browser UI at <http://localhost:7474>
   (user `neo4j`, password `saecula_dev_password`).
 

@@ -13,6 +13,7 @@ require (
 
 require (
 	saecula/canon v0.0.0
+	saecula/db v0.0.0
 	saecula/env v0.0.0
 )
 require github.com/firebase/genkit/go v1.11.0
@@ -63,5 +64,7 @@ require (
 )
 
 replace saecula/canon => ../../libs/canon
+
+replace saecula/db => ../../libs/db
 
 replace saecula/env => ../../libs/env

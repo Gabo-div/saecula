@@ -1,8 +1,9 @@
-go 1.25.0
+go 1.25.7
 
 use (
 	./apps/back
 	./apps/cli
 	./libs/canon
+	./libs/db
 	./libs/env
 )

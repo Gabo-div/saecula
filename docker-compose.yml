@@ -13,8 +13,8 @@ services:
       # postgres:18+ expects the mount at /var/lib/postgresql (data lives in
       # a version-named subdirectory, enabling pg_upgrade across majors)
       - postgres_data:/var/lib/postgresql
-      # SQL files here run automatically on first container start (empty volume only)
-      - ./apps/back/migrations:/docker-entrypoint-initdb.d:ro
+      # Schema is applied by goose via `bun run migrate` (not on first boot),
+      # so a single owner controls it across services.
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U saecula -d saecula"]
       interval: 5s

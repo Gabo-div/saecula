@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "air",
+    "migrate": "go run . migrate",
     "test": "go test ./...",
     "lint": "golangci-lint run ./...",
     "format": "gofmt -w ."

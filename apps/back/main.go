@@ -23,14 +23,40 @@ import (
 	"saecula/back/internal/server"
 	"saecula/back/internal/streak"
 	"saecula/back/internal/timeline"
+	schemadb "saecula/db"
 	"saecula/env"
 )
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "migrate" {
+		if err := migrate(); err != nil {
+			slog.Error("migrate failed", "error", err)
+			os.Exit(1)
+		}
+		return
+	}
 	if err := run(); err != nil {
 		slog.Error("fatal", "error", err)
 		os.Exit(1)
 	}
+}
+
+// migrate applies pending schema migrations, then exits. Kept separate from
+// run() so schema changes are applied by an explicit command (one owner of the
+// schema) rather than on every service boot.
+func migrate() error {
+	env.Load()
+	cfg, err := config.Load()
+	if err != nil {
+		return err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	if err := schemadb.Migrate(ctx, cfg.PostgresDSN); err != nil {
+		return err
+	}
+	slog.Info("migrations applied")
+	return nil
 }
 
 // run is the composition root: every dependency is constructed exactly

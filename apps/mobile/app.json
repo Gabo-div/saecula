@@ -17,7 +17,8 @@
       "package": "com.saecula.app"
     },
     "plugins": [
-      "expo-localization"
+      "expo-localization",
+      "expo-media-library"
     ]
   }
 }

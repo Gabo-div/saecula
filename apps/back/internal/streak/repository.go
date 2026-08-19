@@ -5,7 +5,11 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"saecula/db/gen"
 )
+
+const dayLayout = "2006-01-02"
 
 // HistoryEntry is one credited day, for the calendar/heatmap view.
 type HistoryEntry struct {
@@ -25,63 +29,47 @@ type Repository interface {
 }
 
 type PostgresRepository struct {
-	pool *pgxpool.Pool
+	q *gen.Queries
 }
 
 var _ Repository = (*PostgresRepository)(nil)
 
 func NewPostgresRepository(pool *pgxpool.Pool) *PostgresRepository {
-	return &PostgresRepository{pool: pool}
+	return &PostgresRepository{q: gen.New(pool)}
 }
 
 func (r *PostgresRepository) Upsert(ctx context.Context, userID, day, activityType string) error {
-	_, err := r.pool.Exec(ctx,
-		`INSERT INTO activity_days (user_id, day, activity_type)
-		 VALUES ($1, $2::date, $3)
-		 ON CONFLICT (user_id, day) DO NOTHING`,
-		userID, day, activityType)
-	return err
+	d, err := time.Parse(dayLayout, day)
+	if err != nil {
+		return err
+	}
+	return r.q.UpsertActivityDay(ctx, gen.UpsertActivityDayParams{
+		UserID:       userID,
+		Day:          d,
+		ActivityType: activityType,
+	})
 }
 
 func (r *PostgresRepository) ActiveDays(ctx context.Context, userID string) ([]time.Time, error) {
-	rows, err := r.pool.Query(ctx,
-		`SELECT day FROM activity_days WHERE user_id = $1 ORDER BY day`,
-		userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	out := []time.Time{}
-	for rows.Next() {
-		var day time.Time
-		if err := rows.Scan(&day); err != nil {
-			return nil, err
-		}
-		out = append(out, day)
-	}
-	return out, rows.Err()
+	return r.q.ActiveDays(ctx, userID)
 }
 
 func (r *PostgresRepository) History(ctx context.Context, userID, from, to string) ([]HistoryEntry, error) {
-	rows, err := r.pool.Query(ctx,
-		`SELECT to_char(day, 'YYYY-MM-DD'), activity_type
-		 FROM activity_days
-		 WHERE user_id = $1 AND day BETWEEN $2::date AND $3::date
-		 ORDER BY day`,
-		userID, from, to)
+	f, err := time.Parse(dayLayout, from)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	out := []HistoryEntry{}
-	for rows.Next() {
-		var e HistoryEntry
-		if err := rows.Scan(&e.Day, &e.ActivityType); err != nil {
-			return nil, err
-		}
-		out = append(out, e)
+	t, err := time.Parse(dayLayout, to)
+	if err != nil {
+		return nil, err
 	}
-	return out, rows.Err()
+	rows, err := r.q.ActivityHistory(ctx, gen.ActivityHistoryParams{UserID: userID, Day: f, Day_2: t})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]HistoryEntry, len(rows))
+	for i, row := range rows {
+		out[i] = HistoryEntry{Day: row.Day, ActivityType: row.ActivityType}
+	}
+	return out, nil
 }

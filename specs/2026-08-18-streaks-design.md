@@ -49,6 +49,33 @@ CREATE TABLE IF NOT EXISTS activity_days (
 - No denormalized streak counters. ~365 rows/user/year makes on-read computation
   trivial. The `(user_id, day)` PK already indexes the ordered scan.
 
+## Timezone semantics
+
+The only "today" in the system is the device's current local calendar day.
+The client sends it (`todayLocalISO()`); the server stores `DATE` values and
+never derives a day from its own clock (except the curl/no-`date` fallback,
+irrelevant to the app). No user timezone is stored anywhere.
+
+Consequence: the day-rollover (midnight) follows the phone's current timezone.
+If the user changes timezone, the cutoff moves with them — "today" is always
+where they are now, which is the intended behavior.
+
+Behavior on timezone change (all safe by construction — `DATE` granularity +
+1-day grace + idempotent upsert):
+- **Travel east** (day shortens; may skip a calendar day near the date line):
+  a skipped day is absorbed by the grace day → streak intact.
+- **Travel west** (day lengthens; local date may repeat or go back): a repeat
+  check-in is a no-op (idempotent upsert); registering an earlier day just fills
+  a gap — harmless.
+- **Near midnight across a zone**: may credit two adjacent days with little real
+  time between — generous, never harmful.
+
+Worst case is being gifted or charged one day of count when crossing the
+international date line — imperceptible and always neutral-or-favorable to the
+user. Eliminating this entirely would require storing the user's timezone plus
+UTC timestamps and recomputing days server-side — more state and complexity for
+an edge the grace day already covers. Not done in v1.
+
 ## Streak algorithm (grace = 1 missed day)
 
 Given the user's distinct active days as `DATE`s and a client-supplied `today`:
@@ -102,9 +129,9 @@ Routes (all under `/api`, authed):
 
 ## Contracts
 
-Add to `packages/contracts/src/index.ts` and mirror in
-`apps/mobile/src/types/api.ts` (mobile keeps its own parallel copy — both must
-be updated):
+Add to `packages/contracts/src/index.ts` only. Mobile's
+`apps/mobile/src/types/api.ts` re-exports `@saecula/contracts` (`export * from
+'@saecula/contracts'`), so the new types flow through with no second edit.
 
 ```ts
 export type ActivityType = 'bible' | 'readings' | 'prayer' | 'catechism';

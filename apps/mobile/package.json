@@ -4,6 +4,7 @@
   "main": "index.ts",
   "private": true,
   "scripts": {
+    "dev": "bun --bun x expo start",
     "start": "bun --bun x expo start",
     "android": "bun --bun x expo start --android",
     "ios": "bun --bun x expo start --ios",

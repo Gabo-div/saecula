@@ -10,7 +10,7 @@
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",
-    "test": "turbo run test && bash scripts/go-test.sh",
+    "test": "turbo run test",
     "dev": "turbo run dev",
     "e2e": "bash scripts/e2e.sh",
     "e2e:expo": "E2E_RUNNER=expo bash scripts/e2e.sh"

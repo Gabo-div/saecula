@@ -1,0 +1,44 @@
+#!/bin/sh
+# Format staged files, then lint. Blocks the commit on lint errors.
+# Wired via core.hooksPath (.githooks) — set by the root "prepare" script.
+set -e
+
+root=$(git rev-parse --show-toplevel)
+cd "$root"
+
+staged() { git diff --cached --name-only --diff-filter=ACMR -z -- "$@"; }
+have()   { [ -n "$(staged "$@" | tr -d '\0')" ]; }
+
+fail=0
+
+# --- Go: gofmt (auto-fix + restage), then golangci-lint per touched module ---
+if have '*.go'; then
+  staged '*.go' | xargs -0 gofmt -w
+  staged '*.go' | xargs -0 git add
+
+  # ponytail: lints whole module when any of its files is staged; upgrade to
+  # per-package if this gets slow on the big modules.
+  mods=$(staged '*.go' | tr '\0' '\n' | while read -r f; do
+    d=$(dirname "$f")
+    while [ "$d" != "." ] && [ ! -f "$d/go.mod" ]; do d=$(dirname "$d"); done
+    [ -f "$d/go.mod" ] && echo "$d"
+  done | sort -u)
+  for m in $mods; do
+    echo "golangci-lint: $m"
+    (cd "$m" && golangci-lint run ./...) || fail=1
+  done
+fi
+
+# --- Mobile TS/JS: eslint --fix (restage), then eslint to block on errors ---
+if have 'apps/mobile/*.ts' 'apps/mobile/*.tsx' 'apps/mobile/*.js' 'apps/mobile/*.jsx'; then
+  eslint="apps/mobile/node_modules/.bin/eslint"
+  staged 'apps/mobile/*.ts' 'apps/mobile/*.tsx' 'apps/mobile/*.js' 'apps/mobile/*.jsx' \
+    | xargs -0 "$eslint" --fix
+  staged 'apps/mobile/*.ts' 'apps/mobile/*.tsx' 'apps/mobile/*.js' 'apps/mobile/*.jsx' \
+    | xargs -0 git add
+  echo "eslint: apps/mobile"
+  staged 'apps/mobile/*.ts' 'apps/mobile/*.tsx' 'apps/mobile/*.js' 'apps/mobile/*.jsx' \
+    | xargs -0 "$eslint" || fail=1
+fi
+
+[ "$fail" -eq 0 ] || { echo "pre-commit: lint errors — commit blocked."; exit 1; }

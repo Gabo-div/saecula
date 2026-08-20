@@ -505,24 +505,11 @@ paragraph), a fully-scraped Catechism, and **Ask — AI chat** (streaming
 thread, tool calls, details sheet, suggested questions, floating input,
 per-message actions).
 
-Planned, roughly by value:
-
-- **MCP improvements** — populate the Neo4j graph with more relationships
-  (saints ↔ verses, councils ↔ dogmas, etc.) so the `graph_related` tool and
-  cross-reference queries become useful.
-- **Public MCP server** — expose the existing Genkit tools (`search_scripture`,
-  `get_verses`, `search_catechism`, `get_catechism`, `graph_related`) as a
-  public MCP endpoint for external hosts (Claude, etc.).
-- **Timeline (Explore)** — the app's namesake chronological view over the
-  Neo4j concept graph. The backend `/timeline` endpoint and the
-  `fetchTimeline` client already exist; the screen is still a placeholder.
-- **Santoral detail** — the saints calendar lists days but rows aren't
-  tappable; add a saint detail sheet like the celebrations one.
-- **Scripture cross-references in the Catechism** — map CCC footnotes to
-  verse entity IDs (`(:CatechismParagraph)-[:CITES]->(:Verse)`).
-- **More guided prayers** — Stations of the Cross, Divine Mercy, Angelus.
-- **Feast art** — extend curated images beyond the current fixed feasts.
-- **Account** — password reset and profile editing.
+Planned work — roughly by dependency — lives in [`ROADMAP.md`](ROADMAP.md):
+notifications, self-hosted images (off Wikimedia), account verification &
+password recovery, friends & shared streaks, the concept graph / Timeline /
+public MCP server, and a smaller content backlog (santoral detail, more guided
+prayers, feast art, profile editing).
 
 ## Security notes
 

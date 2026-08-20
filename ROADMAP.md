@@ -89,9 +89,41 @@ their streak".
 
 ---
 
+## 5. Concept graph, Timeline & public MCP
+
+**Problem.** The Neo4j concept graph is thin, so graph-backed features are
+stubbed: the `graph_related` tool and cross-reference queries have little to
+return, and the **Timeline (Explore)** screen — the app's namesake
+chronological view over the graph — is still a placeholder (its `/timeline`
+endpoint and `fetchTimeline` client already exist).
+
+**Approach.**
+- **Populate relationships** — saints ↔ verses, councils ↔ dogmas, etc., so
+  `graph_related` and cross-reference queries become useful.
+- **Scripture cross-references in the Catechism** — map CCC footnotes to verse
+  entity IDs (`(:CatechismParagraph)-[:CITES]->(:Verse)`).
+- **Timeline (Explore)** — build the screen on the existing endpoint/client.
+- **Public MCP server** — expose the existing Genkit tools (`search_scripture`,
+  `get_verses`, `search_catechism`, `get_catechism`, `graph_related`) as a
+  public MCP endpoint for external hosts (Claude, etc.).
+
+---
+
+## Content & smaller backlog
+
+- **Santoral detail** — the saints calendar lists days but rows aren't
+  tappable; add a saint detail sheet like the celebrations one.
+- **More guided prayers** — Stations of the Cross, Divine Mercy, Angelus.
+- **Feast art** — extend curated images beyond the current fixed feasts (rides
+  on item 2's storage/CDN work).
+- **Profile editing** — edit account profile (ties into item 3).
+
+---
+
 ## Dependencies
 
 - Items 3 and 4 both want **email/notifications** (item 1) for their best UX
   (verification links, friend-request alerts) — build the mailer/notification
   plumbing early.
 - Item 4's friend-request and streak-nudge alerts layer directly on item 1.
+- The **Feast art** backlog item depends on item 2's image storage/CDN.

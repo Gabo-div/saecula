@@ -47,7 +47,7 @@ func (q *Queries) BibleTranslations(ctx context.Context) ([]BibleTranslationsRow
 const bookNames = `-- name: BookNames :many
 SELECT DISTINCT ON (entity_id) entity_id, raw_content
 FROM text_documents
-WHERE entity_id LIKE 'BOOK.%'
+WHERE entity_id LIKE 'BIBLE.%'
   AND (($1::text <> '' AND translation_id = $1::text)
        OR ($1::text = '' AND language_code = $2::text))
 ORDER BY entity_id, translation_id
@@ -63,7 +63,7 @@ type BookNamesRow struct {
 	RawContent string
 }
 
-// Source book titles (entity_id "BOOK.<code>"), one per book, for the given
+// Source book titles (entity_id "BIBLE.<code>"), one per book, for the given
 // edition (translation_id) or language.
 func (q *Queries) BookNames(ctx context.Context, arg BookNamesParams) ([]BookNamesRow, error) {
 	rows, err := q.db.Query(ctx, bookNames, arg.TranslationID, arg.Lang)

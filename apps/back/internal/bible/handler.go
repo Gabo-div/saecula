@@ -156,7 +156,7 @@ func (a *API) Chapter(w http.ResponseWriter, r *http.Request) {
 
 	// The book title as the selected edition names it, catalog fallback.
 	bookTitle := bookName(*book, lang)
-	if bt, err := a.texts.VerseText(r.Context(), "BOOK."+book.Code, lang, translation); err == nil && bt != nil && bt.Text != "" {
+	if bt, err := a.texts.VerseText(r.Context(), "BIBLE."+book.Code, lang, translation); err == nil && bt != nil && bt.Text != "" {
 		bookTitle = bt.Text
 	}
 

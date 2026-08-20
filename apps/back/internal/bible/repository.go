@@ -285,7 +285,7 @@ func (repo *PostgresTextRepository) BookNames(ctx context.Context, lang, transla
 	}
 	names := make(map[string]string, len(rows))
 	for _, r := range rows {
-		names[strings.TrimPrefix(r.EntityID, "BOOK.")] = r.RawContent
+		names[strings.TrimPrefix(r.EntityID, "BIBLE.")] = r.RawContent
 	}
 	return names, nil
 }

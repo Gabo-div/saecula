@@ -36,11 +36,11 @@ ORDER BY ts_rank(to_tsvector('simple_unaccent', raw_content), plainto_tsquery('s
 LIMIT sqlc.arg(lim);
 
 -- name: BookNames :many
--- Source book titles (entity_id "BOOK.<code>"), one per book, for the given
+-- Source book titles (entity_id "BIBLE.<code>"), one per book, for the given
 -- edition (translation_id) or language.
 SELECT DISTINCT ON (entity_id) entity_id, raw_content
 FROM text_documents
-WHERE entity_id LIKE 'BOOK.%'
+WHERE entity_id LIKE 'BIBLE.%'
   AND ((sqlc.arg(translation_id)::text <> '' AND translation_id = sqlc.arg(translation_id)::text)
        OR (sqlc.arg(translation_id)::text = '' AND language_code = sqlc.arg(lang)::text))
 ORDER BY entity_id, translation_id;

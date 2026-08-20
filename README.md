@@ -148,6 +148,9 @@ assistant is enabled only when `GEMINI_API_KEY` is set — with `CHAT_MODEL`
 
 ### 3. Scrape and seed data
 
+Every scraped text, its edition, and its copyright status is inventoried in
+[`SOURCES.md`](SOURCES.md).
+
 **Interactive mode** — running `saecula-cli` with no arguments in a
 terminal (or `saecula-cli interactive`) starts a guided wizard (scrape or
 seed, multiselect of files, connection prompts). It uses the terminal's
@@ -156,17 +159,25 @@ commands below.
 
 The CLI is a two-stage pipeline with a strict separation:
 
-**Stage 1 — scrape (default command, no database involved).** Downloads
-the **complete CEE Bible** (`conferenciaepiscopal.es/biblia`, Sagrada
-Biblia de la Conferencia Episcopal Española, 2011) into **one generic JSON
-document**: 73 books → chapters → verses.
+**Stage 1 — scrape (default command, no database involved).** Downloads a
+**complete Bible** into **one generic JSON document**: 73 books → chapters →
+verses. Pick the source with `--source`:
+
+- `cee` (default) — Sagrada Biblia CEE 2011 (Spanish, `conferenciaepiscopal.es`)
+- `nova` — Nova Vulgata (official Latin, `vatican.va`)
+- `web` — World English Bible, Catholic Edition (English, `ebible.org`)
 
 ```bash
 cd apps/cli
 go mod tidy
 
-go run . scrape --out data/bible_cee.json
+go run . scrape bible                 # CEE (Spanish), → data/bible_cee.json
+go run . scrape bible --source nova   # Nova Vulgata (Latin)
+go run . scrape bible --source web    # WEB-CE (English)
 ```
+
+See [`SOURCES.md`](SOURCES.md) for editions, licensing, and cross-language
+versification notes.
 
 Books are identified by the **canonical catalog** (`libs/canon`, a shared
 Go module used by both the CLI and the backend): USFM codes (`GEN`, `JHN`,

@@ -150,6 +150,8 @@ func mainMenu() (string, error) {
 var scrapeSources = map[string][]huh.Option[string]{
 	"bible": {
 		huh.NewOption("CEE — conferenciaepiscopal.es (Sagrada Biblia 2011, Spanish)", "cee"),
+		huh.NewOption("Nova Vulgata — vatican.va (official Latin)", "nova"),
+		huh.NewOption("WEB-CE — ebible.org (World English Bible, Catholic Edition)", "web"),
 	},
 	"readings": {
 		huh.NewOption("Vatican News (Spanish, fast, ~2018 → +3 months, no psalm)", "vaticannews"),
@@ -207,6 +209,8 @@ func interactiveScrape(cmd *cobra.Command) error {
 
 			switch scrapeType {
 			case "bible":
+				bibleOpts.source = source
+				bibleOpts.out = ""
 				err = interactiveScrapeBible(cmd)
 			case "readings":
 				readingsOpts.source = source
@@ -260,6 +264,9 @@ func defaultBibleOut() string {
 	if bibleOpts.out != "" {
 		return bibleOpts.out
 	}
+	if src, ok := bibleSources[bibleOpts.source]; ok {
+		return src.defaultOut
+	}
 	return "data/bible_cee.json"
 }
 
@@ -300,7 +307,11 @@ func interactiveScrapeCitations(cmd *cobra.Command) error {
 // ---------------------------------------------------------------------------
 
 func interactiveScrapeBible(cmd *cobra.Command) error {
-	outPath, err := askOutputFile(defaultBibleOut(), "Download the whole CEE Bible (~70 pages)")
+	label := "Download the whole Bible"
+	if src, ok := bibleSources[bibleOpts.source]; ok {
+		label = "Download " + src.label
+	}
+	outPath, err := askOutputFile(defaultBibleOut(), label)
 	if err != nil {
 		return err
 	}

@@ -77,20 +77,21 @@ bun run lint          # golangci-lint (back + cli) + eslint (mobile)
 bun run format        # gofmt (back + cli) + eslint --fix (mobile)
 bun run test          # turbo test + go test (back + cli)
 bun run e2e           # full pipeline: compose + seed + back + Maestro (dev build)
-bun run e2e --expo    # same, with the app running in Expo Go
 ```
 
 The mobile app's Maestro runner is **independent** — from `apps/mobile`:
 
 ```bash
-bun run maestro          # device + app + Metro + Maestro flows (dev build)
-bun run maestro --expo   # same, using Expo Go (no native build)
-bun run maestro:expo     # shorthand for `bun run maestro --expo`
+bun run maestro          # build + install the dev build, then run flows
+bun run maestro:fast     # reuse the installed dev build (skip the rebuild)
 ```
 
-Both scripts accept `--dev` / `--expo` flags (they override `E2E_RUNNER`); the
-`*:expo` package scripts are just convenience aliases that set
-`E2E_RUNNER=expo`.
+The runner builds a dev build (`expo run:android`) and loads the Metro bundle
+through the dev-client deep link (`saecula://expo-development-client/?url=…`),
+which skips the launcher/dev-menu screen — no overlay to dismiss.
+`maestro:fast` (or `--no-build` / `E2E_BUILD=0`) skips the native rebuild and
+reuses whatever dev build is already installed — use it whenever only JS
+changed (Metro reloads it), rebuild only when native deps or config change.
 
 `scripts/e2e.sh` (the repo-wide orchestrator) brings up the infrastructure
 (databases, seed, backend) and then **delegates** the device/Metro/Maestro
@@ -261,7 +262,7 @@ bun run start
 The backend URL comes from `.env` (`EXPO_PUBLIC_API_URL`, default
 `http://localhost:8080` — copy `.env.example` to `.env` and adjust).
 `localhost` works for web and the iOS simulator; the Android emulator (AVD)
-needs `http://10.0.2.2:8080`; a physical device or Waydroid (Expo Go) needs
+needs `http://10.0.2.2:8080`; a physical device or Waydroid needs
 your machine's LAN IP, e.g. `http://192.168.1.9:8080` (the `e2e.sh`
 orchestrator detects this automatically). Expo inlines the
 variable at bundle time, so **restart `expo start` after editing `.env`**.
@@ -324,36 +325,36 @@ The E2E suite drives the **full native pipeline** — docker-compose databases,
 
 ```bash
 bun run e2e            # compose + seed + back + emulator + maestro (dev build)
-bun run e2e --expo     # same, but run the app inside Expo Go (no native build)
 ```
 
 **Maestro only** — from `apps/mobile` (assumes the backend and databases are
 already up):
 
 ```bash
-bun run maestro          # device + app + Metro + Maestro flows (dev build)
-bun run maestro --expo   # same, but run the app inside Expo Go
+bun run maestro          # build + install, then run flows
+bun run maestro:fast     # reuse the installed dev build (skip the rebuild)
 ```
+
+`maestro:fast` (`--no-build` / `E2E_BUILD=0`) skips `expo run:android` and
+reuses the installed dev build; only JS changes are needed for most flows
+(Metro serves them), so rebuild only when native deps or config change. The
+full pipeline honors `E2E_BUILD=0` too: `E2E_BUILD=0 bun run e2e`.
 
 The `maestro` runner is self-contained and independent; the repo-wide
 `scripts/e2e.sh` orchestrator brings up the infrastructure (databases, seed,
 backend) and then **delegates** the device/Metro/Maestro phase to
 `apps/mobile/scripts/maestro.sh`.
 
-The default runner is a **dev build**: the app is installed via
-`expo run:android` and the backend URL for the emulator is inlined as
-`EXPO_PUBLIC_API_URL=http://10.0.2.2:8080`.
-
-Set `E2E_RUNNER=expo` to run the same Maestro flows against **Expo Go**
-instead: the orchestrator skips the native build, installs Expo Go
-(`host.exp.exponent`) on the emulator if needed, and opens the project via its
-`exp://` URL; Metro still serves the bundle and the API URL.
+The runner builds a **dev build** (`expo run:android`) and loads the Metro
+bundle through the dev-client deep link
+(`saecula://expo-development-client/?url=…`), which loads the project directly
+and skips the launcher/dev-menu screen — nothing to dismiss.
 
 The orchestrator auto-detects the host's LAN IP (`ip route get 8.8.8.8`, e.g.
-`192.168.1.9`) and uses it for both Expo Go (`exp://<host>:8081`) and the
-backend API URL (`http://<host>:8080`) — this works on Waydroid, physical
-devices and adb targets, not just the classic AVD (whose `10.0.2.2` alias is
-only reachable from inside that AVD). Override with `EXPO_URL` and
+`192.168.1.9`) and uses it for both the dev-client bundle URL (`<host>:8081`)
+and the backend API URL (`http://<host>:8080`) — this works on Waydroid,
+physical devices and adb targets, not just the classic AVD (whose `10.0.2.2`
+alias is only reachable from inside that AVD). Override with
 `EXPO_PUBLIC_API_URL`.
 
 The orchestrator needs exactly **one** Android target. Set `E2E_DEVICE=<serial>`
@@ -372,31 +373,9 @@ The orchestrator (`scripts/e2e.sh`) does, in order:
    - verifies the Android target (single device or `E2E_DEVICE`) and pins the
      **emulator clock** to the seeded anchor date (default `2026-08-15`) and
      the locale to `es-ES`;
-   - installs the app: `expo run:android` (dev build) or Expo Go when
-     `E2E_RUNNER=expo`;
-   - starts Metro and runs `maestro test apps/mobile/.maestro`.
-
-### Expo Go mode (no native build)
-
-For faster iteration you can skip the native build and run the tests against **Expo Go** directly:
-
-```bash
-cd apps/mobile
-bun run test:e2e:expo-go
-```
-
-This script (`scripts/e2e-expo-go.sh`):
-
-1. Starts Metro in the background (with `--dev-client` disabled).
-2. Waits for Expo Go to be detected via `adb`.
-3. Deep-links into the app via `adb shell am start`.
-4. Patches the Maestro flows at runtime to use `host.exp.exponent` as the
-   app ID (Expo Go's package name) instead of the production bundle ID.
-
-**Note:** Expo Go mode uses the JS-bundled versions of all dependencies.
-Native modules (`expo-image`, `expo-linear-gradient`, `expo-clipboard`) have
-been replaced with pure JS / React Native equivalents so the app runs
-unchanged in Expo Go.
+   - installs the app via `expo run:android` (dev build);
+   - starts Metro and opens the dev-client deep link to load the bundle
+     directly, then runs `maestro test apps/mobile/.maestro`.
 
 ### Anchored date
 
@@ -416,9 +395,8 @@ Individual flows are self-contained: each logs in with the seeded account when
 needed and forces the Spanish UI language, so they can also be run alone, e.g.:
 
 ```bash
-maestro test apps/mobile/.maestro/readings.yaml                    # dev build (default)
-maestro test -e APP_ID=host.exp.exponent -e RUNNER=expo \
-  -e EXPO_URL=exp://192.168.1.9:8081 apps/mobile/.maestro/readings.yaml  # Expo Go
+maestro test -e DEV_URL='saecula://expo-development-client/?url=http%3A%2F%2F10.0.2.2%3A8081' \
+  apps/mobile/.maestro/readings.yaml
 ```
 
 ### Flow coverage and visualization objectives

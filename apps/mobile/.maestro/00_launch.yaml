@@ -1,11 +1,10 @@
 appId: ${APP_ID || "com.saecula.app"}
 env:
-  # Runtime the flows run on: "devbuild" (installed debug app, launched by
-  # package name) or "expo" (Expo Go, opened through its exp:// URL).
-  RUNNER: ${RUNNER || "devbuild"}
-  # Expo Go opens the project through this deep link (127.0.0.1 works with
-  # `adb reverse tcp:8081 tcp:8081`; e2e.sh passes the host's LAN IP instead).
-  EXPO_URL: ${EXPO_URL || "exp://127.0.0.1:8081"}
+  # Dev-client deep link that loads the Metro bundle directly, bypassing the
+  # launcher/dev-menu screen. maestro.sh passes the host IP; this default
+  # targets an emulator (10.0.2.2 == host loopback). Format:
+  #   <scheme>://expo-development-client/?url=<url-encoded metro url>
+  DEV_URL: ${DEV_URL || "saecula://expo-development-client/?url=http%3A%2F%2F10.0.2.2%3A8081"}
 ---
 # Shared bootstrap. Safe to run from any flow:
 #  1. Clears app state and launches the app fresh (deterministic).
@@ -15,22 +14,7 @@ env:
 # Every flow starts by including this helper.
 - clearState
 - stopApp
-# launchApp would open Expo Go's own home screen, not the project — the app
-# only runs inside the Expo container. Open the exp:// deep link instead.
-- runFlow:
-    when:
-      true: ${RUNNER === "expo"}
-    commands:
-      - openLink: ${EXPO_URL}
-- runFlow:
-    when:
-      true: ${RUNNER !== "expo"}
-    commands:
-      - launchApp
-# Dismiss the React Native dev menu overlay if it appears (debug builds).
-- tapOn:
-    text: "Continue"
-    optional: true
+- openLink: ${DEV_URL}
 - extendedWaitUntil:
     visible:
       id: "login-submit"
@@ -71,20 +55,7 @@ env:
       text: "PERFIL"
     timeout: 20000
 - stopApp
-- runFlow:
-    when:
-      true: ${RUNNER === "expo"}
-    commands:
-      - openLink: ${EXPO_URL}
-- runFlow:
-    when:
-      true: ${RUNNER !== "expo"}
-    commands:
-      - launchApp
-# Dismiss the React Native dev menu overlay if it appears (debug builds).
-- tapOn:
-    text: "Continue"
-    optional: true
+- openLink: ${DEV_URL}
 - extendedWaitUntil:
     visible:
       id: "home-prayers"

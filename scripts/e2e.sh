@@ -10,10 +10,7 @@ set -euo pipefail
 # around it. See README "End-to-end testing (E2E)".
 #
 # Usage (from repo root):
-#   bun run e2e          # dev build (default)
-#   bun run e2e:expo     # Expo Go
-#   bun run e2e --expo   # same as e2e:expo
-#   bun run e2e --dev    # force dev build
+#   bun run e2e          # dev build
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -25,22 +22,8 @@ API_URL="${EXPO_PUBLIC_API_URL:-http://10.0.2.2:8080}"
 log() { printf '\n\033[1;34m[saecula-e2e]\033[0m %s\n' "$*"; }
 fail() { printf '\033[1;31m[saecula-e2e] FAIL:\033[0m %s\n' "$*"; exit 1; }
 
-# Parse --dev / --expo flags, which override E2E_RUNNER.
-RUNNER_FLAG=""
-for arg in "$@"; do
-  case "$arg" in
-    --dev) RUNNER_FLAG="devbuild" ;;
-    --expo) RUNNER_FLAG="expo" ;;
-    *) fail "unknown argument: $arg (expected --dev or --expo)" ;;
-  esac
-done
 ANCHOR_DATE="${E2E_ANCHOR_DATE:-2026-08-15}"
 ANCHOR_YEAR="${ANCHOR_DATE%%-*}"
-RUNNER="${RUNNER_FLAG:-${E2E_RUNNER:-devbuild}}"
-case "$RUNNER" in
-  devbuild|expo) ;;
-  *) fail "E2E_RUNNER must be 'devbuild' or 'expo' (got '$RUNNER')" ;;
-esac
 
 BACK_PID=""
 cleanup() {
@@ -97,10 +80,10 @@ curl -sf http://127.0.0.1:8080/health >/dev/null || fail "backend not up (see /t
 # The mobile app's Maestro runner is self-contained and independent; it handles
 # device, app install, Metro and the Maestro flows. Run it, passing through the
 # relevant env so the pipeline stays coherent.
-log "Running mobile Maestro flows (apps/mobile/scripts/maestro.sh, $RUNNER)"
-E2E_RUNNER="$RUNNER" \
+log "Running mobile Maestro flows (apps/mobile/scripts/maestro.sh)"
 E2E_ANCHOR_DATE="$ANCHOR_DATE" \
 EXPO_PUBLIC_API_URL="$API_URL" \
+E2E_BUILD="${E2E_BUILD:-1}" \
   bash "$ROOT/apps/mobile/scripts/maestro.sh"
 
 log "E2E suite finished OK"

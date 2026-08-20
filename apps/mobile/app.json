@@ -2,6 +2,7 @@
   "expo": {
     "name": "Saecula",
     "slug": "saecula",
+    "scheme": "saecula",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",

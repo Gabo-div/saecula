@@ -20,11 +20,9 @@
     "lint": "eslint .",
     "format": "eslint . --fix",
     "maestro": "bash scripts/maestro.sh",
-    "maestro:expo": "E2E_RUNNER=expo bash scripts/maestro.sh",
+    "maestro:fast": "bash scripts/maestro.sh --no-build",
     "test:e2e": "bash scripts/maestro.sh",
-    "test:e2e:expo": "E2E_RUNNER=expo bash scripts/maestro.sh",
-    "test:e2e:legacy": "bash ../../scripts/e2e.sh",
-    "test:e2e:expo-go": "bash ../../scripts/e2e-expo-go.sh"
+    "test:e2e:full": "bash ../../scripts/e2e.sh"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.0",

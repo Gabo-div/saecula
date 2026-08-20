@@ -9,6 +9,8 @@ import { Spinner, Text, View, XStack, YStack } from 'tamagui';
 
 import { fetchCalendarDay, fetchDailyVerse } from '@/api/client';
 import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
+import { LinearGradient } from 'expo-linear-gradient';
+
 import { StreakSheet } from '@/components/StreakSheet';
 import type { RootTabParamList } from '@/navigation/RootTabs';
 import { useCatechismStore } from '@/store/catechismStore';
@@ -170,11 +172,11 @@ export function HomeScreen({ navigation }: Props) {
   return (
     <View flex={1} bg={c.bg}>
       <Image
-        source={{ uri: background }}
+        source={{ uri: background, headers: { 'User-Agent': 'SaeculaMobileApp/1.0 (contact@saecula.app)' } }}
         style={StyleSheet.absoluteFillObject}
         resizeMode="cover"
       />
-      <View flex={1} style={{ backgroundColor: c.overlay[0] }}>
+      <LinearGradient colors={c.overlay} locations={[0, 0.5, 1]} style={{ flex: 1 }}>
         <ScrollView
           contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: 24, flexGrow: 1 }}
           refreshControl={
@@ -360,7 +362,7 @@ export function HomeScreen({ navigation }: Props) {
             </YStack>
           )}
         </ScrollView>
-      </View>
+      </LinearGradient>
 
       <StreakSheet
         visible={streakOpen}

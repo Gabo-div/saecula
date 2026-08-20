@@ -22,6 +22,8 @@ import { SaintsScreen } from '@/screens/SaintsScreen';
 import { SavedVersesScreen } from '@/screens/SavedVersesScreen';
 import { SettingsScreen } from '@/screens/SettingsScreen';
 import { StreakScreen } from '@/screens/StreakScreen';
+import { ShareScreen } from '@/screens/ShareScreen';
+import { SelectionSheet } from '@/components/SelectionSheet';
 import { StreakCelebration } from '@/components/StreakCelebration';
 import { useAppTheme } from '@/store/themeStore';
 
@@ -35,6 +37,7 @@ export type RootTabParamList = {
   Ask: NavigatorScreenParams<AskStackParamList> | undefined; // from Home; hidden tab
   Profile: undefined; // reachable from Home; hidden from the tab bar
   Streak: undefined; // reachable from Home; hidden from the tab bar
+  Share: undefined; // opened from the selection sheet; hidden from the tab bar
 };
 
 // Ask (hidden tab, opened from Home): the AI chat and its conversation history.
@@ -83,6 +86,7 @@ const TAB_ICONS: Record<keyof RootTabParamList, IconName> = {
   Ask: 'star-four-points-outline',
   Profile: 'account-circle-outline',
   Streak: 'fire',
+  Share: 'share-variant-outline',
 };
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -149,18 +153,17 @@ export function RootTabs() {
   const { t } = useTranslation();
   const c = useAppTheme();
 
+  const tabBarStyle = { backgroundColor: c.bg, borderTopColor: c.border, borderTopWidth: 1 };
+
   return (
     <>
       <Tab.Navigator
+        backBehavior="history"
         screenOptions={({ route }) => ({
           headerShown: false,
           tabBarActiveTintColor: c.accent,
           tabBarInactiveTintColor: c.muted,
-          tabBarStyle: {
-            backgroundColor: c.bg,
-            borderTopColor: c.border,
-            borderTopWidth: 1,
-          },
+          tabBarStyle,
           tabBarLabelStyle: { fontSize: 11 },
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name={TAB_ICONS[route.name]} size={size} color={color} />
@@ -228,8 +231,14 @@ export function RootTabs() {
           component={StreakScreen}
           options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }}
         />
+        <Tab.Screen
+          name="Share"
+          component={ShareScreen}
+          options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }}
+        />
       </Tab.Navigator>
       <StreakCelebration />
+      <SelectionSheet />
     </>
   );
 }

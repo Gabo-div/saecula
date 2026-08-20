@@ -1,6 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, ScrollView } from 'react-native';
@@ -8,7 +9,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Separator, Spinner, Text, View, XStack, YStack } from 'tamagui';
 
 import { fetchBooks, fetchChapter, fetchTranslations, searchBible } from '@/api/client';
-import { MultiSelectToolbar } from '@/components/MultiSelectToolbar';
 import { Sheet } from '@/components/Sheet';
 import {
   ReaderMiniBar,
@@ -25,6 +25,7 @@ import { useBookmarksStore } from '@/store/bookmarksStore';
 import { useLanguageStore } from '@/store/languageStore';
 import { useReaderPrefs } from '@/store/readerPrefsStore';
 import { useReaderStore } from '@/store/readerStore';
+import { useSelectionStore } from '@/store/selectionUiStore';
 import { useStreakStore } from '@/store/streakStore';
 import { useAppTheme } from '@/store/themeStore';
 import { serif } from '@/theme/colors';
@@ -288,11 +289,26 @@ export function BibleScreen({ navigation }: Props) {
 
   const highlightByEntity = useBookmarksStore((s) => s.highlightByEntity);
 
-  // Selection: tapping a verse toggles it in/out. Any non-empty selection shows
-  // the checkboxes + the actions toolbar; there is no long-press mode.
-  const [selectedVerseIds, setSelectedVerseIds] = useState<Record<string, true>>({});
-  const [multiActionsVisible, setMultiActionsVisible] = useState(false);
-  const selecting = Object.keys(selectedVerseIds).length > 0;
+  // Selection lives in a global store so the sheet renders above the tab bar.
+  // Tapping a verse toggles it; the dotted underline marks selected verses.
+  const selectedItems = useSelectionStore((s) => s.items);
+  const clearSelection = useSelectionStore((s) => s.clear);
+  const selectedIds = useMemo(() => new Set(selectedItems.map((i) => i.entityId)), [selectedItems]);
+
+  // Drop the selection when the chapter changes or the reader loses focus, so
+  // the global sheet never lingers over another screen.
+  useEffect(() => {
+    clearSelection();
+  }, [bookCode, chapter, clearSelection]);
+  useFocusEffect(
+    useCallback(
+      () => () => {
+        // Keep the selection when leaving to the Share page; drop it otherwise.
+        if (!useSelectionStore.getState().sharing) clearSelection();
+      },
+      [clearSelection],
+    ),
+  );
 
   // Catalog + editions load once per language.
   useEffect(() => {
@@ -411,7 +427,7 @@ export function BibleScreen({ navigation }: Props) {
           {content?.verses.map((verse) => {
             const hl = highlightByEntity[verse.entity_id];
             const isHighlighted = !!hl;
-            const isSelected = !!selectedVerseIds[verse.entity_id];
+            const isSelected = selectedIds.has(verse.entity_id);
             return (
               <View
                 key={verse.entity_id}
@@ -420,41 +436,36 @@ export function BibleScreen({ navigation }: Props) {
                 mx={-8}
                 px={8}
                 rounded={6}
-                borderWidth={isSelected ? 2 : 0}
-                borderColor={isSelected ? c.accent : 'transparent'}
-                borderLeftWidth={isSelected ? 0 : highlight === verse.number ? 3 : 0}
+                borderLeftWidth={highlight === verse.number ? 3 : 0}
                 borderLeftColor={highlight === verse.number ? c.accent : 'transparent'}
-                bg={
-                  isSelected
-                    ? `${c.accent}20`
-                    : highlight === verse.number
-                      ? c.bgElevated
-                      : 'transparent'
-                }
+                bg={highlight === verse.number ? c.bgElevated : 'transparent'}
                 onPress={() =>
-                  setSelectedVerseIds((prev) => {
-                    const next = { ...prev };
-                    if (next[verse.entity_id]) delete next[verse.entity_id];
-                    else next[verse.entity_id] = true;
-                    return next;
-                  })
+                  useSelectionStore.getState().toggle(
+                    {
+                      entityId: verse.entity_id,
+                      reference: `${bookName} ${chapterNo}:${verse.number}`,
+                      text: verse.text,
+                      number: verse.number,
+                    },
+                    { headerPrefix: `${bookName} ${chapterNo}:`, share: { bookName, chapter: chapterNo } },
+                  )
                 }
                 pressStyle={{ opacity: 0.85 }}
               >
-                {selecting && (
-                  <MaterialCommunityIcons
-                    name={isSelected ? 'checkbox-marked-circle' : 'checkbox-blank-circle-outline'}
-                    size={18}
-                    color={isSelected ? c.accent : c.muted}
-                    style={{ position: 'absolute', right: 8, top: 4 }}
-                  />
-                )}
                 <Text color={c.text} fontFamily={serif} fontSize={vFont} lineHeight={vLine}>
                   <Text color={c.accent} fontWeight="700">
                     {superscript(verse.number)}{' '}
                   </Text>
-                  {/* Highlight tints only the verse text, like a marker. */}
-                  <Text style={isHighlighted ? { backgroundColor: hl } : undefined}>
+                  {/* Highlight tints only the text (slightly transparent);
+                      selection shows a dotted underline, no block styling. */}
+                  <Text
+                    style={{
+                      backgroundColor: isHighlighted ? `${hl}99` : undefined,
+                      textDecorationLine: isSelected ? 'underline' : undefined,
+                      textDecorationStyle: 'dotted',
+                      textDecorationColor: c.accent,
+                    }}
+                  >
                     {verse.text}
                   </Text>
                 </Text>
@@ -465,67 +476,6 @@ export function BibleScreen({ navigation }: Props) {
       )}
 
       {compact && <ReaderMiniBar title={title} />}
-
-      {/* Floating checkmark FAB — opens the actions toolbar for the selection */}
-      {selecting && (
-        <View
-          style={{
-            position: 'absolute',
-            bottom: insets.bottom + 20,
-            right: 20,
-            zIndex: 50,
-            shadowColor: 'rgba(0,0,0,0.3)',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.3,
-            shadowRadius: 4,
-            elevation: 5,
-          } as any}
-          width={56}
-          height={56}
-          rounded={28}
-          bg={c.accent}
-          items="center"
-          justify="center"
-          onPress={() => setMultiActionsVisible(true)}
-          pressStyle={{ opacity: 0.8 }}
-        >
-          <MaterialCommunityIcons name="check" size={28} color={c.bg} />
-          <View
-            style={{ position: 'absolute', top: -4, right: -4 } as any}
-            width={22}
-            height={22}
-            rounded={11}
-            bg={c.bg}
-            borderWidth={2}
-            borderColor={c.accent}
-            items="center"
-            justify="center"
-          >
-            <Text color={c.accent} fontSize={11} fontWeight="700">
-              {Object.keys(selectedVerseIds).length}
-            </Text>
-          </View>
-        </View>
-      )}
-
-      {/* Selection exit button (X) when no action sheet open */}
-      {selecting && !multiActionsVisible && (
-        <View
-          style={{ position: 'absolute', bottom: insets.bottom + 84, right: 20, zIndex: 50 } as any}
-          width={40}
-          height={40}
-          rounded={20}
-          bg={c.bgElevated}
-          borderWidth={1}
-          borderColor={c.border}
-          items="center"
-          justify="center"
-          onPress={() => setSelectedVerseIds({})}
-          pressStyle={{ opacity: 0.7 }}
-        >
-          <MaterialCommunityIcons name="close" size={18} color={c.muted} />
-        </View>
-      )}
 
       <ReaderSettingsSheet visible={settingsOpen} onClose={() => setSettingsOpen(false)} />
 
@@ -541,17 +491,6 @@ export function BibleScreen({ navigation }: Props) {
         books={books}
         translations={translations}
         onClose={() => setPickerOpen(false)}
-      />
-
-      <MultiSelectToolbar
-        visible={multiActionsVisible}
-        selected={content?.verses.filter((v) => !!selectedVerseIds[v.entity_id]) ?? []}
-        bookName={bookName}
-        chapter={chapterNo}
-        onClose={() => {
-          setMultiActionsVisible(false);
-          setSelectedVerseIds({});
-        }}
       />
     </View>
   );

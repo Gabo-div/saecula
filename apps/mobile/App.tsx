@@ -8,6 +8,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { TamaguiProvider } from 'tamagui';
 
 import i18n from '@/i18n';
+import { navigationRef } from '@/navigation/ref';
 import { RootTabs } from '@/navigation/RootTabs';
 import { LoginScreen } from '@/screens/LoginScreen';
 import { useAuthStore } from '@/store/authStore';
@@ -54,7 +55,7 @@ export default function App() {
         <TamaguiProvider config={tamaguiConfig} defaultTheme={isDark ? 'dark' : 'light'}>
           <StatusBar style={isDark ? 'light' : 'dark'} />
           {token && isAuthenticated() ? (
-            <NavigationContainer theme={navigationTheme}>
+            <NavigationContainer theme={navigationTheme} ref={navigationRef}>
               <RootTabs />
             </NavigationContainer>
           ) : (

@@ -1,7 +1,8 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, LayoutAnimation, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,8 +22,10 @@ import { ScreenHeader, HeaderIconButton } from '@/components/ScreenHeader';
 import { Sheet } from '@/components/Sheet';
 import { CATECHISM_PARTS, CATECHISM_PROLOGUE, type CatechismEntry } from '@/data/catechism';
 import type { AskStackParamList, RootTabParamList } from '@/navigation/RootTabs';
+import { useBookmarksStore } from '@/store/bookmarksStore';
 import { useCatechismStore } from '@/store/catechismStore';
 import { useLanguageStore } from '@/store/languageStore';
+import { useSelectionStore } from '@/store/selectionUiStore';
 import { useReaderPrefs } from '@/store/readerPrefsStore';
 import { useStreakStore } from '@/store/streakStore';
 import { useAppTheme } from '@/store/themeStore';
@@ -343,6 +346,20 @@ export function CatechismScreen({ navigation }: Props) {
   const pendingFocus = useRef<number | null>(null);
   const [highlight, setHighlight] = useState<number | null>(null);
 
+  // Verse-style selection (shared sheet, keyed by "CCC.<n>").
+  const highlightByEntity = useBookmarksStore((s) => s.highlightByEntity);
+  const selectedItems = useSelectionStore((s) => s.items);
+  const clearSelection = useSelectionStore((s) => s.clear);
+  const selectedIds = useMemo(() => new Set(selectedItems.map((i) => i.entityId)), [selectedItems]);
+  useFocusEffect(
+    useCallback(
+      () => () => {
+        if (!useSelectionStore.getState().sharing) clearSelection();
+      },
+      [clearSelection],
+    ),
+  );
+
   const load = useCallback(
     async (fresh: boolean) => {
       if (!fresh && (inFlight.current || !hasMore.current)) return;
@@ -544,24 +561,50 @@ export function CatechismScreen({ navigation }: Props) {
               });
             }, 350);
           }}
-          renderItem={({ item }) => (
-            <View
-              mx={-8}
-              px={8}
-              mb="$3"
-              rounded={6}
-              borderLeftWidth={3}
-              borderLeftColor={highlight === item.number ? c.accent : 'transparent'}
-              bg={highlight === item.number ? c.bgElevated : 'transparent'}
-            >
-              <Text color={c.text} fontFamily={serif} fontSize={pFont} lineHeight={pLine}>
-                <Text color={c.accent} fontWeight="700">
-                  {superscript(item.number)}{' '}
+          renderItem={({ item }) => {
+            const entityId = `CCC.${item.number}`;
+            const hl = highlightByEntity[entityId];
+            const isSelected = selectedIds.has(entityId);
+            return (
+              <View
+                mx={-8}
+                px={8}
+                mb="$3"
+                rounded={6}
+                borderLeftWidth={highlight === item.number ? 3 : 0}
+                borderLeftColor={highlight === item.number ? c.accent : 'transparent'}
+                bg={highlight === item.number ? c.bgElevated : 'transparent'}
+                onPress={() =>
+                  useSelectionStore.getState().toggle(
+                    {
+                      entityId,
+                      reference: `${t('catechism.title')} ${item.number}`,
+                      text: item.text,
+                      number: item.number,
+                    },
+                    { headerPrefix: `${t('catechism.title')} `, share: null },
+                  )
+                }
+                pressStyle={{ opacity: 0.85 }}
+              >
+                <Text color={c.text} fontFamily={serif} fontSize={pFont} lineHeight={pLine}>
+                  <Text color={c.accent} fontWeight="700">
+                    {superscript(item.number)}{' '}
+                  </Text>
+                  <Text
+                    style={{
+                      backgroundColor: hl ? `${hl}99` : undefined,
+                      textDecorationLine: isSelected ? 'underline' : undefined,
+                      textDecorationStyle: 'dotted',
+                      textDecorationColor: c.accent,
+                    }}
+                  >
+                    {item.text}
+                  </Text>
                 </Text>
-                {item.text}
-              </Text>
-            </View>
-          )}
+              </View>
+            );
+          }}
           ListFooterComponent={
             loading ? <Spinner mt="$4" size="large" color={c.accent} /> : <YStack height={8} />
           }

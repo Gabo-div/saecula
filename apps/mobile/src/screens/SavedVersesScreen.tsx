@@ -7,11 +7,27 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Separator, Spinner, Text, View, XStack, YStack } from 'tamagui';
 
 import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
+import { groupLabel, parseEntity } from '@/lib/verseRange';
+import { navigationRef } from '@/navigation/ref';
 import type { ProfileStackParamList } from '@/navigation/RootTabs';
 import { useBookmarksStore } from '@/store/bookmarksStore';
+import { useCatechismStore } from '@/store/catechismStore';
+import { useReaderStore } from '@/store/readerStore';
 import { useAppTheme } from '@/store/themeStore';
 import { serif } from '@/theme/colors';
 import type { SavedVerse } from '@/types/api';
+
+// Open a saved verse/paragraph in its reader.
+function openBookmark(entityId: string) {
+  const p = parseEntity(entityId);
+  if (p.kind === 'catechism') {
+    useCatechismStore.getState().focus(p.number);
+    navigationRef.navigate('Catechism');
+  } else {
+    useReaderStore.getState().setLocation(p.book, p.chapter, p.number);
+    navigationRef.navigate('Bible');
+  }
+}
 
 type Filter = 'all' | 'highlighted' | 'notes';
 
@@ -145,7 +161,14 @@ function SavedVerseRow({
           onPress={() => onDelete(verse.entity_id)}
         />
       </XStack>
-      <Text color={c.text} fontFamily={serif} fontSize={15} lineHeight={22} numberOfLines={3}>
+      <Text
+        color={c.text}
+        fontFamily={serif}
+        fontSize={15}
+        lineHeight={22}
+        numberOfLines={3}
+        onPress={() => openBookmark(verse.entity_id)}
+      >
         {verse.verse_text}
       </Text>
       {verse.note && (
@@ -189,7 +212,7 @@ function SavedGroupRow({ rows, onDelete }: { rows: SavedVerse[]; onDelete: () =>
   const c = useAppTheme();
   const color = rows.find((r) => r.highlight_color)?.highlight_color ?? null;
   const note = rows.find((r) => r.note)?.note ?? null;
-  const label = rows.map((r) => r.reference || r.entity_id).join(', ');
+  const label = groupLabel(rows);
 
   return (
     <YStack py="$3" px="$2" borderBottomWidth={1} borderBottomColor={c.border} gap="$2">
@@ -202,7 +225,15 @@ function SavedGroupRow({ rows, onDelete }: { rows: SavedVerse[]; onDelete: () =>
         <HeaderIconButton icon="delete-outline" onPress={onDelete} />
       </XStack>
       {rows.map((r) => (
-        <Text key={r.id} color={c.text} fontFamily={serif} fontSize={15} lineHeight={22} numberOfLines={3}>
+        <Text
+          key={r.id}
+          color={c.text}
+          fontFamily={serif}
+          fontSize={15}
+          lineHeight={22}
+          numberOfLines={3}
+          onPress={() => openBookmark(r.entity_id)}
+        >
           {r.verse_text}
         </Text>
       ))}

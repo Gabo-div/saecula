@@ -190,8 +190,11 @@ const en: Translations = {
     editNote: 'Edit note',
     notePlaceholder: 'Write your personal note…',
     saveNote: 'Save note',
-    share: 'Share verse',
+    share: 'Share',
     shareImage: 'Share as image',
+    background: 'Background',
+    bgNone: 'No background',
+    bgImage: 'Image',
     shareText: 'Share as text',
     copyLink: 'Copy link',
     shareVia: 'Shared via Saecula',
@@ -209,6 +212,11 @@ const en: Translations = {
     shareMultiImageHint: 'Max 3 verses for image share',
     imageSaved: 'Image saved to gallery',
     imageSaveError: 'Could not save image',
+    note: 'Note',
+    related: 'Related',
+    relatedEmpty: 'Nothing related yet.',
+    dragMore: 'Swipe up for more',
+    format: 'Format',
   },
 };
 
@@ -386,6 +394,9 @@ export interface Translations {
     saveNote: string;
     share: string;
     shareImage: string;
+    background: string;
+    bgNone: string;
+    bgImage: string;
     shareText: string;
     copyLink: string;
     shareVia: string;
@@ -403,6 +414,11 @@ export interface Translations {
     shareMultiImageHint: string;
     imageSaved: string;
     imageSaveError: string;
+    note: string;
+    related: string;
+    relatedEmpty: string;
+    dragMore: string;
+    format: string;
   };
 }
 

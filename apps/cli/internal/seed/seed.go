@@ -114,6 +114,18 @@ func mapDocument(doc *model.Document) ([]TextRecord, []GraphNode, []Relationship
 	switch doc.Type {
 	case model.TypeBible:
 		for _, book := range doc.Books {
+			// The source's own book title, keyed BOOK.<code> so the reader
+			// can show each edition's naming. Verse queries ignore it (their
+			// entity_id regex requires BOOK.CHAPTER.VERSE digits).
+			if book.Name != "" {
+				records = append(records, TextRecord{
+					EntityID:      "BOOK." + book.Code,
+					LanguageCode:  doc.LanguageCode,
+					TranslationID: doc.TranslationID,
+					RawContent:    book.Name,
+					Metadata:      json.RawMessage(`{}`),
+				})
+			}
 			for _, chapter := range book.Chapters {
 				for i, v := range chapter.Verses {
 					entityID := fmt.Sprintf("%s.%d.%d", book.Code, chapter.Number, v.Number)

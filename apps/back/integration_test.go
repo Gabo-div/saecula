@@ -609,7 +609,7 @@ func TestBookmarkGroups(t *testing.T) {
 	groupID := *grp.Verses[0].GroupID
 
 	// List: the single (note, group_id null) survives alongside the 2 group rows.
-	resp, raw = do(t, http.MethodGet, "/api/bookmarks", nil, token)
+	_, raw = do(t, http.MethodGet, "/api/bookmarks", nil, token)
 	list := decode[struct {
 		Verses []sv `json:"verses"`
 	}](t, raw)
@@ -634,7 +634,7 @@ func TestBookmarkGroups(t *testing.T) {
 	if resp.StatusCode != http.StatusNoContent {
 		t.Fatalf("delete group = %d", resp.StatusCode)
 	}
-	resp, raw = do(t, http.MethodGet, "/api/bookmarks", nil, token)
+	_, raw = do(t, http.MethodGet, "/api/bookmarks", nil, token)
 	after := decode[struct {
 		Verses []sv `json:"verses"`
 	}](t, raw)

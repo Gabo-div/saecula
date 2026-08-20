@@ -44,6 +44,47 @@ func (q *Queries) BibleTranslations(ctx context.Context) ([]BibleTranslationsRow
 	return items, nil
 }
 
+const bookNames = `-- name: BookNames :many
+SELECT DISTINCT ON (entity_id) entity_id, raw_content
+FROM text_documents
+WHERE entity_id LIKE 'BOOK.%'
+  AND (($1::text <> '' AND translation_id = $1::text)
+       OR ($1::text = '' AND language_code = $2::text))
+ORDER BY entity_id, translation_id
+`
+
+type BookNamesParams struct {
+	TranslationID string
+	Lang          string
+}
+
+type BookNamesRow struct {
+	EntityID   string
+	RawContent string
+}
+
+// Source book titles (entity_id "BOOK.<code>"), one per book, for the given
+// edition (translation_id) or language.
+func (q *Queries) BookNames(ctx context.Context, arg BookNamesParams) ([]BookNamesRow, error) {
+	rows, err := q.db.Query(ctx, bookNames, arg.TranslationID, arg.Lang)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []BookNamesRow
+	for rows.Next() {
+		var i BookNamesRow
+		if err := rows.Scan(&i.EntityID, &i.RawContent); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const catechismParagraphsByNumbers = `-- name: CatechismParagraphsByNumbers :many
 SELECT CAST(split_part(entity_id, '.', 2) AS INT) AS num, raw_content
 FROM text_documents

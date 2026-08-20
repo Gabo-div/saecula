@@ -123,15 +123,22 @@ export function apiErrorMessage(error: unknown): string {
 }
 
 export const publicApi = {
-  async fetchBooks(lang = 'es'): Promise<BooksResponse> {
-    const { data } = await api.get<BooksResponse>('/api/bible/books', { params: { lang } })
+  async fetchBooks(lang = 'es', translation?: string): Promise<BooksResponse> {
+    const params: Record<string, string> = { lang }
+    if (translation) params.translation = translation
+    const { data } = await api.get<BooksResponse>('/api/bible/books', { params })
     return data
   },
 
-  async fetchChapter(bookCode: string, chapter: number, lang = 'es'): Promise<ChapterResponse> {
-    const { data } = await api.get<ChapterResponse>(`/api/bible/${bookCode}/${chapter}`, {
-      params: { lang },
-    })
+  async fetchChapter(
+    bookCode: string,
+    chapter: number,
+    lang = 'es',
+    translation?: string,
+  ): Promise<ChapterResponse> {
+    const params: Record<string, string> = { lang }
+    if (translation) params.translation = translation
+    const { data } = await api.get<ChapterResponse>(`/api/bible/${bookCode}/${chapter}`, { params })
     return data
   },
 

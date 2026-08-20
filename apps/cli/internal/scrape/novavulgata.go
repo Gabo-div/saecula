@@ -48,6 +48,9 @@ var (
 	// Start of the bottom chapter-nav that follows the last chapter.
 	nvNavStart      = regexp.MustCompile(`(?i)<a[^>]*href="#`)
 	nvTrailingDigit = regexp.MustCompile(`\d+`)
+	// Book title lives in the page's meta description:
+	// "LIBER GENESIS - Nova Vulgata, Vetus Testamentum".
+	nvMetaDesc = regexp.MustCompile(`(?i)<meta\s+name="description"\s+content="([^"]*)"`)
 )
 
 // nvStemByCode maps every canonical USFM code to its Nova Vulgata document
@@ -120,7 +123,7 @@ func (s *NovaVulgataScraper) ScrapeBible(ctx context.Context, progress func(stri
 		if len(doc.Books) > 0 {
 			time.Sleep(nvRequestDelay)
 		}
-		chapters, skipped, err := s.fetchBook(ctx, stem)
+		name, chapters, skipped, err := s.fetchBook(ctx, stem)
 		if err != nil {
 			return nil, fmt.Errorf("%s (%s): %w", book.Code, stem, err)
 		}
@@ -128,6 +131,7 @@ func (s *NovaVulgataScraper) ScrapeBible(ctx context.Context, progress func(stri
 		payload := model.BookPayload{
 			Code:      book.Code,
 			Slug:      book.Slug,
+			Name:      name,
 			NameEN:    book.NameEN,
 			NameES:    book.NameES,
 			Testament: book.Testament,
@@ -160,19 +164,35 @@ func (s *NovaVulgataScraper) ScrapeBible(ctx context.Context, progress func(stri
 // chapters and the count of duplicate verse numbers dropped (the LXX
 // addition sub-verses, e.g. Esther's 1a/1b, are kept-first like the CEE
 // scraper, so entity IDs never collide).
-func (s *NovaVulgataScraper) fetchBook(ctx context.Context, stem string) ([]model.ChapterPayload, int, error) {
+func (s *NovaVulgataScraper) fetchBook(ctx context.Context, stem string) (string, []model.ChapterPayload, int, error) {
 	url := NVBookURL(stem)
 	body, err := fetchWithRetry(ctx, s.fetcher, url, cccFetchAttempts, cccRetryDelay)
 	if err != nil {
-		return nil, 0, fmt.Errorf("fetch %s: %w", url, err)
+		return "", nil, 0, fmt.Errorf("fetch %s: %w", url, err)
 	}
 	defer func() { _ = body.Close() }()
 
 	raw, err := io.ReadAll(body)
 	if err != nil {
-		return nil, 0, fmt.Errorf("read %s: %w", url, err)
+		return "", nil, 0, fmt.Errorf("read %s: %w", url, err)
 	}
-	return parseNVBook(string(raw), url)
+	page := string(raw)
+	chapters, skipped, err := parseNVBook(page, url)
+	return nvBookName(page), chapters, skipped, err
+}
+
+// nvBookName pulls the book title from the page's meta description, keeping
+// the part before " - Nova Vulgata".
+func nvBookName(page string) string {
+	m := nvMetaDesc.FindStringSubmatch(page)
+	if m == nil {
+		return ""
+	}
+	name := html.UnescapeString(m[1])
+	if i := strings.Index(name, " - "); i >= 0 {
+		name = name[:i]
+	}
+	return strings.TrimSpace(name)
 }
 
 func parseNVBook(page, url string) ([]model.ChapterPayload, int, error) {

@@ -60,12 +60,21 @@ type bookResponse struct {
 // verses are omitted — the reader can only open what exists.
 func (a *API) Books(w http.ResponseWriter, r *http.Request) {
 	lang := langParam(r)
+	translation := r.URL.Query().Get("translation")
 
 	counts, err := a.graph.ChapterCounts(r.Context())
 	if err != nil {
 		slog.Error("bible: chapter counts", "error", err)
 		httpx.WriteError(w, http.StatusInternalServerError, "graph query failed")
 		return
+	}
+
+	// Source book titles for the selected edition; falls back to the catalog
+	// per book when a source has no stored title.
+	names, err := a.texts.BookNames(r.Context(), lang, translation)
+	if err != nil {
+		slog.Warn("bible: book names lookup failed, using catalog", "error", err)
+		names = nil
 	}
 
 	books := make([]bookResponse, 0, len(counts))
@@ -77,7 +86,7 @@ func (a *API) Books(w http.ResponseWriter, r *http.Request) {
 		books = append(books, bookResponse{
 			Code:      b.Code,
 			Slug:      b.Slug,
-			Name:      bookName(b, lang),
+			Name:      bookNameOr(names[b.Code], b, lang),
 			Testament: b.Testament,
 			Chapters:  chapters,
 			StartYear: b.StartYear,
@@ -132,8 +141,9 @@ func (a *API) Chapter(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	lang := langParam(r)
+	translation := r.URL.Query().Get("translation")
 
-	verses, err := a.texts.ChapterVerses(r.Context(), book.Code, chapter, lang, r.URL.Query().Get("translation"))
+	verses, err := a.texts.ChapterVerses(r.Context(), book.Code, chapter, lang, translation)
 	if err != nil {
 		slog.Error("bible: chapter verses", "error", err)
 		httpx.WriteError(w, http.StatusInternalServerError, "text lookup failed")
@@ -144,10 +154,16 @@ func (a *API) Chapter(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// The book title as the selected edition names it, catalog fallback.
+	bookTitle := bookName(*book, lang)
+	if bt, err := a.texts.VerseText(r.Context(), "BOOK."+book.Code, lang, translation); err == nil && bt != nil && bt.Text != "" {
+		bookTitle = bt.Text
+	}
+
 	httpx.WriteJSON(w, http.StatusOK, chapterResponse{
 		BookCode: book.Code,
 		BookSlug: book.Slug,
-		BookName: bookName(*book, lang),
+		BookName: bookTitle,
 		Chapter:  chapter,
 		Lang:     lang,
 		Verses:   verses,
@@ -282,6 +298,14 @@ func bookName(b canon.Book, lang string) string {
 		return b.NameES
 	}
 	return b.NameEN
+}
+
+// bookNameOr prefers the source title, falling back to the catalog name.
+func bookNameOr(sourceName string, b canon.Book, lang string) string {
+	if sourceName != "" {
+		return sourceName
+	}
+	return bookName(b, lang)
 }
 
 type searchResult struct {

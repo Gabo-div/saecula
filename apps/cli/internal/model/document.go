@@ -52,8 +52,12 @@ type Document struct {
 // Slug come from the canonical catalog (libs/canon) so they are
 // identical across sources; temporal metadata is per book.
 type BookPayload struct {
-	Code      string           `json:"code"` // USFM, e.g. "JHN"
-	Slug      string           `json:"slug"` // canonical English slug, e.g. "john"
+	Code string `json:"code"` // USFM, e.g. "JHN"
+	Slug string `json:"slug"` // canonical English slug, e.g. "john"
+	// Name is the book's title as the SOURCE names it (e.g. "Génesis",
+	// "LIBER GENESIS", "Genesis") — persisted per translation so the reader
+	// shows each edition's own book names, not a shared catalog guess.
+	Name      string           `json:"name,omitempty"`
 	NameEN    string           `json:"name_en,omitempty"`
 	NameES    string           `json:"name_es,omitempty"`
 	Testament string           `json:"testament,omitempty"` // "OT" | "NT"

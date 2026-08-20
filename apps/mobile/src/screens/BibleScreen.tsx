@@ -310,7 +310,8 @@ export function BibleScreen({ navigation }: Props) {
     ),
   );
 
-  // Catalog + editions load once per language.
+  // Catalog + editions reload when the language or the selected edition
+  // changes, so book names track the chosen version.
   useEffect(() => {
     void (async () => {
       try {
@@ -321,7 +322,7 @@ export function BibleScreen({ navigation }: Props) {
         setError('catalog');
       }
     })();
-  }, [language]);
+  }, [language, translationId]);
 
   const load = useCallback(async () => {
     setLoading(true);

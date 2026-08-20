@@ -147,7 +147,7 @@ export function todayLocalISO(): string {
 
 export async function fetchBooks(): Promise<BooksResponse> {
   const { data } = await api.get<BooksResponse>('/api/bible/books', {
-    params: { lang: useLanguageStore.getState().language },
+    params: bibleParams(),
   });
   return data;
 }

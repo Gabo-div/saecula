@@ -19,27 +19,37 @@ export default function BiblePage() {
   const [searching, setSearching] = useState(false)
 
   useEffect(() => {
-    void publicApi.fetchBooks('es').then((res) => setBooks(res.books)).catch(() => {})
     void publicApi.fetchTranslations().then((res) => {
       setTranslations(res.translations)
       if (res.translations.length > 0 && !selectedTranslation) {
         setSelectedTranslation(res.translations[0].id)
       }
     }).catch(() => {})
-  }, [])
+  }, [selectedTranslation])
 
-  const loadChapter = useCallback(async (book: string, ch: number) => {
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await publicApi.fetchChapter(book, ch, 'es')
-      setChapter(data)
-    } catch (err) {
-      setError(apiErrorMessage(err))
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+  // Book catalog reloads with the edition so book names track the version.
+  useEffect(() => {
+    void publicApi
+      .fetchBooks('es', selectedTranslation || undefined)
+      .then((res) => setBooks(res.books))
+      .catch(() => {})
+  }, [selectedTranslation])
+
+  const loadChapter = useCallback(
+    async (book: string, ch: number) => {
+      setLoading(true)
+      setError(null)
+      try {
+        const data = await publicApi.fetchChapter(book, ch, 'es', selectedTranslation || undefined)
+        setChapter(data)
+      } catch (err) {
+        setError(apiErrorMessage(err))
+      } finally {
+        setLoading(false)
+      }
+    },
+    [selectedTranslation],
+  )
 
   useEffect(() => {
     void loadChapter(selectedBook, selectedChapter)

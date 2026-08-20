@@ -69,6 +69,9 @@ type TextRepository interface {
 	VerseText(ctx context.Context, entityID, lang, translationID string) (*Verse, error)
 	// Translations lists every (translation, language) edition available.
 	Translations(ctx context.Context) ([]Translation, error)
+	// BookNames returns the source book titles keyed by USFM code for one
+	// edition (translationID) or language, e.g. {"GEN": "Génesis"}.
+	BookNames(ctx context.Context, lang, translationID string) (map[string]string, error)
 	// DailyFeature returns the curated feature for a date (YYYY-MM-DD), or
 	// nil when none is set (caller falls back to the built-in rotation).
 	DailyFeature(ctx context.Context, date string) (*DailyFeature, error)
@@ -273,6 +276,18 @@ func (repo *PostgresTextRepository) Translations(ctx context.Context) ([]Transla
 		translations[i] = Translation{ID: r.TranslationID, LanguageCode: r.LanguageCode, VerseCount: r.VerseCount}
 	}
 	return translations, nil
+}
+
+func (repo *PostgresTextRepository) BookNames(ctx context.Context, lang, translationID string) (map[string]string, error) {
+	rows, err := repo.q.BookNames(ctx, gen.BookNamesParams{TranslationID: translationID, Lang: lang})
+	if err != nil {
+		return nil, err
+	}
+	names := make(map[string]string, len(rows))
+	for _, r := range rows {
+		names[strings.TrimPrefix(r.EntityID, "BOOK.")] = r.RawContent
+	}
+	return names, nil
 }
 
 // verseNumber extracts the trailing verse component of BOOK.CHAPTER.VERSE.

@@ -147,9 +147,17 @@ func (s *CEEScraper) ScrapeBible(ctx context.Context, progress func(string)) (*m
 			}
 		}
 
+		// The combined 1–3 John page has one shared title, so it can't name
+		// the individual letters — fall back to the catalog there.
+		name := ceeBookName(page.title)
+		if name == "" || ceeSlug == ceeJohnLettersSlug {
+			name = book.NameES
+		}
+
 		payload := model.BookPayload{
 			Code:      book.Code,
 			Slug:      book.Slug,
+			Name:      name,
 			NameEN:    book.NameEN,
 			NameES:    book.NameES,
 			Testament: book.Testament,
@@ -190,10 +198,30 @@ type parsedChapter struct {
 // parsedPage is one downloaded book page after normalization.
 type parsedPage struct {
 	chapters []parsedChapter
+	title    string // raw <title>, e.g. "Pentateuco: 1. Génesis - Conferencia…"
 	// verse markers dropped because their number repeated within a
 	// chapter (inline LXX variants / Greek additions).
 	skippedVariants int
 }
+
+// ceeBookName pulls the book name out of the page <title>, which reads
+// "<section><sep> <n>. <book> - Conferencia Episcopal Española" where <sep>
+// is ":" or "." (e.g. "Pentateuco: 1. Génesis" → "Génesis",
+// "Evangelios. 1. Mateo" → "Mateo"). Returns "" if it can't.
+func ceeBookName(title string) string {
+	name := title
+	if i := strings.Index(name, " - "); i >= 0 {
+		name = name[:i] // drop the "- Conferencia Episcopal Española" suffix
+	}
+	name = ceeSectionPrefix.ReplaceAllString(name, "") // "Pentateuco: 1. "
+	name = ceeTrailingNum.ReplaceAllString(name, "")   // stray "…apocalipsis 1"
+	return strings.TrimSpace(name)
+}
+
+var (
+	ceeSectionPrefix = regexp.MustCompile(`^.*?[:.]\s*\d+\.\s*`)
+	ceeTrailingNum   = regexp.MustCompile(`\s+\d+$`)
+)
 
 // fetchBookPage downloads one book page, parses every chapter div in page
 // order, then normalizes:
@@ -246,7 +274,9 @@ func (s *CEEScraper) fetchBookPage(ctx context.Context, ceeSlug string) (parsedP
 		return parsedPage{}, fmt.Errorf("no div.capitulo found at %s — page layout may have changed", url)
 	}
 
-	return normalizeChapters(raw), nil
+	out := normalizeChapters(raw)
+	out.title = strings.TrimSpace(page.Find("title").First().Text())
+	return out, nil
 }
 
 // normalizeChapters applies the multi-chapter-div split and the

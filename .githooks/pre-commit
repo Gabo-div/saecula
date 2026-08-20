@@ -30,15 +30,19 @@ if have '*.go'; then
 fi
 
 # --- Mobile TS/JS: eslint --fix (restage), then eslint to block on errors ---
+# eslint v9 resolves its flat config from the cwd, so run it inside apps/mobile.
+# git diff prints repo-root-relative paths; prefix $root to make them absolute
+# so eslint lints them regardless of its cwd.
 if have 'apps/mobile/*.ts' 'apps/mobile/*.tsx' 'apps/mobile/*.js' 'apps/mobile/*.jsx'; then
-  eslint="apps/mobile/node_modules/.bin/eslint"
-  staged 'apps/mobile/*.ts' 'apps/mobile/*.tsx' 'apps/mobile/*.js' 'apps/mobile/*.jsx' \
-    | xargs -0 "$eslint" --fix
-  staged 'apps/mobile/*.ts' 'apps/mobile/*.tsx' 'apps/mobile/*.js' 'apps/mobile/*.jsx' \
-    | xargs -0 git add
+  eslint="$root/apps/mobile/node_modules/.bin/eslint"
+  mabs() {
+    staged 'apps/mobile/*.ts' 'apps/mobile/*.tsx' 'apps/mobile/*.js' 'apps/mobile/*.jsx' \
+      | sed -z "s#^#$root/#"
+  }
+  ( cd "$root/apps/mobile" && mabs | xargs -0 "$eslint" --fix )
+  mabs | xargs -0 git add
   echo "eslint: apps/mobile"
-  staged 'apps/mobile/*.ts' 'apps/mobile/*.tsx' 'apps/mobile/*.js' 'apps/mobile/*.jsx' \
-    | xargs -0 "$eslint" || fail=1
+  ( cd "$root/apps/mobile" && mabs | xargs -0 "$eslint" ) || fail=1
 fi
 
 [ "$fail" -eq 0 ] || { echo "pre-commit: lint errors — commit blocked."; exit 1; }

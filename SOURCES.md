@@ -20,6 +20,13 @@ across languages).
 | EN | World English Bible, Catholic Edition (`web_ce`) | ebible.org USFM zip (`--source web`) | modern (Hebrew) → aligns with CEE | **Public domain** (PD dedication) | Scraper ready (not seeded) |
 | LA | Nova Vulgata (`nova_vulgata`) | vatican.va/archive/bible/nova_vulgata (`--source nova`) | modern (Hebrew) → aligns with CEE | © **Libreria Editrice Vaticana** — no open license | Scraper ready (not seeded) |
 
+**Book names** are scraped from each edition and persisted per translation
+(`text_documents` rows keyed `BOOK.<code>`), so the reader shows each version's
+own naming — e.g. Genesis is "Génesis" (CEE), "LIBER GENESIS" (Nova Vulgata),
+"Genesis" (WEB) — instead of a shared catalog label. `/api/bible/books` and the
+chapter endpoint return the name for the selected `translation`, falling back
+to the `libs/canon` catalog when a source has none.
+
 **Alignment notes** (all three key on `(book code, chapter, verse)`):
 - NV and CEE agree on chapter counts for all 73 books. WEB-CE differs only on
   **Joel** (English 3-chapter vs 4) and **Malachi** (English 4-chapter vs 3) —

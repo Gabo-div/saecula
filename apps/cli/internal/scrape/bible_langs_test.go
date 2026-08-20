@@ -61,9 +61,26 @@ func TestParseNVBook_SingleChapter(t *testing.T) {
 	}
 }
 
+func TestSourceBookNames(t *testing.T) {
+	ceeCases := map[string]string{
+		"Pentateuco: 1. Génesis - Conferencia Episcopal Española":         "Génesis",
+		"Libros históricos: 9. 1 Samuel - Conferencia Episcopal Española": "1 Samuel",
+		"Evangelios. 1. Mateo - Conferencia Episcopal Española":           "Mateo",
+		"Libro del apocalipsis 1 - Conferencia Episcopal Española":        "Libro del apocalipsis",
+	}
+	for title, want := range ceeCases {
+		if got := ceeBookName(title); got != want {
+			t.Errorf("ceeBookName(%q) = %q, want %q", title, got, want)
+		}
+	}
+	if got := nvBookName(`<meta name="description" content="LIBER GENESIS - Nova Vulgata, Vetus Testamentum" />`); got != "LIBER GENESIS" {
+		t.Errorf("nv = %q", got)
+	}
+}
+
 func TestParseUSFMBook(t *testing.T) {
 	usfm := `\id JHN Test
-\h John
+\h John the Beloved
 \c 3
 \p
 \v 16 \w For|strong="G1063"\w* God so loved\f + \fr 3:16 \ft note\f* the world,
@@ -79,9 +96,12 @@ func TestParseUSFMBook(t *testing.T) {
 	_ = zw.Close()
 	zr, _ := zip.NewReader(bytes.NewReader(buf.Bytes()), int64(buf.Len()))
 
-	chapters, err := parseUSFMBook(zr.File[0])
+	name, chapters, err := parseUSFMBook(zr.File[0])
 	if err != nil {
 		t.Fatal(err)
+	}
+	if name != "John the Beloved" {
+		t.Errorf("book name = %q", name)
 	}
 	if len(chapters) != 2 {
 		t.Fatalf("want 2 chapters, got %d", len(chapters))

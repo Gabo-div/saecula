@@ -110,7 +110,7 @@ func (s *WEBScraper) ScrapeBible(ctx context.Context, progress func(string)) (*m
 			report(fmt.Sprintf("[%d/%d] %s: not in the WEB-CE archive, skipped", i+1, len(canon.Books), book.Code))
 			continue
 		}
-		chapters, err := parseUSFMBook(f)
+		name, chapters, err := parseUSFMBook(f)
 		if err != nil {
 			return nil, fmt.Errorf("%s (%s): %w", book.Code, f.Name, err)
 		}
@@ -118,6 +118,7 @@ func (s *WEBScraper) ScrapeBible(ctx context.Context, progress func(string)) (*m
 		payload := model.BookPayload{
 			Code:      book.Code,
 			Slug:      book.Slug,
+			Name:      name,
 			NameEN:    book.NameEN,
 			NameES:    book.NameES,
 			Testament: book.Testament,
@@ -164,18 +165,19 @@ func usfmBookCode(f *zip.File) (string, error) {
 // parseUSFMBook turns one book's USFM into chapters. \c starts a chapter,
 // \v starts a verse; every other line's text continues the current verse
 // (poetry lines, wrapped prose). Footnotes and inline markup are stripped.
-func parseUSFMBook(f *zip.File) ([]model.ChapterPayload, error) {
+func parseUSFMBook(f *zip.File) (string, []model.ChapterPayload, error) {
 	rc, err := f.Open()
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 	defer func() { _ = rc.Close() }()
 	raw, err := io.ReadAll(rc)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	var (
+		name     string
 		chapters []model.ChapterPayload
 		cur      *model.ChapterPayload
 		vnum     int
@@ -197,6 +199,8 @@ func parseUSFMBook(f *zip.File) ([]model.ChapterPayload, error) {
 	for _, line := range strings.Split(string(raw), "\n") {
 		line = strings.TrimSpace(line)
 		switch {
+		case strings.HasPrefix(line, `\h `):
+			name = strings.TrimSpace(line[3:])
 		case strings.HasPrefix(line, `\c `):
 			flushVerse()
 			n, _, _ := splitLeadingNumber(strings.TrimSpace(line[3:]))
@@ -227,9 +231,9 @@ func parseUSFMBook(f *zip.File) ([]model.ChapterPayload, error) {
 		}
 	}
 	if len(kept) == 0 {
-		return nil, fmt.Errorf("no verses parsed")
+		return "", nil, fmt.Errorf("no verses parsed")
 	}
-	return kept, nil
+	return name, kept, nil
 }
 
 // cleanUSFM strips footnotes, cross-references and inline markup, leaving

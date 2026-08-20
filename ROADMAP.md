@@ -109,6 +109,30 @@ endpoint and `fetchTimeline` client already exist).
 
 ---
 
+## 6. Original-language texts (Hebrew, Aramaic, Greek)
+
+**Goal.** Add the source-language text alongside the modern translations, so a
+verse can be read in its original — Hebrew (OT), Aramaic (the Aramaic portions
+of Daniel/Ezra/Jeremiah), and Greek (NT, plus LXX Greek for the deuterocanon).
+
+**Candidate sources (PD / open, structured — no HTML scrape needed).**
+- **Hebrew OT** — Westminster Leningrad Codex (openscriptures/morphhb,
+  tanach.us); the Aramaic passages live inside it.
+- **Greek NT** — Nestle 1904 or Byzantine/Robinson-Pierpont (public domain), or
+  SBLGNT (free under its own licence — check terms).
+- **Greek OT / deuterocanon** — Swete LXX (public domain); Rahlfs is copyright.
+
+**Alignment.** These use their own versification (esp. Psalms, Sirach, the
+Greek additions), so this rides on the same `(code, chapter, verse)` remap
+problem flagged for the Vulgata-based texts — expect a per-book mapping layer,
+not a drop-in. See [`SOURCES.md`](SOURCES.md) for the current version/license
+inventory.
+
+**Open questions.** Right-to-left rendering + Hebrew/Greek fonts in the reader;
+whether to show morphology/interlinear or plain text first; storage size.
+
+---
+
 ## Content & smaller backlog
 
 - **Santoral detail** — the saints calendar lists days but rows aren't

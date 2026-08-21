@@ -29,10 +29,9 @@ const RATIOS = [
   icon: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 }[];
 
-// Default background art (the Home hero); Wikimedia needs a User-Agent.
-const DEFAULT_BG =
-  'https://commons.wikimedia.org/wiki/Special:FilePath/Diego_Vel%C3%A1zquez_-_Coronation_of_the_Virgin_-_Prado.jpg?width=1200';
-const BG_HEADERS = { 'User-Agent': 'SaeculaMobileApp/1.0 (contact@saecula.app)' };
+// Bundled placeholder hero, used as the share card's background art.
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- no *.jpg module typings in this project
+const DEFAULT_HERO = require('../../assets/default-hero.jpg');
 
 export function ShareScreen() {
   const insets = useSafeAreaInsets();
@@ -49,15 +48,11 @@ export function ShareScreen() {
   const [bgOn, setBgOn] = useState(false);
   const [overlay, setOverlay] = useState(0.4); // scrim opacity over the image
 
-  useEffect(() => {
-    RNImage.prefetch(DEFAULT_BG).catch(() => {});
-  }, []);
   const items = useSelectionStore((s) => s.items);
   const headerPrefix = useSelectionStore((s) => s.headerPrefix);
   const share = useSelectionStore((s) => s.share);
   const setSharing = useSelectionStore((s) => s.setSharing);
   const clearSelection = useSelectionStore((s) => s.clear);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const cardRef = useRef<any>(null);
 
   // Hidden tab → no back stack; go straight to the reader we came from.
@@ -130,7 +125,7 @@ export function ShareScreen() {
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: insets.bottom + 16, gap: 16 }}>
         {/* On-screen preview (scaled down). */}
         <View items="center">
-          <ShareCard width={Math.min(width - 40, height * 0.45 * ratio)} ratio={ratio} items={items} label={label} c={cardTheme} bgUri={bgOn ? DEFAULT_BG : undefined} overlay={overlay} />
+          <ShareCard width={Math.min(width - 40, height * 0.45 * ratio)} ratio={ratio} items={items} label={label} c={cardTheme} bgOn={bgOn} overlay={overlay} />
         </View>
 
         {/* Real card rendered off-screen. view-shot captures at
@@ -144,7 +139,7 @@ export function ShareScreen() {
             label={label}
             c={cardTheme}
             cardRef={cardRef}
-            bgUri={bgOn ? DEFAULT_BG : undefined}
+            bgOn={bgOn}
             overlay={overlay}
           />
         </RNView>
@@ -293,6 +288,7 @@ function ShareCard({
   label,
   c,
   cardRef,
+  bgOn,
   bgUri,
   overlay,
 }: {
@@ -300,10 +296,9 @@ function ShareCard({
   ratio: number;
   items: { number: number; text: string }[];
   label: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   c: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   cardRef?: React.RefObject<any>;
+  bgOn?: boolean;
   bgUri?: string;
   overlay: number;
 }) {
@@ -322,10 +317,10 @@ function ShareCard({
         overflow: 'hidden',
       }}
     >
-      {bgUri && (
+      {bgOn && (
         <>
           <RNImage
-            source={{ uri: bgUri, headers: BG_HEADERS }}
+            source={bgUri ? { uri: bgUri } : DEFAULT_HERO}
             resizeMode="cover"
             style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
           />

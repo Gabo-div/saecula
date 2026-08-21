@@ -96,6 +96,13 @@ export interface DailyVerseResponse {
   catechism_paragraphs: { number: number; text: string }[];
 }
 
+// --- Images ------------------------------------------------------------------
+
+export interface BackgroundResponse {
+  url: string;
+  attribution: string;
+}
+
 // --- Daily readings ---------------------------------------------------------
 
 export interface ReadingVerse {

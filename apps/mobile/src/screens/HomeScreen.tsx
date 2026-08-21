@@ -7,7 +7,7 @@ import { Animated, Image, NativeScrollEvent, NativeSyntheticEvent, RefreshContro
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Spinner, Text, View, XStack, YStack } from 'tamagui';
 
-import { fetchCalendarDay, fetchDailyVerse } from '@/api/client';
+import { fetchBackground, fetchCalendarDay, fetchDailyVerse } from '@/api/client';
 import { HeaderIconButton, ScreenHeader } from '@/components/ScreenHeader';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -20,19 +20,12 @@ import { useStreakStore } from '@/store/streakStore';
 import { useAppTheme } from '@/store/themeStore';
 import { serif } from '@/theme/colors';
 import { liturgicalColor } from '@/theme/liturgical';
-import type { CalendarDayResponse, DailyVerseResponse } from '@/types/api';
+import type { BackgroundResponse, CalendarDayResponse, DailyVerseResponse } from '@/types/api';
 
-// Public-domain sacred art from Wikimedia Commons; the day of the year
-// picks the background, so it changes daily and repeats weekly-ish.
-const wikimedia = (file: string) =>
-  `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=1200`;
-
-const BACKGROUNDS = [wikimedia('Diego_Velázquez_-_Coronation_of_the_Virgin_-_Prado.jpg')];
-
-function dayOfYear(date: Date): number {
-  const start = Date.UTC(date.getUTCFullYear(), 0, 0);
-  return Math.floor((date.getTime() - start) / 86_400_000);
-}
+// Bundled placeholder hero, shown when neither the day's curated art nor the
+// fetched background loads.
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- no *.jpg module typings in this project
+const DEFAULT_HERO = require('../../assets/default-hero.jpg');
 
 type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
@@ -112,6 +105,7 @@ export function HomeScreen({ navigation }: Props) {
 
   const [daily, setDaily] = useState<DailyVerseResponse | null>(null);
   const [calDay, setCalDay] = useState<CalendarDayResponse | null>(null);
+  const [bg, setBg] = useState<BackgroundResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
   const { width: winWidth } = useWindowDimensions();
@@ -133,9 +127,14 @@ export function HomeScreen({ navigation }: Props) {
   // must not blank the other.
   const load = useCallback(async () => {
     setLoading(true);
-    const [verse, cal] = await Promise.allSettled([fetchDailyVerse(), fetchCalendarDay()]);
+    const [verse, cal, background] = await Promise.allSettled([
+      fetchDailyVerse(),
+      fetchCalendarDay(),
+      fetchBackground(),
+    ]);
     setDaily(verse.status === 'fulfilled' ? verse.value : null);
     setCalDay(cal.status === 'fulfilled' ? cal.value : null);
+    setBg(background.status === 'fulfilled' ? background.value : null);
     setLoading(false);
   }, [language]);
 
@@ -143,9 +142,10 @@ export function HomeScreen({ navigation }: Props) {
     void load();
   }, [load]);
 
-  // A curated feature image wins; otherwise the day-of-year default rotation.
-  const background =
-    daily?.image_url ?? BACKGROUNDS[dayOfYear(new Date()) % BACKGROUNDS.length];
+  // The day's curated art wins; otherwise the fetched background; otherwise
+  // the bundled placeholder never leaves the hero blank.
+  const backgroundUri = daily?.image_url ?? bg?.url;
+  const backgroundAttribution = daily?.image_url ? daily?.attribution : bg?.attribution;
   const verseText = daily?.verses.map((v) => v.text).join(' ') ?? '—';
 
   const openDailyInBible = () => {
@@ -172,10 +172,22 @@ export function HomeScreen({ navigation }: Props) {
   return (
     <View flex={1} bg={c.bg}>
       <Image
-        source={{ uri: background, headers: { 'User-Agent': 'SaeculaMobileApp/1.0 (contact@saecula.app)' } }}
+        source={backgroundUri ? { uri: backgroundUri } : DEFAULT_HERO}
         style={StyleSheet.absoluteFillObject}
         resizeMode="cover"
       />
+      {backgroundAttribution && (
+        <Text
+          position="absolute"
+          b={8}
+          r={12}
+          color="white"
+          fontSize={9}
+          opacity={0.7}
+        >
+          {backgroundAttribution}
+        </Text>
+      )}
       <LinearGradient colors={c.overlay} locations={[0, 0.5, 1]} style={{ flex: 1 }}>
         <ScrollView
           contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: 24, flexGrow: 1 }}

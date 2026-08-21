@@ -58,3 +58,26 @@ func TestMaxVariantWidth(t *testing.T) {
 		t.Fatalf("maxVariantWidth = %d, want 1200", got)
 	}
 }
+
+func TestSmallestVariantWidth(t *testing.T) {
+	if got := smallestVariantWidth(); got != 600 {
+		t.Fatalf("smallestVariantWidth = %d, want 600", got)
+	}
+}
+
+func TestCategory(t *testing.T) {
+	cases := []struct {
+		a    Asset
+		want string
+	}{
+		{Asset{IsBackground: true}, "backgrounds"},
+		{Asset{IsShare: true}, "share"},
+		{Asset{SubjectKind: "saint"}, "saints"},
+		{Asset{}, "daily"},
+	}
+	for _, c := range cases {
+		if got := category(c.a); got != c.want {
+			t.Fatalf("category(%+v) = %q, want %q", c.a, got, c.want)
+		}
+	}
+}

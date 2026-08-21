@@ -62,3 +62,15 @@ func maxVariantWidth() int {
 	}
 	return m
 }
+
+// smallestVariantWidth is the narrowest variant we generate; a source must be
+// at least this wide to yield any variant without upscaling.
+func smallestVariantWidth() int {
+	m := variantWidths[0]
+	for _, w := range variantWidths {
+		if w < m {
+			m = w
+		}
+	}
+	return m
+}

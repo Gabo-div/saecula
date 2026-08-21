@@ -24,6 +24,11 @@ type Asset struct {
 	Variants     map[string]string `json:"variants"`
 	IsBackground bool              `json:"is_background,omitempty"`
 	IsShare      bool              `json:"is_share,omitempty"`
+	// SubjectKind/SubjectID link a profile asset (e.g. a saint portrait) to its
+	// subject. Carried in the manifest and used to route the R2 key; not yet
+	// persisted to the DB (no serving path for profiles until saints exist).
+	SubjectKind string `json:"subject_kind,omitempty"`
+	SubjectID   string `json:"subject_id,omitempty"`
 }
 
 func parseManifest(data []byte) ([]Asset, error) {

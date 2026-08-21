@@ -25,10 +25,16 @@ type R2Config struct {
 
 // category chooses the R2 key prefix from an asset's role flags.
 func category(a Asset) string {
-	if a.IsBackground {
+	switch {
+	case a.IsBackground:
 		return "backgrounds"
+	case a.IsShare:
+		return "share"
+	case a.SubjectKind == "saint":
+		return "saints"
+	default:
+		return "daily"
 	}
-	return "daily"
 }
 
 // needsPublish reports whether a is missing a variant URL for any width in
@@ -83,15 +89,26 @@ func Publish(ctx context.Context, cfg R2Config, manifestPath string) error {
 		if err != nil {
 			return fmt.Errorf("%s: %w", a.ID, err)
 		}
-		if w, err := imageWidth(original); err != nil {
+		srcW, err := imageWidth(original)
+		if err != nil {
 			return fmt.Errorf("%s: %w", a.ID, err)
-		} else if w < maxVariantWidth() {
-			return fmt.Errorf("%s: source width %dpx is below the %dpx minimum — "+
-				"too small to be background/share-usable without upscaling; use a larger source",
-				a.ID, w, maxVariantWidth())
+		}
+		// Background/share art must fill the 1200w hero + 1080w share render, so
+		// it needs the full width. Profile art (saint portraits) only needs the
+		// smallest variant. Either way we never upscale.
+		minW := smallestVariantWidth()
+		if a.IsBackground || a.IsShare {
+			minW = maxVariantWidth()
+		}
+		if srcW < minW {
+			return fmt.Errorf("%s: source width %dpx is below the %dpx minimum for its role — use a larger source",
+				a.ID, srcW, minW)
 		}
 		variants := map[string]string{}
 		for _, w := range variantWidths {
+			if w > srcW {
+				continue // never upscale
+			}
 			data, err := resizeJPEG(original, w)
 			if err != nil {
 				return fmt.Errorf("%s @%d: %w", a.ID, w, err)
@@ -103,6 +120,9 @@ func Publish(ctx context.Context, cfg R2Config, manifestPath string) error {
 				return fmt.Errorf("%s: put %s: %w", a.ID, key, err)
 			}
 			variants[strconv.Itoa(w)] = cfg.PublicBase + "/" + key
+		}
+		if len(variants) == 0 {
+			return fmt.Errorf("%s: source width %dpx fits no variant", a.ID, srcW)
 		}
 		a.Variants = variants
 		if err := writeManifest(manifestPath, assets); err != nil {

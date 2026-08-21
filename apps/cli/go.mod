@@ -9,6 +9,7 @@ require (
 	github.com/neo4j/neo4j-go-driver/v5 v5.28.0
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
+	saecula/apikey v0.0.0
 )
 
 require (
@@ -56,3 +57,5 @@ require (
 replace saecula/canon => ../../libs/canon
 
 replace saecula/env => ../../libs/env
+
+replace saecula/apikey => ../../libs/apikey

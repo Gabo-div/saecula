@@ -17,6 +17,24 @@ type ActivityDay struct {
 	CreatedAt    time.Time
 }
 
+type ApiKey struct {
+	ID        string
+	UserID    string
+	KeyHash   string
+	Prefix    string
+	Name      string
+	CreatedAt pgtype.Timestamp
+	RevokedAt pgtype.Timestamp
+}
+
+type ApiKeyUsage struct {
+	KeyID  string
+	Day    time.Time
+	Tool   string
+	Calls  int32
+	Errors int32
+}
+
 type ChatConversation struct {
 	ID        string
 	UserID    string

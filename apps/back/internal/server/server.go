@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -77,20 +78,31 @@ func New(cfg Config) *Server {
 }
 
 // conditionalTimeout applies a request timeout to every route except the
-// streaming chat endpoint. middleware.Timeout cancels the request context and
-// wraps the ResponseWriter in a non-flushing buffer, both of which break a
-// long-lived Server-Sent Events response (and abort the upstream LLM call).
+// streaming ones. middleware.Timeout cancels the request context and wraps the
+// ResponseWriter in a non-flushing buffer, both of which break a long-lived
+// Server-Sent Events response (and abort the upstream LLM call).
 func conditionalTimeout(d time.Duration) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		timed := middleware.Timeout(d)(next)
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.Method == http.MethodPost && (r.URL.Path == "/api/chat" || r.URL.Path == "/api/chat/") {
+			if streams(r) {
 				next.ServeHTTP(w, r)
 				return
 			}
 			timed.ServeHTTP(w, r)
 		})
 	}
+}
+
+// streams reports whether a request holds its response open. Chat streams only
+// on POST — its conversation-history routes are ordinary requests and keep the
+// timeout. Every MCP method streams: the transport answers over SSE.
+func streams(r *http.Request) bool {
+	path := strings.TrimSuffix(r.URL.Path, "/")
+	if r.Method == http.MethodPost && path == "/api/chat" {
+		return true
+	}
+	return path == "/mcp" || strings.HasPrefix(r.URL.Path, "/mcp/")
 }
 
 // corsMiddleware reflects any Origin so browser clients (Expo web, local

@@ -3,7 +3,6 @@ package chat
 import (
 	"strings"
 	"testing"
-	"time"
 )
 
 func TestTitle(t *testing.T) {
@@ -15,27 +14,5 @@ func TestTitle(t *testing.T) {
 	got := title(long)
 	if !strings.HasSuffix(got, "…") || len([]rune(got)) != 61 {
 		t.Fatalf("title(long) = %q (len %d), want 60 runes + ellipsis", got, len([]rune(got)))
-	}
-}
-
-func TestRateLimiter(t *testing.T) {
-	l := &rateLimiter{perMin: 2, hits: map[string][]time.Time{}}
-	first, second := l.allow("u"), l.allow("u")
-	if !first || !second {
-		t.Fatal("first two requests should be allowed")
-	}
-	if l.allow("u") {
-		t.Fatal("third request within the window should be denied")
-	}
-	// A different user is independent.
-	if !l.allow("other") {
-		t.Fatal("a different user should not be limited")
-	}
-	// perMin <= 0 disables limiting.
-	open := &rateLimiter{perMin: 0, hits: map[string][]time.Time{}}
-	for i := 0; i < 100; i++ {
-		if !open.allow("u") {
-			t.Fatal("perMin=0 should never limit")
-		}
 	}
 }

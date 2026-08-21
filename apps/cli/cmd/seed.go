@@ -3,12 +3,14 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/spf13/cobra"
 
+	"saecula/apikey"
 	"saecula/cli/internal/seed"
 )
 
@@ -26,6 +28,12 @@ var seedOpts struct {
 const (
 	testUserEmail = "test@saecula.app"
 	testUserHash  = "$2a$10$S4adxo1h8ME7JvrWSSIEbOmdA6yyAKoDV8xdVAGs.mtFx5GXYs2ki"
+	// devMCPKey is the API key in the repo's .mcp.json, so an agent can call
+	// the local MCP endpoint straight after seeding. Like the password above it
+	// is worthless off a hand-seeded dev database, and --test-user refuses to
+	// run at all under APP_ENV=production.
+	devMCPKey     = "sk_saecula_dev_local_only"
+	devMCPKeyName = "dev .mcp.json"
 )
 
 var seedCmd = &cobra.Command{
@@ -63,6 +71,11 @@ func runSeed(cmd *cobra.Command, _ []string) error {
 	}
 
 	if seedOpts.testUser {
+		// Both credentials below are published in the repo, so neither may ever
+		// reach a real deployment.
+		if os.Getenv("APP_ENV") == "production" {
+			return fmt.Errorf("refusing to seed dev credentials with APP_ENV=production")
+		}
 		if _, err := pool.Exec(ctx,
 			`INSERT INTO users (email, password_hash) VALUES ($1, $2)
 			 ON CONFLICT (email) DO NOTHING`,
@@ -70,6 +83,16 @@ func runSeed(cmd *cobra.Command, _ []string) error {
 			return fmt.Errorf("seed test user: %w", err)
 		}
 		fmt.Printf("test user ready: %s / saecula123\n", testUserEmail)
+
+		if _, err := pool.Exec(ctx,
+			`INSERT INTO api_keys (user_id, key_hash, prefix, name)
+			 SELECT id, $1, $2, $3 FROM users WHERE email = $4
+			 ON CONFLICT (key_hash) DO NOTHING`,
+			apikey.Hash(devMCPKey), apikey.Public(devMCPKey), devMCPKeyName,
+			testUserEmail); err != nil {
+			return fmt.Errorf("seed dev MCP key: %w", err)
+		}
+		fmt.Printf("dev MCP key ready: %s (used by .mcp.json)\n", devMCPKey)
 	}
 
 	if len(seedOpts.files) == 0 {

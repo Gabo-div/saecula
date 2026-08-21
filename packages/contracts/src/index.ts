@@ -248,3 +248,44 @@ export interface StreakHistoryEntry {
 export interface StreakHistoryResponse {
   entries: StreakHistoryEntry[];
 }
+
+// --- API keys ---------------------------------------------------------------
+// Credentials for the public MCP endpoint, distinct from the app's session
+// token: a key never expires, is revoked rather than deleted, and cannot be
+// used against /api (nor a session token against /mcp).
+
+export interface ApiKey {
+  id: string;
+  name: string;
+  prefix: string; // non-secret leading fragment, e.g. "sk_saecula_Ab3dEf"
+  created_at: string;
+  total_calls: number;
+  total_errors: number;
+}
+
+export interface ApiKeysResponse {
+  keys: ApiKey[];
+}
+
+// CreatedApiKey is the only place the secret ever appears. It is not stored in
+// recoverable form, so a key not copied here is lost and must be replaced.
+export interface CreatedApiKey {
+  id: string;
+  name: string;
+  prefix: string;
+  created_at: string;
+  key: string;
+}
+
+export interface ApiKeyUsageEntry {
+  key_id: string;
+  prefix: string;
+  day: string; // YYYY-MM-DD, UTC
+  tool: string;
+  calls: number;
+  errors: number;
+}
+
+export interface ApiKeyUsageResponse {
+  usage: ApiKeyUsageEntry[];
+}

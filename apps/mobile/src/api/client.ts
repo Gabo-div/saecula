@@ -5,6 +5,8 @@ import { useLanguageStore } from '@/store/languageStore';
 import { useReaderStore } from '@/store/readerStore';
 import type {
   ActivityType,
+  ApiKeysResponse,
+  ApiKeyUsageResponse,
   AuthResponse,
   BooksResponse,
   CalendarDayResponse,
@@ -17,6 +19,7 @@ import type {
   DailyVerseResponse,
   SavedVersesResponse,
   SavedVerse,
+  CreatedApiKey,
   CreateBookmarkGroupRequest,
   StreakHistoryResponse,
   StreakResponse,
@@ -340,4 +343,29 @@ export async function createBookmarkGroup(
 
 export async function deleteBookmarkGroup(groupId: string): Promise<void> {
   await api.delete(`/api/bookmarks/group/${encodeURIComponent(groupId)}`);
+}
+
+// --- API keys (public MCP endpoint) ------------------------------------------
+
+export async function fetchApiKeys(): Promise<ApiKeysResponse> {
+  const { data } = await api.get<ApiKeysResponse>('/api/keys');
+  return data;
+}
+
+// createApiKey returns the plaintext secret. This is the only response that
+// carries it — the caller must show it to the user immediately.
+export async function createApiKey(name: string): Promise<CreatedApiKey> {
+  const { data } = await api.post<CreatedApiKey>('/api/keys', { name });
+  return data;
+}
+
+export async function revokeApiKey(id: string): Promise<void> {
+  await api.delete(`/api/keys/${encodeURIComponent(id)}`);
+}
+
+export async function fetchApiKeyUsage(days = 30): Promise<ApiKeyUsageResponse> {
+  const { data } = await api.get<ApiKeyUsageResponse>('/api/keys/usage', {
+    params: { days },
+  });
+  return data;
 }

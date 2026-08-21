@@ -29,6 +29,10 @@ type Config struct {
 	ChatMaxToolIters    int
 	ChatMaxOutputTokens int
 	ChatRatePerMin      int
+
+	// Public MCP endpoint. Mounted only when the chat tools exist, since it
+	// serves the same tool layer.
+	MCPRatePerMin int
 }
 
 func Load() (*Config, error) {
@@ -46,6 +50,8 @@ func Load() (*Config, error) {
 		ChatMaxToolIters:    getEnvInt("CHAT_MAX_TOOL_ITERS", 5),
 		ChatMaxOutputTokens: getEnvInt("CHAT_MAX_OUTPUT_TOKENS", 1024),
 		ChatRatePerMin:      getEnvInt("CHAT_RATE_PER_MIN", 20),
+
+		MCPRatePerMin: getEnvInt("MCP_RATE_PER_MIN", 60),
 	}
 
 	if len(cfg.JWTSecret) == 0 {

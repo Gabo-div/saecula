@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "saecula": {
+      "type": "http",
+      "url": "http://localhost:8080/mcp",
+      "headers": {
+        "Authorization": "Bearer sk_saecula_dev_local_only"
+      }
+    }
+  }
+}

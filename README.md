@@ -25,7 +25,7 @@ PostgreSQL's `text_documents` table.
 ```
 saecula/
 ├── apps/
-│   ├── back/       # Go REST API (chi) — modular APIs, DI composition root
+│   ├── back/       # Go REST API (chi) + public MCP endpoint — modular APIs, DI composition root
 │   ├── cli/        # Go CLI (cobra) — scrape → generic JSON, seed as a separate step
 │   ├── mobile/     # React Native app (Expo + TypeScript, Tamagui v2, Zustand, Axios)
 │   ├── web/        # Next.js 15 public reader + admin panel (Tamagui v2, SSR-safe)
@@ -34,6 +34,7 @@ saecula/
 │   ├── config/     # Shared TS/ESLint/Prettier configs (@saecula/config)
 │   └── contracts/  # Shared API contract types (@saecula/contracts) — single source of truth
 ├── libs/
+│   ├── apikey/     # Shared Go module: API key minting + hashing (back & cli)
 │   └── canon/      # Shared Go module: canonical catalog of the 73 books
 ├── scripts/
 │   ├── e2e.sh      # Repo-wide E2E orchestrator (compose + seed + back → delegates Maestro)
@@ -41,7 +42,8 @@ saecula/
 ├── package.json    # bun workspaces + Turborepo root
 ├── turbo.json      # Turborepo task pipeline
 ├── bun.lock        # single lockfile for all JS/TS workspaces
-├── go.work         # Go workspace tying back + cli + canon together
+├── go.work         # Go workspace tying back + cli + libs together
+├── .mcp.json       # Local MCP server for agents (points at the dev backend)
 └── README.md
 ```
 
@@ -453,11 +455,51 @@ matching how the app resolves "today" from the device's local date.
 | `GET` | `/api/chat/conversations` | Bearer | List the user's conversations |
 | `GET` | `/api/chat/conversations/{id}` | Bearer | One conversation + messages (metadata: model, tool calls) |
 | `DELETE` | `/api/chat/conversations/{id}` | Bearer | Delete a conversation |
+| `POST` | `/api/keys` | Bearer | Mint an API key; the plaintext is returned **once** |
+| `GET` | `/api/keys` | Bearer | The user's live keys (prefix + usage totals, never the secret) |
+| `GET` | `/api/keys/usage?days=` | Bearer | Per-key, per-day, per-tool call counts |
+| `DELETE` | `/api/keys/{id}` | Bearer | Revoke a key |
+| `POST` `GET` | `/mcp` | **API key** | Public MCP endpoint (below) |
 | `GET` | `/health` | — | Liveness probe |
 
 New APIs implement the `server.API` interface (`Pattern()`, `Routes()`) and
 are registered in `main.go` as public (own mount point) or protected
 (mounted under `/api` behind the JWT middleware).
+
+### Public MCP endpoint
+
+`/mcp` serves the assistant's tool layer (`internal/mcptools` — Scripture,
+Catechism and concept-graph reads) over MCP's Streamable HTTP transport, so an
+external host such as Claude can read the library directly. The tools are
+defined once and used by both transports: the in-process chat agent takes them
+as Genkit tools, and `internal/mcpapi` adapts the same `ai.Tool` values to MCP,
+forwarding each JSON Schema verbatim so the contract an external model sees
+matches the one the tool validates against.
+
+It needs no `GEMINI_API_KEY` — the tools are reads over our own stores and the
+host brings its own model. Only chat needs a provider key.
+
+**Authentication is an API key, never the app's JWT** (and a key is refused on
+`/api`). Keys are `sk_saecula_<32 random bytes>`; only their SHA-256 is stored,
+so a key is shown exactly once, at creation. Revoking sets `revoked_at` rather
+than deleting, keeping a prefix seen in a log traceable. Rate limit is per key
+per minute (`MCP_RATE_PER_MIN`, default 60), answered with `429` +
+`Retry-After`. Every tool call increments a `(key, UTC day, tool)` row in
+`api_key_usage`, which is what `/api/keys/usage` and the app's API keys screen
+read.
+
+Local testing: `.mcp.json` at the repo root points at `http://localhost:8080/mcp`
+with the dev key that `saecula-cli seed --test-user` installs, so an agent can
+exercise the tools right after seeding. That key is dev-only — `--test-user`
+refuses to run under `APP_ENV=production`.
+
+```bash
+curl -s -X POST http://localhost:8080/mcp \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -H 'Authorization: Bearer sk_saecula_dev_local_only' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+```
 
 ### The hybrid timeline query
 
@@ -530,4 +572,13 @@ prayers, feast art, profile editing).
 - Stateless **HS256 JWTs**, 24 h expiry by default.
 - `JWT_SECRET` **must** be set in production (`APP_ENV=production` enforces
   this); the baked-in dev secret is for local development only.
-- Docker credentials above are for local development only.
+- **API keys** (public MCP endpoint) are a separate credential class from the
+  session JWT: neither works where the other belongs. 256 bits of entropy,
+  stored only as SHA-256 (no KDF needed at that entropy), shown once at
+  creation, revoked rather than deleted, rate-limited per key, and capped at 20
+  live keys per account.
+- Tool failures on `/mcp` return a generic message; the detail (which can name
+  tables and queries) stays in the server log.
+- Docker credentials above are for local development only. So are the
+  `--test-user` login and the `.mcp.json` key, which is why seeding them under
+  `APP_ENV=production` is refused.

@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/firebase/genkit/go/ai"
@@ -17,6 +16,7 @@ import (
 
 	"saecula/back/internal/auth"
 	"saecula/back/internal/httpx"
+	"saecula/back/internal/ratelimit"
 )
 
 // maxChatRetries bounds retries of transient upstream (LLM) errors.
@@ -60,8 +60,9 @@ FORMAT: Use Markdown for structure — headings (##), bullet points, **bold** fo
 emphasis, *italics* for terms. Keep responses concise, faithful to the
 Magisterium, and answer in the user's language.`
 
-// API serves the AI assistant. When Genkit is nil (no API key configured), the
-// chat endpoint reports 503 but conversation history endpoints still work.
+// API serves the AI assistant. When no model is configured (model == "", for
+// want of a provider API key) the chat endpoint reports 503 but conversation
+// history endpoints still work.
 type API struct {
 	repo      Repository
 	g         *genkit.Genkit
@@ -69,7 +70,7 @@ type API struct {
 	model     string
 	maxTurns  int
 	maxTokens int
-	limiter   *rateLimiter
+	limiter   *ratelimit.Window
 }
 
 func NewAPI(repo Repository, g *genkit.Genkit, tools []ai.ToolRef, model string, maxTurns, maxTokens, ratePerMin int) *API {
@@ -80,7 +81,7 @@ func NewAPI(repo Repository, g *genkit.Genkit, tools []ai.ToolRef, model string,
 		model:     model,
 		maxTurns:  maxTurns,
 		maxTokens: maxTokens,
-		limiter:   &rateLimiter{perMin: ratePerMin, hits: map[string][]time.Time{}},
+		limiter:   ratelimit.New(ratePerMin),
 	}
 }
 
@@ -119,11 +120,11 @@ func (a *API) Chat(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteError(w, http.StatusUnauthorized, "unauthenticated")
 		return
 	}
-	if a.g == nil {
+	if a.g == nil || a.model == "" {
 		httpx.WriteError(w, http.StatusServiceUnavailable, "chat is not enabled on this server")
 		return
 	}
-	if !a.limiter.allow(userID) {
+	if !a.limiter.Allow(userID) {
 		httpx.WriteError(w, http.StatusTooManyRequests, "too many requests, slow down")
 		return
 	}
@@ -354,37 +355,6 @@ func (a *API) DeleteConversation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
-}
-
-// rateLimiter is a naive per-process, per-user sliding-window limiter.
-// ponytail: in-memory only — fine for a single instance; move to Redis if the
-// backend is ever replicated.
-type rateLimiter struct {
-	mu     sync.Mutex
-	perMin int
-	hits   map[string][]time.Time
-}
-
-func (l *rateLimiter) allow(user string) bool {
-	if l.perMin <= 0 {
-		return true
-	}
-	now := time.Now()
-	cutoff := now.Add(-time.Minute)
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	kept := l.hits[user][:0]
-	for _, t := range l.hits[user] {
-		if t.After(cutoff) {
-			kept = append(kept, t)
-		}
-	}
-	if len(kept) >= l.perMin {
-		l.hits[user] = kept
-		return false
-	}
-	l.hits[user] = append(kept, now)
-	return true
 }
 
 // sse writes one Server-Sent Event frame and flushes it.

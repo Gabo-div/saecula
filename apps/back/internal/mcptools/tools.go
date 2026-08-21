@@ -3,8 +3,9 @@
 // Neo4j relationships. Tools are the single source of truth for what the model
 // can access; they are thin, read-only wrappers over the existing stores and
 // return compact JSON (ids + text) so the model can cite by id (JHN.3.16,
-// CCC.2077). They are Genkit tools, used in-process by the chat agent today and
-// mountable as an MCP server for external hosts later without changing bodies.
+// CCC.2077). They are Genkit tools, used in-process by the chat agent and
+// served to external hosts over MCP (internal/mcpapi) — one definition, two
+// transports, no tool body aware of either.
 package mcptools
 
 import (
@@ -36,10 +37,11 @@ type Deps struct {
 
 const maxResults = 15
 
-// Register defines every tool on the Genkit instance and returns their refs for
-// the agent's WithTools option.
-func Register(g *genkit.Genkit, d Deps) []ai.ToolRef {
-	return []ai.ToolRef{
+// Register defines every tool on the Genkit instance and returns them. The
+// chat agent takes them as refs for WithTools; the MCP endpoint needs the full
+// ai.Tool to read each definition's schema, so this returns the richer type.
+func Register(g *genkit.Genkit, d Deps) []ai.Tool {
+	return []ai.Tool{
 		genkit.DefineTool(g, "search_scripture",
 			"Full-text search the Bible. Returns matching verses with their id (e.g. JHN.3.16) and text. Use before quoting or citing Scripture.",
 			d.searchScripture),

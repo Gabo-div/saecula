@@ -10,6 +10,7 @@ import (
 
 	"github.com/firebase/genkit/go/ai"
 
+	"saecula/back/internal/apikeys"
 	"saecula/back/internal/auth"
 	"saecula/back/internal/bible"
 	"saecula/back/internal/bookmarks"
@@ -18,6 +19,7 @@ import (
 	"saecula/back/internal/chat"
 	"saecula/back/internal/config"
 	"saecula/back/internal/db"
+	"saecula/back/internal/mcpapi"
 	"saecula/back/internal/mcptools"
 	"saecula/back/internal/readings"
 	"saecula/back/internal/server"
@@ -108,6 +110,7 @@ func run() error {
 	readingsGraphRepo := readings.NewNeo4jGraphRepository(driver)
 	readingsTextRepo := readings.NewPostgresTextRepository(pool)
 	bookmarksRepo := bookmarks.NewPostgresRepository(pool)
+	apiKeyRepo := apikeys.NewPostgresRepository(pool)
 
 	// --- APIs ---------------------------------------------------------------
 	authAPI := auth.NewAPI(userRepo, tokens)
@@ -121,28 +124,55 @@ func run() error {
 	catechismAPI := catechism.NewAPI(pool)
 	bookmarksAPI := bookmarks.NewAPI(bookmarksRepo)
 	streakAPI := streak.NewAPI(streak.NewPostgresRepository(pool))
+	keysAPI := apikeys.NewAPI(apiKeyRepo)
 
 	// AI assistant ("Ask"): Genkit runs the agent; the tools read the app's
 	// own content and graph. Disabled (503) when no Gemini key is set.
 	genkitApp := chat.InitGenkit(ctx, cfg.GeminiAPIKey)
-	var chatTools []ai.ToolRef
-	if genkitApp != nil {
-		chatTools = mcptools.Register(genkitApp, mcptools.Deps{
-			Scripture: bibleTextRepo,
-			Pool:      pool,
-			Neo4j:     driver,
-		})
+	tools := mcptools.Register(genkitApp, mcptools.Deps{
+		Scripture: bibleTextRepo,
+		Pool:      pool,
+		Neo4j:     driver,
+	})
+
+	// The tools are pure reads over our own stores, so they serve external MCP
+	// hosts with no model of ours involved. Only chat needs a provider key:
+	// without one its model is empty and the endpoint reports 503.
+	chatModel := cfg.ChatModel
+	if cfg.GeminiAPIKey == "" {
+		chatModel = ""
+		slog.Warn("no GEMINI_API_KEY: chat disabled, MCP tools still served")
 	}
-	chatAPI := chat.NewAPI(chat.NewPostgresRepository(pool), genkitApp, chatTools,
-		cfg.ChatModel, cfg.ChatMaxToolIters, cfg.ChatMaxOutputTokens, cfg.ChatRatePerMin)
+	chatAPI := chat.NewAPI(chat.NewPostgresRepository(pool), genkitApp, toolRefs(tools),
+		chatModel, cfg.ChatMaxToolIters, cfg.ChatMaxOutputTokens, cfg.ChatRatePerMin)
+
+	// The public MCP endpoint serves the same tools to external hosts,
+	// authenticated by API key rather than a session token. It is only mounted
+	// when the tools exist, so hosts never see an empty tool list.
+	publicAPIs := []server.API{authAPI}
+	if mcpAPI := mcpapi.New(tools, apiKeyRepo, cfg.MCPRatePerMin); mcpAPI != nil {
+		publicAPIs = append(publicAPIs, mcpAPI)
+		slog.Info("public MCP endpoint mounted", "path", "/mcp", "tools", len(tools))
+	}
 
 	// --- HTTP server --------------------------------------------------------
 	srv := server.New(server.Config{
 		Addr:           cfg.HTTPAddr,
 		AuthMiddleware: auth.Middleware(tokens),
-		PublicAPIs:     []server.API{authAPI},
-		ProtectedAPIs:  []server.API{timelineAPI, bibleAPI, readingsAPI, calendarAPI, catechismAPI, chatAPI, bookmarksAPI, streakAPI},
+		PublicAPIs:     publicAPIs,
+		ProtectedAPIs:  []server.API{timelineAPI, bibleAPI, readingsAPI, calendarAPI, catechismAPI, chatAPI, bookmarksAPI, streakAPI, keysAPI},
 	})
 
 	return srv.Run(ctx)
+}
+
+// toolRefs narrows the tool list to what the chat agent's WithTools option
+// takes. The MCP endpoint needs the full ai.Tool, so Register returns that and
+// this drops down to refs here rather than defining the tools twice.
+func toolRefs(tools []ai.Tool) []ai.ToolRef {
+	refs := make([]ai.ToolRef, len(tools))
+	for i, t := range tools {
+		refs[i] = t
+	}
+	return refs
 }

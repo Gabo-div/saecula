@@ -115,6 +115,26 @@ const en: Translations = {
     account: 'Account',
     signOut: 'Sign out',
   },
+  apiKeys: {
+    title: 'API keys',
+    subtitle: 'Let an AI assistant read your Saecula library over MCP.',
+    newKey: 'New key',
+    namePlaceholder: 'Name (e.g. laptop)',
+    create: 'Create',
+    copyOnce: 'Copy it now — this key is never shown again.',
+    copy: 'Copy',
+    copied: 'Copied',
+    done: 'Done',
+    revokeConfirm: 'Anything using this key stops working immediately.',
+    revoke: 'Revoke',
+    empty: 'No keys yet.',
+    calls: 'calls',
+    errors: 'errors',
+    loadError: 'Could not load your keys',
+    createError: 'Could not create the key',
+    tooMany: 'Too many active keys. Revoke one first.',
+    revokeError: 'Could not revoke the key',
+  },
   settings: {
     title: 'Settings',
     theme: 'Theme',
@@ -317,6 +337,26 @@ export interface Translations {
     comingBody: string;
   };
   profile: { title: string; account: string; signOut: string };
+  apiKeys: {
+    title: string;
+    subtitle: string;
+    newKey: string;
+    namePlaceholder: string;
+    create: string;
+    copyOnce: string;
+    copy: string;
+    copied: string;
+    done: string;
+    revokeConfirm: string;
+    revoke: string;
+    empty: string;
+    calls: string;
+    errors: string;
+    loadError: string;
+    createError: string;
+    tooMany: string;
+    revokeError: string;
+  };
   settings: {
     title: string;
     theme: string;

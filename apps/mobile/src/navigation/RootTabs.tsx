@@ -17,6 +17,7 @@ import { GuidedPrayerScreen } from '@/screens/GuidedPrayerScreen';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { PrayerDetailScreen } from '@/screens/PrayerDetailScreen';
 import { PrayersHubScreen } from '@/screens/PrayersHubScreen';
+import { ApiKeysScreen } from '@/screens/ApiKeysScreen';
 import { ProfileScreen } from '@/screens/ProfileScreen';
 import { SaintsScreen } from '@/screens/SaintsScreen';
 import { SavedVersesScreen } from '@/screens/SavedVersesScreen';
@@ -72,6 +73,7 @@ export type ProfileStackParamList = {
   ProfileHome: undefined;
   SavedVerses: undefined;
   Settings: undefined;
+  ApiKeys: undefined;
 };
 
 type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
@@ -145,6 +147,7 @@ function ProfileStackNavigator() {
       <ProfileStack.Screen name="ProfileHome" component={ProfileScreen} />
       <ProfileStack.Screen name="SavedVerses" component={SavedVersesScreen} />
       <ProfileStack.Screen name="Settings" component={SettingsScreen} />
+      <ProfileStack.Screen name="ApiKeys" component={ApiKeysScreen} />
     </ProfileStack.Navigator>
   );
 }

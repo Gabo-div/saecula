@@ -3,6 +3,7 @@ go 1.25.7
 use (
 	./apps/back
 	./apps/cli
+	./libs/apikey
 	./libs/canon
 	./libs/db
 	./libs/env

@@ -157,3 +157,8 @@ export function buildTheme(mode: ThemeMode, accentKey: AccentKey): AppTheme {
 // fontFamily prop is typed against configured font tokens, so the raw
 // platform font name needs a loose type to pass through.
 export const serif: any = Platform.select({ ios: 'Georgia', default: 'serif' });
+
+// System monospace, for API keys: a secret is verified character by character,
+// which a fixed-width face makes possible. Loosely typed for the same reason
+// as `serif` above.
+export const mono: any = Platform.select({ ios: 'Menlo', default: 'monospace' });

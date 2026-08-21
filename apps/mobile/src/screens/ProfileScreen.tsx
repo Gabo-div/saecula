@@ -80,6 +80,22 @@ export function ProfileScreen({ navigation }: Props) {
           items="center"
           gap="$3"
           py="$3"
+          onPress={() => navigation.navigate('ApiKeys')}
+          pressStyle={{ opacity: 0.7 }}
+        >
+          <MaterialCommunityIcons name="key-variant" size={22} color={c.accent} />
+          <Text color={c.strong} fontSize={15}>
+            {t('apiKeys.title')}
+          </Text>
+          <View ml="auto">
+            <MaterialCommunityIcons name="chevron-right" size={22} color={c.muted} />
+          </View>
+        </XStack>
+
+        <XStack
+          items="center"
+          gap="$3"
+          py="$3"
           onPress={() => navigation.navigate('Settings')}
           pressStyle={{ opacity: 0.7 }}
         >

@@ -4,9 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"image"
+	_ "image/gif" // register decoders so any Commons source format is accepted
 	"image/jpeg"
+	_ "image/png"
 
 	"golang.org/x/image/draw"
+	_ "golang.org/x/image/tiff"
+	_ "golang.org/x/image/webp"
 )
 
 var variantWidths = []int{1200, 600}
@@ -20,9 +24,9 @@ func objectKey(category, slug string, width int) string {
 // resizeJPEG decodes a JPEG, scales it to width (aspect preserved) with a
 // high-quality CatmullRom kernel, and re-encodes JPEG. No native dependency.
 func resizeJPEG(src []byte, width int) ([]byte, error) {
-	img, err := jpeg.Decode(bytes.NewReader(src))
+	img, _, err := image.Decode(bytes.NewReader(src))
 	if err != nil {
-		return nil, fmt.Errorf("decode jpeg: %w", err)
+		return nil, fmt.Errorf("decode image: %w", err)
 	}
 	b := img.Bounds()
 	if b.Dx() == 0 {

@@ -24,9 +24,12 @@
     "license": "Public Domain",
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Sassoferrato (Giovanni Battista Salvi) (Public Domain)",
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/sassoferrato-virgin-in-prayer-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/sassoferrato-virgin-in-prayer-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "botticelli-adoration-of-the-magi",
@@ -37,9 +40,12 @@
     "license": "Public Domain",
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Sandro Botticelli (Public Domain)",
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/botticelli-adoration-of-the-magi-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/botticelli-adoration-of-the-magi-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "rembrandt-simeon-in-the-temple",
@@ -50,22 +56,28 @@
     "license": "Public Domain",
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Rembrandt van Rijn (Public Domain)",
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/rembrandt-simeon-in-the-temple-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/rembrandt-simeon-in-the-temple-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "guido-reni-st-joseph",
-    "title": "Saint Joseph with the Infant Jesus",
+    "title": "Saint Joseph and the Christ Child",
     "artist": "Guido Reni",
-    "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Guido_Reni_-_St_Joseph_with_the_Infant_Jesus_-_WGA19304.jpg?width=1600",
-    "source_url": "https://commons.wikimedia.org/wiki/File:Guido_Reni_-_St_Joseph_with_the_Infant_Jesus_-_WGA19304.jpg",
-    "license": "Public Domain",
+    "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Guido%20Reni%20-%20Saint%20Joseph%20and%20the%20Christ%20Child%20-%2096.1565%20-%20Museum%20of%20Fine%20Arts.jpg?width=1600",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Guido%20Reni%20-%20Saint%20Joseph%20and%20the%20Christ%20Child%20-%2096.1565%20-%20Museum%20of%20Fine%20Arts.jpg",
+    "license": "Public domain",
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
-    "attribution": "Guido Reni (Public Domain)",
+    "attribution": "Guido Reni (Public domain)",
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/guido-reni-st-joseph-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/guido-reni-st-joseph-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "leonardo-annunciation",
@@ -76,9 +88,12 @@
     "license": "Public Domain",
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Leonardo da Vinci (Public Domain)",
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/leonardo-annunciation-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/leonardo-annunciation-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "ghirlandaio-birth-of-john-baptist",
@@ -89,35 +104,44 @@
     "license": "Public Domain",
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Domenico Ghirlandaio (Public Domain)",
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/ghirlandaio-birth-of-john-baptist-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/ghirlandaio-birth-of-john-baptist-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "el-greco-peter-and-paul",
     "title": "Apostles Peter and Paul",
     "artist": "El Greco",
-    "source": "https://commons.wikimedia.org/wiki/Special:FilePath/El_Greco_-_Apostles_Peter_and_Paul_-_WGA10496.jpg?width=1600",
-    "source_url": "https://commons.wikimedia.org/wiki/File:El_Greco_-_Apostles_Peter_and_Paul_-_WGA10496.jpg",
-    "license": "Public Domain",
+    "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Greco%2C%20El%20-%20Sts%20Peter%20and%20Paul.jpg?width=1600",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Greco%2C%20El%20-%20Sts%20Peter%20and%20Paul.jpg",
+    "license": "Public domain",
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
-    "attribution": "El Greco (Public Domain)",
+    "attribution": "El Greco (Public domain)",
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/el-greco-peter-and-paul-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/el-greco-peter-and-paul-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "raphael-transfiguration",
     "title": "The Transfiguration",
     "artist": "Raphael",
-    "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Transfiguration_Raphael.jpg?width=1600",
-    "source_url": "https://commons.wikimedia.org/wiki/File:Transfiguration_Raphael.jpg",
-    "license": "Public Domain",
+    "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Raphael%20-%20The%20Transfiguration%20-%20Google%20Art%20Project.jpg?width=1600",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Raphael%20-%20The%20Transfiguration%20-%20Google%20Art%20Project.jpg",
+    "license": "Public domain",
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
-    "attribution": "Raphael (Public Domain)",
+    "attribution": "Raphael (Public domain)",
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/raphael-transfiguration-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/raphael-transfiguration-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "rubens-assumption",
@@ -128,9 +152,12 @@
     "license": "Public Domain",
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Peter Paul Rubens (Public Domain)",
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/rubens-assumption-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/rubens-assumption-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "velazquez-christ-crucified",
@@ -141,9 +168,12 @@
     "license": "Public Domain",
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Diego Velázquez (Public Domain)",
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/velazquez-christ-crucified-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/velazquez-christ-crucified-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "durer-adoration-of-the-trinity",
@@ -154,9 +184,12 @@
     "license": "Public Domain",
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Albrecht Dürer (Public Domain)",
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/durer-adoration-of-the-trinity-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/durer-adoration-of-the-trinity-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "bouguereau-day-of-the-dead",
@@ -167,9 +200,12 @@
     "license": "Public Domain",
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "William-Adolphe Bouguereau (Public Domain)",
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/bouguereau-day-of-the-dead-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/bouguereau-day-of-the-dead-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "murillo-immaculate-conception",
@@ -180,9 +216,12 @@
     "license": "Public Domain",
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Bartolomé Esteban Murillo (Public Domain)",
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/murillo-immaculate-conception-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/murillo-immaculate-conception-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "honthorst-adoration-of-the-shepherds",
@@ -193,9 +232,12 @@
     "license": "Public Domain",
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Gerard van Honthorst (Public Domain)",
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/honthorst-adoration-of-the-shepherds-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/honthorst-adoration-of-the-shepherds-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "rembrandt-stoning-of-stephen",
@@ -206,9 +248,12 @@
     "license": "Public Domain",
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Rembrandt van Rijn (Public Domain)",
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/rembrandt-stoning-of-stephen-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/rembrandt-stoning-of-stephen-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "domenichino-john-evangelist",
@@ -219,22 +264,28 @@
     "license": "Public Domain",
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Domenichino (Domenico Zampieri) (Public Domain)",
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/domenichino-john-evangelist-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/domenichino-john-evangelist-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "giotto-massacre-of-innocents",
     "title": "Massacre of the Innocents",
     "artist": "Giotto",
-    "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Giotto_-_Scrovegni_-_-21-_-_Massacre_of_the_Innocents.jpg?width=1600",
-    "source_url": "https://commons.wikimedia.org/wiki/File:Giotto_-_Scrovegni_-_-21-_-_Massacre_of_the_Innocents.jpg",
-    "license": "Public Domain",
+    "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Giotto%20di%20Bondone%20-%20No.%2021%20Scenes%20from%20the%20Life%20of%20Christ%20-%205.%20Massacre%20of%20the%20Innocents%20-%20.jpg?width=1600",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Giotto%20di%20Bondone%20-%20No.%2021%20Scenes%20from%20the%20Life%20of%20Christ%20-%205.%20Massacre%20of%20the%20Innocents%20-%20.jpg",
+    "license": "Public domain",
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
-    "attribution": "Giotto (Public Domain)",
+    "attribution": "Giotto (Public domain)",
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/giotto-massacre-of-innocents-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/giotto-massacre-of-innocents-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "gregory-the-great",
@@ -244,10 +295,10 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Gregory_the_Great_with_the_Holy_Spirit.jpg",
     "license": "CC0",
     "attribution": "British Library — CC0 (Wikimedia Commons)",
-    "src_width": 1375,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/gregory-the-great-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/gregory-the-great-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "gregory-the-great"
   },
@@ -259,12 +310,12 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Francisco%20de%20Goya%20-%20Saint%20Ambrose%20-%201969.23%20-%20Cleveland%20Museum%20of%20Art.tif",
     "license": "CC0",
     "attribution": "Francisco de Goya — CC0 (Wikimedia Commons)",
-    "src_width": 4580,
-    "is_background": false,
-    "is_share": false,
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/ambrose-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/ambrose-600.jpg"
+    },
     "subject_kind": "saint",
-    "subject_id": "ambrose",
-    "variants": {}
+    "subject_id": "ambrose"
   },
   {
     "id": "augustine-of-hippo",
@@ -274,10 +325,10 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Saint_Augustine_by_Philippe_de_Champaigne.jpg",
     "license": "Public domain",
     "attribution": "Philippe de Champaigne — Public domain (Wikimedia Commons)",
-    "src_width": 3135,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/augustine-of-hippo-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/augustine-of-hippo-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "augustine-of-hippo"
   },
@@ -289,25 +340,24 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Saint%20Jerome%20Writing-Caravaggio%20%281605-6%29.jpg",
     "license": "Public domain",
     "attribution": "Caravaggio — Public domain (Wikimedia Commons)",
-    "src_width": 8708,
-    "is_background": false,
-    "is_share": false,
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/jerome-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/jerome-600.jpg"
+    },
     "subject_kind": "saint",
-    "subject_id": "jerome",
-    "variants": {}
+    "subject_id": "jerome"
   },
   {
     "id": "john-chrysostom",
     "title": "John Chrysostom",
-    "artist": "",
     "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Johnchrysostom.jpg?width=1600",
     "source_url": "https://commons.wikimedia.org/wiki/File:Johnchrysostom.jpg",
     "license": "Public domain",
     "attribution": "Public domain (Wikimedia Commons)",
-    "src_width": 1230,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/john-chrysostom-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/john-chrysostom-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "john-chrysostom"
   },
@@ -319,12 +369,12 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Saint%20Basil%20Icon.tif",
     "license": "Public domain",
     "attribution": "Unknown authorUnknown author — Public domain (Wikimedia Commons)",
-    "src_width": 1857,
-    "is_background": false,
-    "is_share": false,
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/basil-the-great-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/basil-the-great-600.jpg"
+    },
     "subject_kind": "saint",
-    "subject_id": "basil-the-great",
-    "variants": {}
+    "subject_id": "basil-the-great"
   },
   {
     "id": "gregory-of-nazianzus",
@@ -334,12 +384,12 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Peter%20Paul%20Rubens%20-%20St.%20Gregory%20of%20Nazianzus%20-%201952-14%20-%20Albright%E2%80%93Knox%20Art%20Gallery.tiff",
     "license": "Public domain",
     "attribution": "Peter Paul Rubens — Public domain (Wikimedia Commons)",
-    "src_width": 6004,
-    "is_background": false,
-    "is_share": false,
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/gregory-of-nazianzus-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/gregory-of-nazianzus-600.jpg"
+    },
     "subject_kind": "saint",
-    "subject_id": "gregory-of-nazianzus",
-    "variants": {}
+    "subject_id": "gregory-of-nazianzus"
   },
   {
     "id": "athanasius-of-alexandria",
@@ -349,10 +399,9 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Fethiye_Camii,_parekklesion,_diakonikon,_mosaics,_Istanbul,_Turkey_-_South_wall,_St._Athanasius,_detail_of_upper_half_-_MSBZ004_BF_T_F_027_B_-_Dumbarton_Oaks.jpg",
     "license": "CC0",
     "attribution": "Byzantine Institute staff — CC0 (Wikimedia Commons)",
-    "src_width": 1039,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/athanasius-of-alexandria-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "athanasius-of-alexandria"
   },
@@ -364,10 +413,9 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Saint_Cyril_of_Jerusalem.jpg",
     "license": "Public domain",
     "attribution": "AnonymousUnknown author — Public domain (Wikimedia Commons)",
-    "src_width": 600,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/cyril-of-jerusalem-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "cyril-of-jerusalem"
   },
@@ -379,10 +427,10 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Chora-Kirche_2013-03-21zh_(cropped).jpg",
     "license": "CC BY-SA 4.0",
     "attribution": "Rabe! — CC BY-SA 4.0 (Wikimedia Commons)",
-    "src_width": 1700,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/cyril-of-alexandria-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/cyril-of-alexandria-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "cyril-of-alexandria"
   },
@@ -394,12 +442,12 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Athonite%20Fresco%20Icon%20of%20Saint%20John%20of%20Damascus%202.jpg",
     "license": "Public domain",
     "attribution": "Unknown authorUnknown author — Public domain (Wikimedia Commons)",
-    "src_width": 1200,
-    "is_background": false,
-    "is_share": false,
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/john-of-damascus-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/john-of-damascus-600.jpg"
+    },
     "subject_kind": "saint",
-    "subject_id": "john-of-damascus",
-    "variants": {}
+    "subject_id": "john-of-damascus"
   },
   {
     "id": "bede",
@@ -409,27 +457,24 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:E-codices_bke-0047_001v_medium_(cropped).jpg",
     "license": "Public domain",
     "attribution": "http://www.e-codices.unifr.ch/de/bke/0047/1v — Public domain (Wikimedia Commons)",
-    "src_width": 640,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/bede-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "bede"
   },
   {
     "id": "ephrem-the-syrian",
     "title": "Ephrem the Syrian",
-    "artist": "",
     "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Dormition%20of%20Saint%20Ephraim%20the%20Syrian%20%28Cretan%2C%2015th%20c.%2C%20Byzantine%20museum%29.jpg?width=1600",
     "source_url": "https://commons.wikimedia.org/wiki/File:Dormition%20of%20Saint%20Ephraim%20the%20Syrian%20%28Cretan%2C%2015th%20c.%2C%20Byzantine%20museum%29.jpg",
     "license": "Public domain",
     "attribution": "Public domain (Wikimedia Commons)",
-    "src_width": 1080,
-    "is_background": false,
-    "is_share": false,
+    "variants": {
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/ephrem-the-syrian-600.jpg"
+    },
     "subject_kind": "saint",
-    "subject_id": "ephrem-the-syrian",
-    "variants": {}
+    "subject_id": "ephrem-the-syrian"
   },
   {
     "id": "thomas-aquinas",
@@ -439,10 +484,10 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:St-thomas-aquinasFXD.jpg",
     "license": "Public domain",
     "attribution": "Carlo Crivelli — Public domain (Wikimedia Commons)",
-    "src_width": 4004,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/thomas-aquinas-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/thomas-aquinas-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "thomas-aquinas"
   },
@@ -454,10 +499,9 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:François,_Claude_(dit_Frère_Luc)_-_Saint_Bonaventure.jpg",
     "license": "Public domain",
     "attribution": "Claude François — Public domain (Wikimedia Commons)",
-    "src_width": 640,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/bonaventure-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "bonaventure"
   },
@@ -469,10 +513,10 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Anselm_of_Canterbury,_seal.svg",
     "license": "Public domain",
     "attribution": "Anselm_of_Canterbury,_seal.jpg: The original uploader was Srnec at English Wikipedia.\nderivative work: MLWatts — Public domain (Wikimedia Commons)",
-    "src_width": 755,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/anselm-of-canterbury-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/anselm-of-canterbury-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "anselm-of-canterbury"
   },
@@ -484,10 +528,10 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Isidor_von_Sevilla.jpeg",
     "license": "Public domain",
     "attribution": "Bartolomé Esteban Murillo — Public domain (Wikimedia Commons)",
-    "src_width": 2705,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/isidore-of-seville-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/isidore-of-seville-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "isidore-of-seville"
   },
@@ -499,12 +543,12 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:St.%20Peter%20Chrysologus%2C%20Bishop%20Met%20DP891239.jpg",
     "license": "CC0",
     "attribution": "Jacques Callot — CC0 (Wikimedia Commons)",
-    "src_width": 1738,
-    "is_background": false,
-    "is_share": false,
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/peter-chrysologus-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/peter-chrysologus-600.jpg"
+    },
     "subject_kind": "saint",
-    "subject_id": "peter-chrysologus",
-    "variants": {}
+    "subject_id": "peter-chrysologus"
   },
   {
     "id": "pope-leo-the-great",
@@ -514,10 +558,10 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Herrera_mozo_San_León_magno_Lienzo._Óvalo._164_x_105_cm._Museo_del_Prado.png",
     "license": "Public domain",
     "attribution": "Francisco Herrera the Younger — Public domain (Wikimedia Commons)",
-    "src_width": 1860,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/pope-leo-the-great-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/pope-leo-the-great-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "pope-leo-the-great"
   },
@@ -529,25 +573,23 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:San%20Pier%20Damiani.JPG",
     "license": "Public domain",
     "attribution": "5aGulli — Public domain (Wikimedia Commons)",
-    "src_width": 3072,
-    "is_background": false,
-    "is_share": false,
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/peter-damian-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/peter-damian-600.jpg"
+    },
     "subject_kind": "saint",
-    "subject_id": "peter-damian",
-    "variants": {}
+    "subject_id": "peter-damian"
   },
   {
     "id": "bernard-of-clairvaux",
     "title": "Bernard of Clairvaux",
-    "artist": "",
     "source": "https://commons.wikimedia.org/wiki/Special:FilePath/San_Bernardo%2C_de_Juan_Correa_de_Vivar_%28Museo_del_Prado%29.jpg?width=1600",
     "source_url": "https://commons.wikimedia.org/wiki/File:San_Bernardo,_de_Juan_Correa_de_Vivar_(Museo_del_Prado).jpg",
     "license": "Public domain",
     "attribution": "Public domain (Wikimedia Commons)",
-    "src_width": 779,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/bernard-of-clairvaux-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "bernard-of-clairvaux"
   },
@@ -559,12 +601,11 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Hilary%20of%20Poitiers.png",
     "license": "CC0",
     "attribution": "PravoslavnyChristianin — CC0 (Wikimedia Commons)",
-    "src_width": 847,
-    "is_background": false,
-    "is_share": false,
+    "variants": {
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/hilary-of-poitiers-600.jpg"
+    },
     "subject_kind": "saint",
-    "subject_id": "hilary-of-poitiers",
-    "variants": {}
+    "subject_id": "hilary-of-poitiers"
   },
   {
     "id": "alphonsus-liguori",
@@ -574,10 +615,9 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Liguori.jpg",
     "license": "CC BY-SA 3.0",
     "attribution": "Unknown authorUnknown author — CC BY-SA 3.0 (Wikimedia Commons)",
-    "src_width": 640,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/alphonsus-liguori-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "alphonsus-liguori"
   },
@@ -589,10 +629,10 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Château_de_Bussy-Rabutin_-_Saint_François_de_Sales,_évêque_de_Genève_(bgw19_0375)_(cropped).jpg",
     "license": "Public domain",
     "attribution": "Benjamin Gavaudo — Public domain (Wikimedia Commons)",
-    "src_width": 3447,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/francis-de-sales-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/francis-de-sales-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "francis-de-sales"
   },
@@ -604,10 +644,9 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Saint_Petrus_Canisius.jpg",
     "license": "Public domain",
     "attribution": "AnonymousUnknown author — Public domain (Wikimedia Commons)",
-    "src_width": 936,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/peter-canisius-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "peter-canisius"
   },
@@ -619,10 +658,9 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Zurbarán_(atribuido)-John_of_the_Cross-1656.jpg",
     "license": "Public domain",
     "attribution": "Unknown authorUnknown author — Public domain (Wikimedia Commons)",
-    "src_width": 631,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/john-of-the-cross-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "john-of-the-cross"
   },
@@ -634,10 +672,10 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Portret_van_kardinaal_Robertus_Bellarminus,_onbekend,_schilderij,_Museum_Plantin-Moretus_(Antwerpen)_-_MPM_V_IV_110_(cropped).jpg",
     "license": "CC0",
     "attribution": "Unknown authorUnknown author — CC0 (Wikimedia Commons)",
-    "src_width": 4991,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/robert-bellarmine-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/robert-bellarmine-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "robert-bellarmine"
   },
@@ -649,10 +687,9 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Vicente_salvador_gomez-san_alberto.jpg",
     "license": "Public domain",
     "attribution": "Vicente Salvador Gómez — Public domain (Wikimedia Commons)",
-    "src_width": 605,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/albert-the-great-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "albert-the-great"
   },
@@ -664,10 +701,10 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Francisco_de_Zurbarán_-_Sto_Antonio_de_Padua.jpg",
     "license": "Public domain",
     "attribution": "Francisco de Zurbarán — Public domain (Wikimedia Commons)",
-    "src_width": 2806,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/anthony-of-padua-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/anthony-of-padua-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "anthony-of-padua"
   },
@@ -679,12 +716,12 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:LABRUZZI%20san%20lorenzo%20da%20brindisi.jpg",
     "license": "CC0",
     "attribution": "Berengallio — CC0 (Wikimedia Commons)",
-    "src_width": 2219,
-    "is_background": false,
-    "is_share": false,
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/lawrence-of-brindisi-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/lawrence-of-brindisi-600.jpg"
+    },
     "subject_kind": "saint",
-    "subject_id": "lawrence-of-brindisi",
-    "variants": {}
+    "subject_id": "lawrence-of-brindisi"
   },
   {
     "id": "teresa-of-avila",
@@ -694,10 +731,10 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Santa_Teresa_de_Jesús_(Museo_del_Prado).jpg",
     "license": "Public domain",
     "attribution": "Eduardo Balaca — Public domain (Wikimedia Commons)",
-    "src_width": 2203,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/teresa-of-avila-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/teresa-of-avila-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "teresa-of-avila"
   },
@@ -709,10 +746,9 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Giovanni_Battista_Tiepolo_096.jpg",
     "license": "Public domain",
     "attribution": "Giovanni Battista Tiepolo — Public domain (Wikimedia Commons)",
-    "src_width": 955,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/catherine-of-siena-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "catherine-of-siena"
   },
@@ -724,12 +760,12 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Th%C3%A9r%C3%A8se%20de%20Lisieux%20en%20Jeanne%20d%27Arc%20enchain%C3%A9e.jpg",
     "license": "Public domain",
     "attribution": "Céline Martin — Public domain (Wikimedia Commons)",
-    "src_width": 1536,
-    "is_background": false,
-    "is_share": false,
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/therese-of-lisieux-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/therese-of-lisieux-600.jpg"
+    },
     "subject_kind": "saint",
-    "subject_id": "therese-of-lisieux",
-    "variants": {}
+    "subject_id": "therese-of-lisieux"
   },
   {
     "id": "john-of-avila",
@@ -739,10 +775,10 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Attributed_to_el_Greco_-_Portrait_of_Juan_de_Ávila_-_Google_Art_Project.jpg",
     "license": "Public domain",
     "attribution": "Workshop of El Greco — Public domain (Wikimedia Commons)",
-    "src_width": 4129,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/john-of-avila-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/john-of-avila-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "john-of-avila"
   },
@@ -754,10 +790,10 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Hildegard_von_Bingen.jpg",
     "license": "Public domain",
     "attribution": "Unknown authorUnknown author — Public domain (Wikimedia Commons)",
-    "src_width": 1354,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/hildegard-of-bingen-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/hildegard-of-bingen-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "hildegard-of-bingen"
   },
@@ -769,12 +805,11 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Grigor%20Narekatsi%20Prostrate%20before%20Christ.jpg",
     "license": "Public domain",
     "attribution": "Grigor Mlichetsi — Public domain (Wikimedia Commons)",
-    "src_width": 1024,
-    "is_background": false,
-    "is_share": false,
+    "variants": {
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/gregory-of-narek-600.jpg"
+    },
     "subject_kind": "saint",
-    "subject_id": "gregory-of-narek",
-    "variants": {}
+    "subject_id": "gregory-of-narek"
   },
   {
     "id": "irenaeus-of-lyons",
@@ -784,10 +819,10 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Saint_irenee_saint_irenee.jpg",
     "license": "Public domain",
     "attribution": "Lucien Bégule — Public domain (Wikimedia Commons)",
-    "src_width": 1276,
-    "is_background": false,
-    "is_share": false,
-    "variants": {},
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/irenaeus-of-lyons-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/irenaeus-of-lyons-600.jpg"
+    },
     "subject_kind": "saint",
     "subject_id": "irenaeus-of-lyons"
   },
@@ -799,10 +834,12 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:La_Anunciación_de_Fra_Angelico.jpg",
     "license": "CC BY-SA 4.0",
     "attribution": "Marcos Amigo — CC BY-SA 4.0 (Wikimedia Commons)",
-    "src_width": 1919,
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/fra-angelico-annunciation-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/fra-angelico-annunciation-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "caravaggio-the-calling-of-saint-matthew",
@@ -812,10 +849,12 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Michelangelo Caravaggio 040.jpg",
     "license": "Public domain",
     "attribution": "Michelangelo Merisi da Caravaggio — Public domain (Wikimedia Commons)",
-    "src_width": 2024,
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/caravaggio-the-calling-of-saint-matthew-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/caravaggio-the-calling-of-saint-matthew-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "rembrandt-return-of-the-prodigal-son",
@@ -825,10 +864,12 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Rembrandt_Harmensz_van_Rijn_-_Return_of_the_Prodigal_Son_-_Google_Art_Project.jpg",
     "license": "Public domain",
     "attribution": "Rembrandt — Public domain (Wikimedia Commons)",
-    "src_width": 22991,
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/rembrandt-return-of-the-prodigal-son-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/rembrandt-return-of-the-prodigal-son-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "duccio-maesta",
@@ -838,10 +879,12 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Duccio_maesta1021.jpg",
     "license": "Public domain",
     "attribution": "Duccio di Buoninsegna — Public domain (Wikimedia Commons)",
-    "src_width": 2029,
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/duccio-maesta-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/duccio-maesta-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "jan-van-eyck-ghent-altarpiece",
@@ -851,10 +894,12 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Ghent_Altarpiece_Google_Art_Project.jpg",
     "license": "Public domain",
     "attribution": "Jan van Eyck / Presumably Hubert van Eyck — Public domain (Wikimedia Commons)",
-    "src_width": 9412,
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/jan-van-eyck-ghent-altarpiece-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/jan-van-eyck-ghent-altarpiece-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "michelangelo-creation-of-adam",
@@ -864,10 +909,12 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Michelangelo_-_Creation_of_Adam_(cropped).jpg",
     "license": "Public domain",
     "attribution": "Michelangelo — Public domain (Wikimedia Commons)",
-    "src_width": 3524,
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/michelangelo-creation-of-adam-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/michelangelo-creation-of-adam-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "raphael-sistine-madonna",
@@ -877,10 +924,12 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:RAFAEL_-_Madonna_Sixtina_(Gemäldegalerie_Alter_Meister,_Dresden,_1513-14._Óleo_sobre_lienzo,_265_x_196_cm).jpg",
     "license": "Public domain",
     "attribution": "Raphael — Public domain (Wikimedia Commons)",
-    "src_width": 3028,
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/raphael-sistine-madonna-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/raphael-sistine-madonna-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "caravaggio-supper-at-emmaus",
@@ -890,10 +939,12 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:1602-3_Caravaggio,Supper_at_Emmaus_National_Gallery,_London.jpg",
     "license": "Public domain",
     "attribution": "Caravaggio — Public domain (Wikimedia Commons)",
-    "src_width": 5946,
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/caravaggio-supper-at-emmaus-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/caravaggio-supper-at-emmaus-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "fra-angelico-deposition-from-the-cross",
@@ -903,10 +954,12 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Fra_Angelico_-_Deposition_of_Christ_(Santa_Trinita_Altarpiece)_1429-32.jpg",
     "license": "Public domain",
     "attribution": "Lorenzo Monaco / Fra Angelico — Public domain (Wikimedia Commons)",
-    "src_width": 4883,
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/fra-angelico-deposition-from-the-cross-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/fra-angelico-deposition-from-the-cross-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "gentile-da-fabriano-adoration-of-the-magi",
@@ -916,10 +969,12 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Gentile_da_Fabriano_-_Adorazione_dei_Magi_-_Google_Art_ProjectFXD.jpg",
     "license": "Public domain",
     "attribution": "Gentile da Fabriano — Public domain (Wikimedia Commons)",
-    "src_width": 3356,
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/gentile-da-fabriano-adoration-of-the-magi-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/gentile-da-fabriano-adoration-of-the-magi-600.jpg"
+    },
     "is_background": true,
-    "is_share": true,
-    "variants": {}
+    "is_share": true
   },
   {
     "id": "john-henry-newman",
@@ -929,11 +984,11 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Portret%20van%20John%20Henry%20Newman%2C%20RP-F-2001-7-67-26.jpg",
     "license": "CC0",
     "attribution": "Rijksmuseum — CC0 (Wikimedia Commons)",
-    "src_width": 3846,
-    "is_background": false,
-    "is_share": false,
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/john-henry-newman-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/john-henry-newman-600.jpg"
+    },
     "subject_kind": "saint",
-    "subject_id": "john-henry-newman",
-    "variants": {}
+    "subject_id": "john-henry-newman"
   }
 ]

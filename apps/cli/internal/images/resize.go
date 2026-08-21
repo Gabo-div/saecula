@@ -38,3 +38,27 @@ func resizeJPEG(src []byte, width int) ([]byte, error) {
 	}
 	return buf.Bytes(), nil
 }
+
+// imageWidth returns the pixel width of an encoded image without fully
+// decoding the pixels.
+func imageWidth(src []byte) (int, error) {
+	cfg, _, err := image.DecodeConfig(bytes.NewReader(src))
+	if err != nil {
+		return 0, fmt.Errorf("decode image config: %w", err)
+	}
+	return cfg.Width, nil
+}
+
+// maxVariantWidth is the largest width we generate. A source narrower than
+// this would have to be upscaled, so publish rejects it — every published
+// asset must be large enough to serve both the 1200w hero and the 1080w
+// share render without upscaling.
+func maxVariantWidth() int {
+	m := 0
+	for _, w := range variantWidths {
+		if w > m {
+			m = w
+		}
+	}
+	return m
+}

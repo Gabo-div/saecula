@@ -83,6 +83,13 @@ func Publish(ctx context.Context, cfg R2Config, manifestPath string) error {
 		if err != nil {
 			return fmt.Errorf("%s: %w", a.ID, err)
 		}
+		if w, err := imageWidth(original); err != nil {
+			return fmt.Errorf("%s: %w", a.ID, err)
+		} else if w < maxVariantWidth() {
+			return fmt.Errorf("%s: source width %dpx is below the %dpx minimum — "+
+				"too small to be background/share-usable without upscaling; use a larger source",
+				a.ID, w, maxVariantWidth())
+		}
 		variants := map[string]string{}
 		for _, w := range variantWidths {
 			data, err := resizeJPEG(original, w)

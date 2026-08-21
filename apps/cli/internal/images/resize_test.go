@@ -42,3 +42,19 @@ func TestObjectKey(t *testing.T) {
 		t.Fatalf("objectKey = %q", got)
 	}
 }
+
+func TestImageWidth(t *testing.T) {
+	w, err := imageWidth(sampleJPEG(800, 600))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if w != 800 {
+		t.Fatalf("width = %d, want 800", w)
+	}
+}
+
+func TestMaxVariantWidth(t *testing.T) {
+	if got := maxVariantWidth(); got != 1200 {
+		t.Fatalf("maxVariantWidth = %d, want 1200", got)
+	}
+}

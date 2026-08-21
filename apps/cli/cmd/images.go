@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -58,4 +59,35 @@ func init() {
 		"PostgreSQL connection string")
 	imagesCmd.AddCommand(imagesSeedCmd)
 	rootCmd.AddCommand(imagesCmd)
+}
+
+var imagesPublishCmd = &cobra.Command{
+	Use:   "publish",
+	Short: "Download, resize, and upload manifest art to R2, then rewrite the manifest",
+	Long: `Curator-only. Needs R2 credentials in the environment:
+R2_ENDPOINT, R2_ACCESS_KEY, R2_SECRET, R2_BUCKET, R2_PUBLIC_BASE.
+Rewrites data/images.json in place with the published variant URLs.`,
+	Example: `  saecula-cli images publish --file data/images.json`,
+	RunE:    runImagesPublish,
+}
+
+func runImagesPublish(cmd *cobra.Command, _ []string) error {
+	cfg := images.R2Config{
+		Endpoint:   os.Getenv("R2_ENDPOINT"),
+		AccessKey:  os.Getenv("R2_ACCESS_KEY"),
+		Secret:     os.Getenv("R2_SECRET"),
+		Bucket:     os.Getenv("R2_BUCKET"),
+		PublicBase: os.Getenv("R2_PUBLIC_BASE"),
+	}
+	if cfg.Endpoint == "" || cfg.AccessKey == "" || cfg.Secret == "" || cfg.Bucket == "" || cfg.PublicBase == "" {
+		return fmt.Errorf("set R2_ENDPOINT, R2_ACCESS_KEY, R2_SECRET, R2_BUCKET, R2_PUBLIC_BASE")
+	}
+	return images.Publish(cmd.Context(), cfg, imagesPublishOpts.file)
+}
+
+var imagesPublishOpts struct{ file string }
+
+func init() {
+	imagesPublishCmd.Flags().StringVar(&imagesPublishOpts.file, "file", "data/images.json", "image manifest JSON")
+	imagesCmd.AddCommand(imagesPublishCmd)
 }

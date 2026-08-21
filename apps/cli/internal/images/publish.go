@@ -31,10 +31,32 @@ func category(a Asset) string {
 	return "daily"
 }
 
-// Publish downloads each asset's source, generates every variant width,
-// uploads them to R2 under deterministic keys, records the public URLs in the
-// asset's Variants, and writes the manifest back. Idempotent: same keys
-// overwrite. A per-asset failure leaves that asset's Variants untouched.
+// needsPublish reports whether a is missing a variant URL for any width in
+// variantWidths — i.e. whether it still needs (re)publishing.
+func needsPublish(a *Asset) bool {
+	for _, w := range variantWidths {
+		if a.Variants[strconv.Itoa(w)] == "" {
+			return true
+		}
+	}
+	return false
+}
+
+func writeManifest(path string, assets []Asset) error {
+	out, err := json.MarshalIndent(assets, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(path, append(out, '\n'), 0o644)
+}
+
+// Publish downloads each not-yet-published asset's source, generates every
+// variant width, uploads them to R2 under deterministic keys, and writes the
+// manifest back to disk immediately after each asset succeeds. Assets that
+// already have every variant URL are skipped. Idempotent: same keys
+// overwrite. On a per-asset download/upload error, Publish returns the error;
+// assets completed in prior iterations are already persisted on disk, so a
+// re-run retries only what's missing.
 func Publish(ctx context.Context, cfg R2Config, manifestPath string) error {
 	assets, err := LoadManifest(manifestPath)
 	if err != nil {
@@ -50,6 +72,10 @@ func Publish(ctx context.Context, cfg R2Config, manifestPath string) error {
 
 	for i := range assets {
 		a := &assets[i]
+		if !needsPublish(a) {
+			fmt.Printf("%s: already published, skipping\n", a.ID)
+			continue
+		}
 		if a.Source == "" {
 			return fmt.Errorf("%s: source is required to publish", a.ID)
 		}
@@ -72,14 +98,13 @@ func Publish(ctx context.Context, cfg R2Config, manifestPath string) error {
 			variants[strconv.Itoa(w)] = cfg.PublicBase + "/" + key
 		}
 		a.Variants = variants
+		if err := writeManifest(manifestPath, assets); err != nil {
+			return fmt.Errorf("%s: write manifest: %w", a.ID, err)
+		}
 		fmt.Printf("%s: published %d variants\n", a.ID, len(variants))
 	}
 
-	out, err := json.MarshalIndent(assets, "", "  ")
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(manifestPath, append(out, '\n'), 0o644)
+	return nil
 }
 
 func download(ctx context.Context, url string) ([]byte, error) {

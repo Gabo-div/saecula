@@ -226,6 +226,25 @@ go run . daily --date 2026-08-06 --verse MAT.17.2 --image https://…
 `--fill` seeds all 365 days: feast days from the file, every other day from a
 built-in verse rotation pool.
 
+**Image catalog.** Curated art (Home backgrounds, daily feature images) lives
+in Cloudflare R2 with metadata in the `image_assets` table, tracked in
+`data/images.json`:
+
+```bash
+go run . images seed --file data/images.json     # local dev: metadata only, no R2 creds
+go run . images publish --file data/images.json  # curator-only: resize + upload to R2
+```
+
+`images seed` upserts the manifest's rows (including the already-published R2
+URLs) into `image_assets` — no binaries, no R2 access, safe for local dev and
+CI. `images publish` is curator-only: it downloads each source image, resizes
+it to the configured variant widths, uploads the results to R2, and rewrites
+`data/images.json` in place with the published URLs. It needs `R2_ENDPOINT`,
+`R2_ACCESS_KEY`, `R2_SECRET`, `R2_BUCKET`, and `R2_PUBLIC_BASE` in the
+environment. Local dev never needs those — it reads the public R2 URLs
+straight out of the (committed) manifest, so there's no MinIO and no image
+binaries in git.
+
 ### 4. Run the mobile app
 
 UI built with **Tamagui v2** (React 19 + React Native 0.81 / Expo SDK 54,
@@ -240,9 +259,10 @@ the English reference locale — a typo in `t('...')` is a compile error.
 
 Five tabs in a liturgical theme (mode × accent):
 
-- **Home** — daily rotating sacred-art background (public-domain works
-  from Wikimedia Commons picked by day of year) with the verse of the day,
-  quick actions and a highlighted card for the day's celebration and saint.
+- **Home** — daily rotating sacred-art background (curated art served from
+  our own Cloudflare R2 bucket, picked deterministically by day) with the
+  verse of the day, quick actions and a highlighted card for the day's
+  celebration and saint.
 - **Bible** — full reader: book + version picker (from `/api/bible`),
   chapter grid, verse-numbered text, prev/next chapter navigation that
   crosses book boundaries. Reading position persists across launches.
@@ -561,10 +581,11 @@ thread, tool calls, details sheet, suggested questions, floating input,
 per-message actions).
 
 Planned work — roughly by dependency — lives in [`ROADMAP.md`](ROADMAP.md):
-notifications, self-hosted images (off Wikimedia), account verification &
-password recovery, friends & shared streaks, the concept graph / Timeline /
-public MCP server, and a smaller content backlog (santoral detail, more guided
-prayers, feast art, profile editing).
+notifications, migrating the daily/feast-day art off Wikimedia onto our
+Cloudflare R2 bucket (home/share backgrounds are already served from R2),
+account verification & password recovery, friends & shared streaks, the
+concept graph / Timeline / public MCP server, and a smaller content backlog
+(santoral detail, more guided prayers, feast art, profile editing).
 
 ## Security notes
 

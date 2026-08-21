@@ -38,6 +38,13 @@ can rate-limit or 404 without warning.
 **Open questions.** Which storage/CDN; do we need on-the-fly resizing or just
 pre-sized variants; how attribution is displayed in-app.
 
+**Status.** Home backgrounds and share images now ship from Cloudflare R2 via
+the `image_assets` catalog and `saecula-cli images` (seed/publish). **Remaining:**
+the daily/feast-day art is still Wikimedia — it needs the feast images curated
+into the manifest and published to R2 (requires R2 credentials), after which
+`daily.go` should set `daily_features.image_asset_id` (the backend already
+returns `attribution` for linked daily art).
+
 ---
 
 ## 3. Account verification & password recovery

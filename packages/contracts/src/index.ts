@@ -90,9 +90,17 @@ export interface DailyVerseResponse {
   chapter: number;
   reference: string;
   image_url?: string; // curated background; falls back to the app default
+  attribution?: string; // credit for image_url, when the day's art is catalogued
   verses: Verse[]; // one verse, or a range
   catechism_numbers: number[];
   catechism_paragraphs: { number: number; text: string }[];
+}
+
+// --- Images ------------------------------------------------------------------
+
+export interface BackgroundResponse {
+  url: string;
+  attribution: string;
 }
 
 // --- Daily readings ---------------------------------------------------------

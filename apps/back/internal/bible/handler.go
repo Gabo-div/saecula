@@ -188,6 +188,7 @@ type dailyResponse struct {
 	Chapter             int                  `json:"chapter"`
 	Reference           string               `json:"reference"`
 	ImageURL            string               `json:"image_url,omitempty"`
+	Attribution         string               `json:"attribution,omitempty"`
 	Verses              []Verse              `json:"verses"`
 	CatechismNumbers    []int                `json:"catechism_numbers"`
 	CatechismParagraphs []CatechismParagraph `json:"catechism_paragraphs"`
@@ -215,12 +216,14 @@ func (a *API) Daily(w http.ResponseWriter, r *http.Request) {
 	// to the fallback rather than 500 the home screen.
 	var verseIDs []string
 	var imageURL string
+	var attribution string
 	var catechismNums []int
 	if f, err := a.texts.DailyFeature(r.Context(), date); err != nil {
 		slog.Warn("bible: daily feature lookup failed, using fallback", "error", err)
 	} else if f != nil && len(f.VerseIDs) > 0 {
 		verseIDs = f.VerseIDs
 		imageURL = f.ImageURL
+		attribution = f.Attribution
 		catechismNums = f.CatechismNumbers
 	}
 	if len(verseIDs) == 0 {
@@ -276,6 +279,7 @@ func (a *API) Daily(w http.ResponseWriter, r *http.Request) {
 		Chapter:             chapter,
 		Reference:           reference,
 		ImageURL:            imageURL,
+		Attribution:         attribution,
 		Verses:              verses,
 		CatechismNumbers:    catechismNums,
 		CatechismParagraphs: catechismParagraphs,

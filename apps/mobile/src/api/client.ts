@@ -8,6 +8,7 @@ import type {
   ApiKeysResponse,
   ApiKeyUsageResponse,
   AuthResponse,
+  BackgroundResponse,
   BooksResponse,
   CalendarDayResponse,
   CalendarYearResponse,
@@ -183,6 +184,13 @@ export async function fetchDailyVerse(): Promise<DailyVerseResponse> {
 export async function fetchDailyReadings(date?: string): Promise<DailyReadingsResponse> {
   const path = date ? `/api/readings/${date}` : `/api/readings/${todayLocalISO()}`;
   const { data } = await api.get<DailyReadingsResponse>(path, { params: bibleParams() });
+  return data;
+}
+
+// --- Images ------------------------------------------------------------------
+
+export async function fetchBackground(): Promise<BackgroundResponse> {
+  const { data } = await api.get<BackgroundResponse>('/api/images/background');
   return data;
 }
 

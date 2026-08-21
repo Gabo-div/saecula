@@ -107,6 +107,7 @@ export function HomeScreen({ navigation }: Props) {
   const [calDay, setCalDay] = useState<CalendarDayResponse | null>(null);
   const [bg, setBg] = useState<BackgroundResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [bgFailed, setBgFailed] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
   const { width: winWidth } = useWindowDimensions();
   // Pages are narrower than the screen so the next card's edge peeks in,
@@ -148,6 +149,11 @@ export function HomeScreen({ navigation }: Props) {
   const backgroundAttribution = daily?.image_url ? daily?.attribution : bg?.attribution;
   const verseText = daily?.verses.map((v) => v.text).join(' ') ?? '—';
 
+  // Retry a new day's image instead of staying stuck on the fallback.
+  useEffect(() => {
+    setBgFailed(false);
+  }, [backgroundUri]);
+
   const openDailyInBible = () => {
     if (daily) {
       setLocation(daily.book_code, daily.chapter, daily.verses[0]?.number);
@@ -172,9 +178,10 @@ export function HomeScreen({ navigation }: Props) {
   return (
     <View flex={1} bg={c.bg}>
       <Image
-        source={backgroundUri ? { uri: backgroundUri } : DEFAULT_HERO}
+        source={backgroundUri && !bgFailed ? { uri: backgroundUri } : DEFAULT_HERO}
         style={StyleSheet.absoluteFillObject}
         resizeMode="cover"
+        onError={() => setBgFailed(true)}
       />
       {backgroundAttribution && (
         <Text

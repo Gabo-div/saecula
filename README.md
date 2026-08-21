@@ -539,10 +539,11 @@ thread, tool calls, details sheet, suggested questions, floating input,
 per-message actions).
 
 Planned work — roughly by dependency — lives in [`ROADMAP.md`](ROADMAP.md):
-notifications, self-hosted images (off Wikimedia), account verification &
-password recovery, friends & shared streaks, the concept graph / Timeline /
-public MCP server, and a smaller content backlog (santoral detail, more guided
-prayers, feast art, profile editing).
+notifications, migrating the daily/feast-day art off Wikimedia onto our
+Cloudflare R2 bucket (home/share backgrounds are already served from R2),
+account verification & password recovery, friends & shared streaks, the
+concept graph / Timeline / public MCP server, and a smaller content backlog
+(santoral detail, more guided prayers, feast art, profile editing).
 
 ## Security notes
 

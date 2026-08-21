@@ -18,6 +18,7 @@ import (
 	"saecula/back/internal/chat"
 	"saecula/back/internal/config"
 	"saecula/back/internal/db"
+	"saecula/back/internal/images"
 	"saecula/back/internal/mcptools"
 	"saecula/back/internal/readings"
 	"saecula/back/internal/server"
@@ -121,6 +122,7 @@ func run() error {
 	catechismAPI := catechism.NewAPI(pool)
 	bookmarksAPI := bookmarks.NewAPI(bookmarksRepo)
 	streakAPI := streak.NewAPI(streak.NewPostgresRepository(pool))
+	imagesAPI := images.NewAPI(images.NewPostgresRepository(pool))
 
 	// AI assistant ("Ask"): Genkit runs the agent; the tools read the app's
 	// own content and graph. Disabled (503) when no Gemini key is set.
@@ -141,7 +143,7 @@ func run() error {
 		Addr:           cfg.HTTPAddr,
 		AuthMiddleware: auth.Middleware(tokens),
 		PublicAPIs:     []server.API{authAPI},
-		ProtectedAPIs:  []server.API{timelineAPI, bibleAPI, readingsAPI, calendarAPI, catechismAPI, chatAPI, bookmarksAPI, streakAPI},
+		ProtectedAPIs:  []server.API{timelineAPI, bibleAPI, readingsAPI, calendarAPI, catechismAPI, chatAPI, bookmarksAPI, streakAPI, imagesAPI},
 	})
 
 	return srv.Run(ctx)

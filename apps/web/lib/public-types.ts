@@ -44,6 +44,7 @@ export interface DailyVerseResponse {
   verses: Verse[];
   catechism_paragraphs?: { number: number; text: string }[];
   image_url?: string;
+  attribution?: string;
 }
 
 export interface BibleSearchResult {

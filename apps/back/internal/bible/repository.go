@@ -51,6 +51,7 @@ type GraphRepository interface {
 type DailyFeature struct {
 	VerseIDs         []string
 	ImageURL         string
+	Attribution      string
 	CatechismNumbers []int
 }
 
@@ -213,6 +214,9 @@ func (repo *PostgresTextRepository) DailyFeature(ctx context.Context, date strin
 	f := &DailyFeature{VerseIDs: row.VerseIds, CatechismNumbers: nums}
 	if row.ImageUrl != nil {
 		f.ImageURL = *row.ImageUrl
+	}
+	if row.Attribution != nil {
+		f.Attribution = *row.Attribution
 	}
 	return f, nil
 }

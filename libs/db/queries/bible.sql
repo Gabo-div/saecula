@@ -16,8 +16,17 @@ ORDER BY translation_id
 LIMIT 1;
 
 -- name: DailyFeature :one
-SELECT verse_ids, image_url, catechism_numbers
-FROM daily_features WHERE feature_date = $1;
+SELECT df.verse_ids, df.image_url, df.catechism_numbers,
+       df.image_asset_id, ia.attribution, ia.variants
+FROM daily_features df
+LEFT JOIN image_assets ia ON ia.id = df.image_asset_id
+WHERE df.feature_date = $1;
+
+-- name: BackgroundImages :many
+SELECT id, variants, attribution
+FROM image_assets
+WHERE is_background
+ORDER BY id;
 
 -- name: CatechismParagraphsByNumbers :many
 SELECT CAST(split_part(entity_id, '.', 2) AS INT) AS num, raw_content

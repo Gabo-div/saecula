@@ -39,6 +39,21 @@ type DailyFeature struct {
 	VerseIds         []string
 	ImageUrl         *string
 	CatechismNumbers []int32
+	ImageAssetID     *string
+}
+
+type ImageAsset struct {
+	ID           string
+	Title        string
+	Artist       *string
+	SourceUrl    *string
+	License      string
+	LicenseUrl   *string
+	Attribution  string
+	Variants     []byte
+	IsBackground bool
+	IsShare      bool
+	CreatedAt    time.Time
 }
 
 type TextDocument struct {

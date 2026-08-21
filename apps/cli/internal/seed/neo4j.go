@@ -15,47 +15,44 @@ const (
 )
 
 // Neo4jGraphStore is the driver-backed GraphStore. The driver is injected —
-// this type never opens its own connections.
+// this type never opens its own connections. Named for the neo4j-go-driver
+// (the Bolt/Cypher driver), which also drives Memgraph.
 type Neo4jGraphStore struct {
 	driver neo4j.DriverWithContext
-	// labels for which the uniqueness constraint (and its backing index)
-	// has already been ensured this run. Without the index, MERGE by id
-	// degrades to a full label scan per row.
-	constrained map[string]bool
+	// labels whose id index has been ensured this run. Unlike Neo4j, a
+	// Memgraph uniqueness constraint does NOT create a backing index, so
+	// MERGE by id would degrade to a full label scan per row without one.
+	indexed map[string]bool
 }
 
 var _ GraphStore = (*Neo4jGraphStore)(nil)
 
 func NewNeo4jGraphStore(driver neo4j.DriverWithContext) *Neo4jGraphStore {
-	return &Neo4jGraphStore{driver: driver, constrained: map[string]bool{}}
+	return &Neo4jGraphStore{driver: driver, indexed: map[string]bool{}}
 }
 
-// ensureConstraint creates the per-label uniqueness constraint on id.
-func (s *Neo4jGraphStore) ensureConstraint(ctx context.Context, label string) error {
-	if s.constrained[label] {
+// ensureIndex creates the per-label index on id that MERGE relies on.
+// Memgraph treats CREATE INDEX on an existing index as a no-op, so this is
+// safe to re-run across seeds. Index DDL is rejected inside a managed
+// transaction ("not allowed in multicommand transactions"), so it runs via
+// session.Run — an implicit, auto-committing transaction.
+func (s *Neo4jGraphStore) ensureIndex(ctx context.Context, label string) error {
+	if s.indexed[label] {
 		return nil
 	}
-	query := fmt.Sprintf(
-		`CREATE CONSTRAINT %s_id_unique IF NOT EXISTS FOR (n:%s) REQUIRE n.id IS UNIQUE`,
-		labelToIdent(label), label)
-	if _, err := neo4j.ExecuteQuery(ctx, s.driver, query, nil, neo4j.EagerResultTransformer); err != nil {
-		return fmt.Errorf("ensure %s id constraint: %w", label, err)
-	}
-	s.constrained[label] = true
-	return nil
-}
+	session := s.driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer func() { _ = session.Close(ctx) }()
 
-func labelToIdent(label string) string {
-	out := make([]rune, 0, len(label))
-	for _, r := range label {
-		switch {
-		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9':
-			out = append(out, r)
-		default:
-			out = append(out, '_')
-		}
+	query := fmt.Sprintf(`CREATE INDEX ON :%s(id)`, label)
+	result, err := session.Run(ctx, query, nil)
+	if err != nil {
+		return fmt.Errorf("ensure %s id index: %w", label, err)
 	}
-	return string(out)
+	if _, err := result.Consume(ctx); err != nil {
+		return fmt.Errorf("ensure %s id index: %w", label, err)
+	}
+	s.indexed[label] = true
+	return nil
 }
 
 // MergeNodes upserts concept nodes grouped by label (Cypher cannot
@@ -70,7 +67,7 @@ func (s *Neo4jGraphStore) MergeNodes(ctx context.Context, nodes []GraphNode) err
 	}
 
 	for label, batch := range byLabel {
-		if err := s.ensureConstraint(ctx, label); err != nil {
+		if err := s.ensureIndex(ctx, label); err != nil {
 			return err
 		}
 		query := fmt.Sprintf(`
@@ -103,10 +100,10 @@ func (s *Neo4jGraphStore) MergeRelationships(ctx context.Context, rels []Relatio
 	}
 
 	for key, batch := range grouped {
-		if err := s.ensureConstraint(ctx, key.from); err != nil {
+		if err := s.ensureIndex(ctx, key.from); err != nil {
 			return err
 		}
-		if err := s.ensureConstraint(ctx, key.to); err != nil {
+		if err := s.ensureIndex(ctx, key.to); err != nil {
 			return err
 		}
 		query := fmt.Sprintf(`

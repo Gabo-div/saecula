@@ -21,29 +21,26 @@ services:
       timeout: 5s
       retries: 10
 
-  neo4j:
-    image: neo4j:5-community
-    container_name: saecula-neo4j
+  memgraph:
+    image: memgraph/memgraph:latest
+    container_name: saecula-memgraph
     restart: unless-stopped
-    environment:
-      NEO4J_AUTH: neo4j/saecula_dev_password
-      NEO4J_PLUGINS: '["apoc"]'
-      NEO4J_dbms_security_procedures_unrestricted: apoc.*
-      NEO4J_server_memory_heap_initial__size: 512m
-      NEO4J_server_memory_heap_max__size: 1G
+    # Bolt-compatible with the neo4j-go-driver. Community edition has auth
+    # off by default, so the driver's credentials are accepted and ignored.
+    command: ["--log-level=WARNING"]
     ports:
-      - "7474:7474"   # HTTP browser UI
       - "7687:7687"   # Bolt protocol
     volumes:
-      - neo4j_data:/data
-      - neo4j_logs:/logs
+      - memgraph_data:/var/lib/memgraph
+      - memgraph_logs:/var/log/memgraph
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1"]
+      # Memgraph exposes no HTTP endpoint; a Bolt TCP probe is enough.
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/7687'"]
       interval: 10s
       timeout: 10s
       retries: 10
 
 volumes:
   postgres_data:
-  neo4j_data:
-  neo4j_logs:
+  memgraph_data:
+  memgraph_logs:

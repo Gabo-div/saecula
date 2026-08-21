@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Saecula E2E orchestrator (repo-wide) — full pipeline: docker-compose
-# (Postgres + Neo4j), saecula-cli seed, the Go backend, and then the mobile
+# (Postgres + Memgraph), saecula-cli seed, the Go backend, and then the mobile
 # Maestro flows (delegated to apps/mobile/scripts/maestro.sh).
 #
 # The mobile/Maestro portion lives in apps/mobile and can be run on its own
@@ -36,16 +36,16 @@ cleanup() {
 trap cleanup EXIT INT TERM HUP
 
 # --- 1. Infrastructure ---------------------------------------------------------
-log "Starting Postgres + Neo4j (docker compose)"
+log "Starting Postgres + Memgraph (docker compose)"
 docker compose -f "$ROOT/docker-compose.yml" up -d
 for _ in $(seq 1 60); do
   pg="$(docker inspect -f '{{.State.Health.Status}}' saecula-postgres 2>/dev/null || echo starting)"
-  ne="$(docker inspect -f '{{.State.Health.Status}}' saecula-neo4j 2>/dev/null || echo starting)"
-  [ "$pg" = healthy ] && [ "$ne" = healthy ] && break
+  mg="$(docker inspect -f '{{.State.Health.Status}}' saecula-memgraph 2>/dev/null || echo starting)"
+  [ "$pg" = healthy ] && [ "$mg" = healthy ] && break
   sleep 2
 done
 [ "$(docker inspect -f '{{.State.Health.Status}}' saecula-postgres)" = healthy ] || fail "postgres not healthy"
-[ "$(docker inspect -f '{{.State.Health.Status}}' saecula-neo4j)" = healthy ] || fail "neo4j not healthy"
+[ "$(docker inspect -f '{{.State.Health.Status}}' saecula-memgraph)" = healthy ] || fail "memgraph not healthy"
 
 # --- 2. Seed -------------------------------------------------------------------
 log "Seeding bible + catechism (EN/ES/LA) + readings + test user"

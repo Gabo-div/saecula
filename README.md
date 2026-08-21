@@ -128,8 +128,10 @@ bun run migrate          # apply the schema (goose)
   `bun run migrate` — one owner, run it after the database is up and whenever
   new migrations land. Query code is generated from `libs/db/queries/` with
   sqlc (`sqlc generate` in `libs/db`).
-- Neo4j on `bolt://localhost:7687`, browser UI at <http://localhost:7474>
-  (user `neo4j`, password `saecula_dev_password`).
+- Memgraph on `bolt://localhost:7687` (Bolt/Cypher, Neo4j-compatible; the
+  `neo4j-go-driver` connects to it unchanged). Community edition runs with
+  auth off, so the configured `NEO4J_USER`/`NEO4J_PASSWORD` are accepted and
+  ignored. For a browser UI, run the optional Memgraph Lab image.
 
 ### 2. Run the backend
 
@@ -374,7 +376,7 @@ the serial); otherwise it fails and lists them.
 
 The orchestrator (`scripts/e2e.sh`) does, in order:
 
-1. Starts Postgres + Neo4j (`docker compose up -d`) and waits for health.
+1. Starts Postgres + Memgraph (`docker compose up -d`) and waits for health.
 2. Seeds the databases idempotently: the CEE Bible, the Catechism in
    EN/ES/LA, the USCCB readings, the daily features, and the test account
    `test@saecula.app` / `saecula123` (`--test-user`).

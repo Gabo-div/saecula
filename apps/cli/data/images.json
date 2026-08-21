@@ -8,7 +8,10 @@
     "license": "Public Domain",
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Diego Velázquez, Museo del Prado (Public Domain)",
-    "variants": {},
+    "variants": {
+      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/velazquez-coronation-1200.jpg",
+      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/velazquez-coronation-600.jpg"
+    },
     "is_background": true,
     "is_share": true
   }

@@ -58,6 +58,8 @@ log "Seeding bible + catechism (EN/ES/LA) + readings + test user"
     --file data/catechism_ccc_la.json \
     --file data/readings_usccb.json \
     --test-user
+  log "Seeding image catalog"
+  go run . images seed --file data/images.json
   log "Seeding daily features ($ANCHOR_YEAR)"
   go run . daily --file data/daily_feasts.json --year "$ANCHOR_YEAR" --fill
 )

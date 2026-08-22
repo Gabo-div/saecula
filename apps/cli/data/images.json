@@ -9,8 +9,8 @@
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Diego Velázquez, Museo del Prado (Public Domain)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/velazquez-coronation-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/velazquez-coronation-600.jpg"
+      "1200": "backgrounds/velazquez-coronation-1200.jpg",
+      "600": "backgrounds/velazquez-coronation-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -25,8 +25,8 @@
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Sassoferrato (Giovanni Battista Salvi) (Public Domain)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/sassoferrato-virgin-in-prayer-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/sassoferrato-virgin-in-prayer-600.jpg"
+      "1200": "backgrounds/sassoferrato-virgin-in-prayer-1200.jpg",
+      "600": "backgrounds/sassoferrato-virgin-in-prayer-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -41,8 +41,8 @@
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Sandro Botticelli (Public Domain)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/botticelli-adoration-of-the-magi-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/botticelli-adoration-of-the-magi-600.jpg"
+      "1200": "backgrounds/botticelli-adoration-of-the-magi-1200.jpg",
+      "600": "backgrounds/botticelli-adoration-of-the-magi-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -57,8 +57,8 @@
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Rembrandt van Rijn (Public Domain)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/rembrandt-simeon-in-the-temple-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/rembrandt-simeon-in-the-temple-600.jpg"
+      "1200": "backgrounds/rembrandt-simeon-in-the-temple-1200.jpg",
+      "600": "backgrounds/rembrandt-simeon-in-the-temple-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -73,8 +73,8 @@
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Guido Reni (Public domain)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/guido-reni-st-joseph-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/guido-reni-st-joseph-600.jpg"
+      "1200": "backgrounds/guido-reni-st-joseph-1200.jpg",
+      "600": "backgrounds/guido-reni-st-joseph-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -89,8 +89,8 @@
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Leonardo da Vinci (Public Domain)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/leonardo-annunciation-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/leonardo-annunciation-600.jpg"
+      "1200": "backgrounds/leonardo-annunciation-1200.jpg",
+      "600": "backgrounds/leonardo-annunciation-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -105,8 +105,8 @@
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Domenico Ghirlandaio (Public Domain)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/ghirlandaio-birth-of-john-baptist-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/ghirlandaio-birth-of-john-baptist-600.jpg"
+      "1200": "backgrounds/ghirlandaio-birth-of-john-baptist-1200.jpg",
+      "600": "backgrounds/ghirlandaio-birth-of-john-baptist-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -121,8 +121,8 @@
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "El Greco (Public domain)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/el-greco-peter-and-paul-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/el-greco-peter-and-paul-600.jpg"
+      "1200": "backgrounds/el-greco-peter-and-paul-1200.jpg",
+      "600": "backgrounds/el-greco-peter-and-paul-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -137,8 +137,8 @@
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Raphael (Public domain)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/raphael-transfiguration-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/raphael-transfiguration-600.jpg"
+      "1200": "backgrounds/raphael-transfiguration-1200.jpg",
+      "600": "backgrounds/raphael-transfiguration-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -153,8 +153,8 @@
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Peter Paul Rubens (Public Domain)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/rubens-assumption-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/rubens-assumption-600.jpg"
+      "1200": "backgrounds/rubens-assumption-1200.jpg",
+      "600": "backgrounds/rubens-assumption-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -169,8 +169,8 @@
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Diego Velázquez (Public Domain)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/velazquez-christ-crucified-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/velazquez-christ-crucified-600.jpg"
+      "1200": "backgrounds/velazquez-christ-crucified-1200.jpg",
+      "600": "backgrounds/velazquez-christ-crucified-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -185,8 +185,8 @@
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Albrecht Dürer (Public Domain)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/durer-adoration-of-the-trinity-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/durer-adoration-of-the-trinity-600.jpg"
+      "1200": "backgrounds/durer-adoration-of-the-trinity-1200.jpg",
+      "600": "backgrounds/durer-adoration-of-the-trinity-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -201,8 +201,8 @@
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "William-Adolphe Bouguereau (Public Domain)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/bouguereau-day-of-the-dead-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/bouguereau-day-of-the-dead-600.jpg"
+      "1200": "backgrounds/bouguereau-day-of-the-dead-1200.jpg",
+      "600": "backgrounds/bouguereau-day-of-the-dead-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -217,8 +217,8 @@
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Bartolomé Esteban Murillo (Public Domain)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/murillo-immaculate-conception-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/murillo-immaculate-conception-600.jpg"
+      "1200": "backgrounds/murillo-immaculate-conception-1200.jpg",
+      "600": "backgrounds/murillo-immaculate-conception-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -233,8 +233,8 @@
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Gerard van Honthorst (Public Domain)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/honthorst-adoration-of-the-shepherds-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/honthorst-adoration-of-the-shepherds-600.jpg"
+      "1200": "backgrounds/honthorst-adoration-of-the-shepherds-1200.jpg",
+      "600": "backgrounds/honthorst-adoration-of-the-shepherds-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -249,8 +249,8 @@
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Rembrandt van Rijn (Public Domain)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/rembrandt-stoning-of-stephen-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/rembrandt-stoning-of-stephen-600.jpg"
+      "1200": "backgrounds/rembrandt-stoning-of-stephen-1200.jpg",
+      "600": "backgrounds/rembrandt-stoning-of-stephen-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -265,8 +265,8 @@
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Domenichino (Domenico Zampieri) (Public Domain)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/domenichino-john-evangelist-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/domenichino-john-evangelist-600.jpg"
+      "1200": "backgrounds/domenichino-john-evangelist-1200.jpg",
+      "600": "backgrounds/domenichino-john-evangelist-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -281,8 +281,8 @@
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
     "attribution": "Giotto (Public domain)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/giotto-massacre-of-innocents-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/giotto-massacre-of-innocents-600.jpg"
+      "1200": "backgrounds/giotto-massacre-of-innocents-1200.jpg",
+      "600": "backgrounds/giotto-massacre-of-innocents-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -296,8 +296,8 @@
     "license": "CC0",
     "attribution": "British Library — CC0 (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/gregory-the-great-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/gregory-the-great-600.jpg"
+      "1200": "saints/gregory-the-great-1200.jpg",
+      "600": "saints/gregory-the-great-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "gregory-the-great"
@@ -311,8 +311,8 @@
     "license": "CC0",
     "attribution": "Francisco de Goya — CC0 (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/ambrose-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/ambrose-600.jpg"
+      "1200": "saints/ambrose-1200.jpg",
+      "600": "saints/ambrose-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "ambrose"
@@ -326,8 +326,8 @@
     "license": "Public domain",
     "attribution": "Philippe de Champaigne — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/augustine-of-hippo-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/augustine-of-hippo-600.jpg"
+      "1200": "saints/augustine-of-hippo-1200.jpg",
+      "600": "saints/augustine-of-hippo-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "augustine-of-hippo"
@@ -341,8 +341,8 @@
     "license": "Public domain",
     "attribution": "Caravaggio — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/jerome-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/jerome-600.jpg"
+      "1200": "saints/jerome-1200.jpg",
+      "600": "saints/jerome-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "jerome"
@@ -355,8 +355,8 @@
     "license": "Public domain",
     "attribution": "Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/john-chrysostom-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/john-chrysostom-600.jpg"
+      "1200": "saints/john-chrysostom-1200.jpg",
+      "600": "saints/john-chrysostom-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "john-chrysostom"
@@ -370,8 +370,8 @@
     "license": "Public domain",
     "attribution": "Unknown authorUnknown author — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/basil-the-great-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/basil-the-great-600.jpg"
+      "1200": "saints/basil-the-great-1200.jpg",
+      "600": "saints/basil-the-great-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "basil-the-great"
@@ -385,8 +385,8 @@
     "license": "Public domain",
     "attribution": "Peter Paul Rubens — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/gregory-of-nazianzus-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/gregory-of-nazianzus-600.jpg"
+      "1200": "saints/gregory-of-nazianzus-1200.jpg",
+      "600": "saints/gregory-of-nazianzus-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "gregory-of-nazianzus"
@@ -400,7 +400,7 @@
     "license": "CC0",
     "attribution": "Byzantine Institute staff — CC0 (Wikimedia Commons)",
     "variants": {
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/athanasius-of-alexandria-600.jpg"
+      "600": "saints/athanasius-of-alexandria-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "athanasius-of-alexandria"
@@ -414,7 +414,7 @@
     "license": "Public domain",
     "attribution": "AnonymousUnknown author — Public domain (Wikimedia Commons)",
     "variants": {
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/cyril-of-jerusalem-600.jpg"
+      "600": "saints/cyril-of-jerusalem-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "cyril-of-jerusalem"
@@ -428,8 +428,8 @@
     "license": "CC BY-SA 4.0",
     "attribution": "Rabe! — CC BY-SA 4.0 (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/cyril-of-alexandria-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/cyril-of-alexandria-600.jpg"
+      "1200": "saints/cyril-of-alexandria-1200.jpg",
+      "600": "saints/cyril-of-alexandria-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "cyril-of-alexandria"
@@ -443,8 +443,8 @@
     "license": "Public domain",
     "attribution": "Unknown authorUnknown author — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/john-of-damascus-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/john-of-damascus-600.jpg"
+      "1200": "saints/john-of-damascus-1200.jpg",
+      "600": "saints/john-of-damascus-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "john-of-damascus"
@@ -458,7 +458,7 @@
     "license": "Public domain",
     "attribution": "http://www.e-codices.unifr.ch/de/bke/0047/1v — Public domain (Wikimedia Commons)",
     "variants": {
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/bede-600.jpg"
+      "600": "saints/bede-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "bede"
@@ -471,7 +471,7 @@
     "license": "Public domain",
     "attribution": "Public domain (Wikimedia Commons)",
     "variants": {
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/ephrem-the-syrian-600.jpg"
+      "600": "saints/ephrem-the-syrian-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "ephrem-the-syrian"
@@ -485,8 +485,8 @@
     "license": "Public domain",
     "attribution": "Carlo Crivelli — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/thomas-aquinas-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/thomas-aquinas-600.jpg"
+      "1200": "saints/thomas-aquinas-1200.jpg",
+      "600": "saints/thomas-aquinas-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "thomas-aquinas"
@@ -500,7 +500,7 @@
     "license": "Public domain",
     "attribution": "Claude François — Public domain (Wikimedia Commons)",
     "variants": {
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/bonaventure-600.jpg"
+      "600": "saints/bonaventure-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "bonaventure"
@@ -514,8 +514,8 @@
     "license": "Public domain",
     "attribution": "Anselm_of_Canterbury,_seal.jpg: The original uploader was Srnec at English Wikipedia.\nderivative work: MLWatts — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/anselm-of-canterbury-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/anselm-of-canterbury-600.jpg"
+      "1200": "saints/anselm-of-canterbury-1200.jpg",
+      "600": "saints/anselm-of-canterbury-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "anselm-of-canterbury"
@@ -529,8 +529,8 @@
     "license": "Public domain",
     "attribution": "Bartolomé Esteban Murillo — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/isidore-of-seville-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/isidore-of-seville-600.jpg"
+      "1200": "saints/isidore-of-seville-1200.jpg",
+      "600": "saints/isidore-of-seville-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "isidore-of-seville"
@@ -544,8 +544,8 @@
     "license": "CC0",
     "attribution": "Jacques Callot — CC0 (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/peter-chrysologus-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/peter-chrysologus-600.jpg"
+      "1200": "saints/peter-chrysologus-1200.jpg",
+      "600": "saints/peter-chrysologus-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "peter-chrysologus"
@@ -559,8 +559,8 @@
     "license": "Public domain",
     "attribution": "Francisco Herrera the Younger — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/pope-leo-the-great-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/pope-leo-the-great-600.jpg"
+      "1200": "saints/pope-leo-the-great-1200.jpg",
+      "600": "saints/pope-leo-the-great-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "pope-leo-the-great"
@@ -574,8 +574,8 @@
     "license": "Public domain",
     "attribution": "5aGulli — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/peter-damian-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/peter-damian-600.jpg"
+      "1200": "saints/peter-damian-1200.jpg",
+      "600": "saints/peter-damian-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "peter-damian"
@@ -588,7 +588,7 @@
     "license": "Public domain",
     "attribution": "Public domain (Wikimedia Commons)",
     "variants": {
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/bernard-of-clairvaux-600.jpg"
+      "600": "saints/bernard-of-clairvaux-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "bernard-of-clairvaux"
@@ -602,7 +602,7 @@
     "license": "CC0",
     "attribution": "PravoslavnyChristianin — CC0 (Wikimedia Commons)",
     "variants": {
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/hilary-of-poitiers-600.jpg"
+      "600": "saints/hilary-of-poitiers-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "hilary-of-poitiers"
@@ -616,7 +616,7 @@
     "license": "CC BY-SA 3.0",
     "attribution": "Unknown authorUnknown author — CC BY-SA 3.0 (Wikimedia Commons)",
     "variants": {
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/alphonsus-liguori-600.jpg"
+      "600": "saints/alphonsus-liguori-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "alphonsus-liguori"
@@ -630,8 +630,8 @@
     "license": "Public domain",
     "attribution": "Benjamin Gavaudo — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/francis-de-sales-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/francis-de-sales-600.jpg"
+      "1200": "saints/francis-de-sales-1200.jpg",
+      "600": "saints/francis-de-sales-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "francis-de-sales"
@@ -645,7 +645,7 @@
     "license": "Public domain",
     "attribution": "AnonymousUnknown author — Public domain (Wikimedia Commons)",
     "variants": {
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/peter-canisius-600.jpg"
+      "600": "saints/peter-canisius-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "peter-canisius"
@@ -659,7 +659,7 @@
     "license": "Public domain",
     "attribution": "Unknown authorUnknown author — Public domain (Wikimedia Commons)",
     "variants": {
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/john-of-the-cross-600.jpg"
+      "600": "saints/john-of-the-cross-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "john-of-the-cross"
@@ -673,8 +673,8 @@
     "license": "CC0",
     "attribution": "Unknown authorUnknown author — CC0 (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/robert-bellarmine-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/robert-bellarmine-600.jpg"
+      "1200": "saints/robert-bellarmine-1200.jpg",
+      "600": "saints/robert-bellarmine-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "robert-bellarmine"
@@ -688,7 +688,7 @@
     "license": "Public domain",
     "attribution": "Vicente Salvador Gómez — Public domain (Wikimedia Commons)",
     "variants": {
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/albert-the-great-600.jpg"
+      "600": "saints/albert-the-great-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "albert-the-great"
@@ -702,8 +702,8 @@
     "license": "Public domain",
     "attribution": "Francisco de Zurbarán — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/anthony-of-padua-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/anthony-of-padua-600.jpg"
+      "1200": "saints/anthony-of-padua-1200.jpg",
+      "600": "saints/anthony-of-padua-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "anthony-of-padua"
@@ -717,8 +717,8 @@
     "license": "CC0",
     "attribution": "Berengallio — CC0 (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/lawrence-of-brindisi-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/lawrence-of-brindisi-600.jpg"
+      "1200": "saints/lawrence-of-brindisi-1200.jpg",
+      "600": "saints/lawrence-of-brindisi-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "lawrence-of-brindisi"
@@ -732,8 +732,8 @@
     "license": "Public domain",
     "attribution": "Eduardo Balaca — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/teresa-of-avila-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/teresa-of-avila-600.jpg"
+      "1200": "saints/teresa-of-avila-1200.jpg",
+      "600": "saints/teresa-of-avila-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "teresa-of-avila"
@@ -747,7 +747,7 @@
     "license": "Public domain",
     "attribution": "Giovanni Battista Tiepolo — Public domain (Wikimedia Commons)",
     "variants": {
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/catherine-of-siena-600.jpg"
+      "600": "saints/catherine-of-siena-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "catherine-of-siena"
@@ -761,8 +761,8 @@
     "license": "Public domain",
     "attribution": "Céline Martin — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/therese-of-lisieux-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/therese-of-lisieux-600.jpg"
+      "1200": "saints/therese-of-lisieux-1200.jpg",
+      "600": "saints/therese-of-lisieux-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "therese-of-lisieux"
@@ -776,8 +776,8 @@
     "license": "Public domain",
     "attribution": "Workshop of El Greco — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/john-of-avila-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/john-of-avila-600.jpg"
+      "1200": "saints/john-of-avila-1200.jpg",
+      "600": "saints/john-of-avila-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "john-of-avila"
@@ -791,8 +791,8 @@
     "license": "Public domain",
     "attribution": "Unknown authorUnknown author — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/hildegard-of-bingen-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/hildegard-of-bingen-600.jpg"
+      "1200": "saints/hildegard-of-bingen-1200.jpg",
+      "600": "saints/hildegard-of-bingen-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "hildegard-of-bingen"
@@ -806,7 +806,7 @@
     "license": "Public domain",
     "attribution": "Grigor Mlichetsi — Public domain (Wikimedia Commons)",
     "variants": {
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/gregory-of-narek-600.jpg"
+      "600": "saints/gregory-of-narek-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "gregory-of-narek"
@@ -820,8 +820,8 @@
     "license": "Public domain",
     "attribution": "Lucien Bégule — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/irenaeus-of-lyons-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/irenaeus-of-lyons-600.jpg"
+      "1200": "saints/irenaeus-of-lyons-1200.jpg",
+      "600": "saints/irenaeus-of-lyons-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "irenaeus-of-lyons"
@@ -835,8 +835,8 @@
     "license": "CC BY-SA 4.0",
     "attribution": "Marcos Amigo — CC BY-SA 4.0 (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/fra-angelico-annunciation-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/fra-angelico-annunciation-600.jpg"
+      "1200": "backgrounds/fra-angelico-annunciation-1200.jpg",
+      "600": "backgrounds/fra-angelico-annunciation-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -850,8 +850,8 @@
     "license": "Public domain",
     "attribution": "Michelangelo Merisi da Caravaggio — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/caravaggio-the-calling-of-saint-matthew-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/caravaggio-the-calling-of-saint-matthew-600.jpg"
+      "1200": "backgrounds/caravaggio-the-calling-of-saint-matthew-1200.jpg",
+      "600": "backgrounds/caravaggio-the-calling-of-saint-matthew-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -865,8 +865,8 @@
     "license": "Public domain",
     "attribution": "Rembrandt — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/rembrandt-return-of-the-prodigal-son-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/rembrandt-return-of-the-prodigal-son-600.jpg"
+      "1200": "backgrounds/rembrandt-return-of-the-prodigal-son-1200.jpg",
+      "600": "backgrounds/rembrandt-return-of-the-prodigal-son-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -880,8 +880,8 @@
     "license": "Public domain",
     "attribution": "Duccio di Buoninsegna — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/duccio-maesta-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/duccio-maesta-600.jpg"
+      "1200": "backgrounds/duccio-maesta-1200.jpg",
+      "600": "backgrounds/duccio-maesta-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -895,8 +895,8 @@
     "license": "Public domain",
     "attribution": "Jan van Eyck / Presumably Hubert van Eyck — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/jan-van-eyck-ghent-altarpiece-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/jan-van-eyck-ghent-altarpiece-600.jpg"
+      "1200": "backgrounds/jan-van-eyck-ghent-altarpiece-1200.jpg",
+      "600": "backgrounds/jan-van-eyck-ghent-altarpiece-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -910,8 +910,8 @@
     "license": "Public domain",
     "attribution": "Michelangelo — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/michelangelo-creation-of-adam-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/michelangelo-creation-of-adam-600.jpg"
+      "1200": "backgrounds/michelangelo-creation-of-adam-1200.jpg",
+      "600": "backgrounds/michelangelo-creation-of-adam-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -925,8 +925,8 @@
     "license": "Public domain",
     "attribution": "Raphael — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/raphael-sistine-madonna-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/raphael-sistine-madonna-600.jpg"
+      "1200": "backgrounds/raphael-sistine-madonna-1200.jpg",
+      "600": "backgrounds/raphael-sistine-madonna-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -940,8 +940,8 @@
     "license": "Public domain",
     "attribution": "Caravaggio — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/caravaggio-supper-at-emmaus-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/caravaggio-supper-at-emmaus-600.jpg"
+      "1200": "backgrounds/caravaggio-supper-at-emmaus-1200.jpg",
+      "600": "backgrounds/caravaggio-supper-at-emmaus-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -955,8 +955,8 @@
     "license": "Public domain",
     "attribution": "Lorenzo Monaco / Fra Angelico — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/fra-angelico-deposition-from-the-cross-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/fra-angelico-deposition-from-the-cross-600.jpg"
+      "1200": "backgrounds/fra-angelico-deposition-from-the-cross-1200.jpg",
+      "600": "backgrounds/fra-angelico-deposition-from-the-cross-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -970,8 +970,8 @@
     "license": "Public domain",
     "attribution": "Gentile da Fabriano — Public domain (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/gentile-da-fabriano-adoration-of-the-magi-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/backgrounds/gentile-da-fabriano-adoration-of-the-magi-600.jpg"
+      "1200": "backgrounds/gentile-da-fabriano-adoration-of-the-magi-1200.jpg",
+      "600": "backgrounds/gentile-da-fabriano-adoration-of-the-magi-600.jpg"
     },
     "is_background": true,
     "is_share": true
@@ -985,8 +985,8 @@
     "license": "CC0",
     "attribution": "Rijksmuseum — CC0 (Wikimedia Commons)",
     "variants": {
-      "1200": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/john-henry-newman-1200.jpg",
-      "600": "https://pub-d653434611244158909a759f397d7720.r2.dev/saints/john-henry-newman-600.jpg"
+      "1200": "saints/john-henry-newman-1200.jpg",
+      "600": "saints/john-henry-newman-600.jpg"
     },
     "subject_kind": "saint",
     "subject_id": "john-henry-newman"

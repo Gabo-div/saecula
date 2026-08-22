@@ -73,14 +73,13 @@ Rewrites data/images.json in place with the published variant URLs.`,
 
 func runImagesPublish(cmd *cobra.Command, _ []string) error {
 	cfg := images.R2Config{
-		Endpoint:   os.Getenv("R2_ENDPOINT"),
-		AccessKey:  os.Getenv("R2_ACCESS_KEY"),
-		Secret:     os.Getenv("R2_SECRET"),
-		Bucket:     os.Getenv("R2_BUCKET"),
-		PublicBase: os.Getenv("R2_PUBLIC_BASE"),
+		Endpoint:  os.Getenv("R2_ENDPOINT"),
+		AccessKey: os.Getenv("R2_ACCESS_KEY"),
+		Secret:    os.Getenv("R2_SECRET"),
+		Bucket:    os.Getenv("R2_BUCKET"),
 	}
-	if cfg.Endpoint == "" || cfg.AccessKey == "" || cfg.Secret == "" || cfg.Bucket == "" || cfg.PublicBase == "" {
-		return fmt.Errorf("set R2_ENDPOINT, R2_ACCESS_KEY, R2_SECRET, R2_BUCKET, R2_PUBLIC_BASE")
+	if cfg.Endpoint == "" || cfg.AccessKey == "" || cfg.Secret == "" || cfg.Bucket == "" {
+		return fmt.Errorf("set R2_ENDPOINT, R2_ACCESS_KEY, R2_SECRET, R2_BUCKET")
 	}
 	return images.Publish(cmd.Context(), cfg, imagesPublishOpts.file)
 }

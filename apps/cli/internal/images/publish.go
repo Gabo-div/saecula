@@ -16,11 +16,10 @@ import (
 
 // R2Config holds the curator-only credentials + public base. All from env.
 type R2Config struct {
-	Endpoint   string // e.g. <accountid>.r2.cloudflarestorage.com
-	AccessKey  string
-	Secret     string
-	Bucket     string
-	PublicBase string // e.g. https://<hash>.r2.dev
+	Endpoint  string // e.g. <accountid>.r2.cloudflarestorage.com
+	AccessKey string
+	Secret    string
+	Bucket    string
 }
 
 // category chooses the R2 key prefix from an asset's role flags.
@@ -119,7 +118,7 @@ func Publish(ctx context.Context, cfg R2Config, manifestPath string) error {
 				minio.PutObjectOptions{ContentType: "image/jpeg"}); err != nil {
 				return fmt.Errorf("%s: put %s: %w", a.ID, key, err)
 			}
-			variants[strconv.Itoa(w)] = cfg.PublicBase + "/" + key
+			variants[strconv.Itoa(w)] = key // relative key; the base is prepended at read time
 		}
 		if len(variants) == 0 {
 			return fmt.Errorf("%s: source width %dpx fits no variant", a.ID, srcW)

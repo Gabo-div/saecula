@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -33,6 +34,11 @@ type Config struct {
 	// Public MCP endpoint. Mounted only when the chat tools exist, since it
 	// serves the same tool layer.
 	MCPRatePerMin int
+
+	// ImageBaseURL is the public base (CDN/R2) prepended to the relative image
+	// keys stored in image_assets.variants. Kept out of the DB so the domain
+	// can change in one place. Sourced from R2_PUBLIC_BASE.
+	ImageBaseURL string
 }
 
 func Load() (*Config, error) {
@@ -52,6 +58,8 @@ func Load() (*Config, error) {
 		ChatRatePerMin:      getEnvInt("CHAT_RATE_PER_MIN", 20),
 
 		MCPRatePerMin: getEnvInt("MCP_RATE_PER_MIN", 60),
+
+		ImageBaseURL: strings.TrimRight(getEnv("R2_PUBLIC_BASE", ""), "/"),
 	}
 
 	if len(cfg.JWTSecret) == 0 {

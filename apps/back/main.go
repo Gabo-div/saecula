@@ -107,7 +107,7 @@ func run() error {
 	graphRepo := timeline.NewNeo4jGraphRepository(driver)
 	textRepo := timeline.NewPostgresTextRepository(pool)
 	bibleGraphRepo := bible.NewNeo4jGraphRepository(driver)
-	bibleTextRepo := bible.NewPostgresTextRepository(pool)
+	bibleTextRepo := bible.NewPostgresTextRepository(pool, cfg.ImageBaseURL)
 	readingsGraphRepo := readings.NewNeo4jGraphRepository(driver)
 	readingsTextRepo := readings.NewPostgresTextRepository(pool)
 	bookmarksRepo := bookmarks.NewPostgresRepository(pool)
@@ -126,7 +126,7 @@ func run() error {
 	bookmarksAPI := bookmarks.NewAPI(bookmarksRepo)
 	streakAPI := streak.NewAPI(streak.NewPostgresRepository(pool))
 	keysAPI := apikeys.NewAPI(apiKeyRepo)
-	imagesAPI := images.NewAPI(images.NewPostgresRepository(pool))
+	imagesAPI := images.NewAPI(images.NewPostgresRepository(pool, cfg.ImageBaseURL))
 
 	// AI assistant ("Ask"): Genkit runs the agent; the tools read the app's
 	// own content and graph. Disabled (503) when no Gemini key is set.

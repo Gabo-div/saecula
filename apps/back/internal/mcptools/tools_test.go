@@ -25,7 +25,7 @@ func depsOrSkip(t *testing.T) (Deps, func()) {
 		pool.Close()
 		t.Skipf("no database: %v", err)
 	}
-	return Deps{Scripture: bible.NewPostgresTextRepository(pool), Pool: pool}, pool.Close
+	return Deps{Scripture: bible.NewPostgresTextRepository(pool, ""), Pool: pool}, pool.Close
 }
 
 func tc() *ai.ToolContext { return &ai.ToolContext{Context: context.Background()} }

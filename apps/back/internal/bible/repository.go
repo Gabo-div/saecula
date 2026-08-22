@@ -2,6 +2,7 @@ package bible
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
@@ -130,13 +131,14 @@ func (repo *Neo4jGraphRepository) ChapterCounts(ctx context.Context) (map[string
 // ---------------------------------------------------------------------------
 
 type PostgresTextRepository struct {
-	q *gen.Queries
+	q         *gen.Queries
+	imageBase string
 }
 
 var _ TextRepository = (*PostgresTextRepository)(nil)
 
-func NewPostgresTextRepository(pool *pgxpool.Pool) *PostgresTextRepository {
-	return &PostgresTextRepository{q: gen.New(pool)}
+func NewPostgresTextRepository(pool *pgxpool.Pool, imageBase string) *PostgresTextRepository {
+	return &PostgresTextRepository{q: gen.New(pool), imageBase: imageBase}
 }
 
 func (repo *PostgresTextRepository) ChapterVerses(ctx context.Context, bookCode string, chapter int, lang, translationID string) ([]Verse, error) {
@@ -212,13 +214,34 @@ func (repo *PostgresTextRepository) DailyFeature(ctx context.Context, date strin
 		nums[i] = int(n)
 	}
 	f := &DailyFeature{VerseIDs: row.VerseIds, CatechismNumbers: nums}
-	if row.ImageUrl != nil {
+	// A linked catalog asset (image_asset_id set) carries relative variant keys;
+	// build the URL with the configured base. Otherwise fall back to a legacy
+	// full image_url (e.g. a raw --image entry).
+	if key := pickVariantKey(row.Variants); key != "" {
+		f.ImageURL = repo.imageBase + "/" + key
+	} else if row.ImageUrl != nil {
 		f.ImageURL = *row.ImageUrl
 	}
 	if row.Attribution != nil {
 		f.Attribution = *row.Attribution
 	}
 	return f, nil
+}
+
+// pickVariantKey returns the best variant key (1200w, else 600w) from a JSONB
+// {width: key} blob, or "" when absent or unparseable.
+func pickVariantKey(raw []byte) string {
+	if len(raw) == 0 {
+		return ""
+	}
+	var v map[string]string
+	if json.Unmarshal(raw, &v) != nil {
+		return ""
+	}
+	if k := v["1200"]; k != "" {
+		return k
+	}
+	return v["600"]
 }
 
 func (repo *PostgresTextRepository) CatechismParagraphs(ctx context.Context, numbers []int, lang string) ([]CatechismParagraph, error) {

@@ -126,11 +126,12 @@ func runDaily(cmd *cobra.Command, _ []string) error {
 		var image, assetID any
 		switch {
 		case e.ImageID != "":
-			url, ok := assets[e.ImageID]
-			if !ok {
+			if !assets[e.ImageID] {
 				return fmt.Errorf("%s: unknown image_id %q (run `saecula-cli images seed` first)", date, e.ImageID)
 			}
-			image, assetID = url, e.ImageID
+			// image_url stays NULL: the backend derives the URL from the linked
+			// asset's variant keys + configured base, so the domain isn't stored.
+			assetID = e.ImageID
 		case e.Image != "":
 			image = e.Image
 		}
@@ -313,24 +314,22 @@ func init() {
 	rootCmd.AddCommand(dailyCmd)
 }
 
-// loadImageAssets maps each catalog id to its best served URL (1200w hero,
-// falling back to 600w), so a feast entry's image_id resolves to an R2 URL.
-func loadImageAssets(ctx context.Context, pool *pgxpool.Pool) (map[string]string, error) {
-	rows, err := pool.Query(ctx, `SELECT id, COALESCE(variants->>'1200', variants->>'600') FROM image_assets`)
+// loadImageAssets returns the set of catalog ids, so a feast entry's image_id
+// can be validated before it is linked (the URL itself is built at read time
+// from the asset's variant keys + the configured base).
+func loadImageAssets(ctx context.Context, pool *pgxpool.Pool) (map[string]bool, error) {
+	rows, err := pool.Query(ctx, `SELECT id FROM image_assets`)
 	if err != nil {
 		return nil, fmt.Errorf("load image assets: %w", err)
 	}
 	defer rows.Close()
-	m := map[string]string{}
+	m := map[string]bool{}
 	for rows.Next() {
 		var id string
-		var url *string
-		if err := rows.Scan(&id, &url); err != nil {
+		if err := rows.Scan(&id); err != nil {
 			return nil, err
 		}
-		if url != nil && *url != "" {
-			m[id] = *url
-		}
+		m[id] = true
 	}
 	return m, rows.Err()
 }

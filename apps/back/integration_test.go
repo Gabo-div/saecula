@@ -65,7 +65,7 @@ func TestMain(m *testing.M) {
 	graphRepo := timeline.NewNeo4jGraphRepository(driver)
 	textRepo := timeline.NewPostgresTextRepository(pool)
 	bibleGraphRepo := bible.NewNeo4jGraphRepository(driver)
-	bibleTextRepo := bible.NewPostgresTextRepository(pool)
+	bibleTextRepo := bible.NewPostgresTextRepository(pool, "")
 	readingsGraphRepo := readings.NewNeo4jGraphRepository(driver)
 	readingsTextRepo := readings.NewPostgresTextRepository(pool)
 

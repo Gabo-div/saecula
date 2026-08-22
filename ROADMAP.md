@@ -38,12 +38,15 @@ can rate-limit or 404 without warning.
 **Open questions.** Which storage/CDN; do we need on-the-fly resizing or just
 pre-sized variants; how attribution is displayed in-app.
 
-**Status.** Home backgrounds and share images now ship from Cloudflare R2 via
-the `image_assets` catalog and `saecula-cli images` (seed/publish). **Remaining:**
-the daily/feast-day art is still Wikimedia — it needs the feast images curated
-into the manifest and published to R2 (requires R2 credentials), after which
-`daily.go` should set `daily_features.image_asset_id` (the backend already
-returns `attribution` for linked daily art).
+**Status: done.** Home backgrounds, share images, and daily/feast-day art all
+ship from Cloudflare R2 via the `image_assets` catalog and `saecula-cli images`
+(seed/publish). Feast dates link to catalog assets (`daily_feasts.json`
+`image_id` → `daily.go` sets `daily_features.image_asset_id`), and the daily
+response carries `attribution`. No runtime Wikimedia dependency remains.
+Curated set: 17 feast paintings + 10 backgrounds; plus 38 Doctor-of-the-Church
+portraits published and catalogued, staged for the santoral/profile feature
+(item 5) — their `subject_kind`/`subject_id` ride in the manifest and get a DB
+column when that feature lands.
 
 ---
 

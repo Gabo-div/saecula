@@ -57,7 +57,8 @@ var catechismPool = []int{
 type dailyEntry struct {
 	Date      string `json:"date"`
 	Verse     string `json:"verse"`
-	Image     string `json:"image,omitempty"`
+	Image     string `json:"image,omitempty"`    // legacy: a raw image URL
+	ImageID   string `json:"image_id,omitempty"` // preferred: an image_assets catalog id
 	Catechism string `json:"catechism,omitempty"`
 }
 
@@ -108,6 +109,11 @@ func runDaily(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("postgres ping: %w", err)
 	}
 
+	assets, err := loadImageAssets(ctx, pool)
+	if err != nil {
+		return err
+	}
+
 	for _, e := range entries {
 		date, err := resolveDate(e.Date, dailyOpts.year)
 		if err != nil {
@@ -117,8 +123,15 @@ func runDaily(cmd *cobra.Command, _ []string) error {
 		if err != nil {
 			return fmt.Errorf("%s: %w", date, err)
 		}
-		var image any
-		if e.Image != "" {
+		var image, assetID any
+		switch {
+		case e.ImageID != "":
+			url, ok := assets[e.ImageID]
+			if !ok {
+				return fmt.Errorf("%s: unknown image_id %q (run `saecula-cli images seed` first)", date, e.ImageID)
+			}
+			image, assetID = url, e.ImageID
+		case e.Image != "":
 			image = e.Image
 		}
 		catechismNums, err := parseCatechismArg(e.Catechism)
@@ -130,12 +143,13 @@ func runDaily(cmd *cobra.Command, _ []string) error {
 			catechism = catechismNums
 		}
 		if _, err := pool.Exec(ctx,
-			`INSERT INTO daily_features (feature_date, verse_ids, image_url, catechism_numbers)
-			 VALUES ($1, $2, $3, $4)
+			`INSERT INTO daily_features (feature_date, verse_ids, image_url, catechism_numbers, image_asset_id)
+			 VALUES ($1, $2, $3, $4, $5)
 			 ON CONFLICT (feature_date)
 			 DO UPDATE SET verse_ids = EXCLUDED.verse_ids, image_url = EXCLUDED.image_url,
-			               catechism_numbers = EXCLUDED.catechism_numbers`,
-			date, ids, image, catechism); err != nil {
+			               catechism_numbers = EXCLUDED.catechism_numbers,
+			               image_asset_id = EXCLUDED.image_asset_id`,
+			date, ids, image, catechism, assetID); err != nil {
 			return fmt.Errorf("upsert %s: %w", date, err)
 		}
 		fmt.Printf("%s → %s (%d verse(s))%s\n", date, e.Verse, len(ids),
@@ -297,4 +311,26 @@ func init() {
 		"postgres://saecula:saecula_dev_password@localhost:5432/saecula?sslmode=disable",
 		"PostgreSQL connection string")
 	rootCmd.AddCommand(dailyCmd)
+}
+
+// loadImageAssets maps each catalog id to its best served URL (1200w hero,
+// falling back to 600w), so a feast entry's image_id resolves to an R2 URL.
+func loadImageAssets(ctx context.Context, pool *pgxpool.Pool) (map[string]string, error) {
+	rows, err := pool.Query(ctx, `SELECT id, COALESCE(variants->>'1200', variants->>'600') FROM image_assets`)
+	if err != nil {
+		return nil, fmt.Errorf("load image assets: %w", err)
+	}
+	defer rows.Close()
+	m := map[string]string{}
+	for rows.Next() {
+		var id string
+		var url *string
+		if err := rows.Scan(&id, &url); err != nil {
+			return nil, err
+		}
+		if url != nil && *url != "" {
+			m[id] = *url
+		}
+	}
+	return m, rows.Err()
 }
